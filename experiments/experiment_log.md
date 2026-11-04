@@ -63,6 +63,8 @@ pytest        # 281 passed（离线；合成样本仅存在于 tmp_path）
 
 无随机种子（选样规则确定，`random_seed: null`）；索引与三个产物两次构建字节一致
 （sha256 见 `data/index/data_manifest.json → output`）。
+Git 检查点：`77b083c`（已推送，`git ls-remote origin` 与 `git rev-parse HEAD` 相同）；
+提交后在工作区干净状态下重建索引，产物字节不变且 manifest `git_commit` = 该 sha。
 完整结论、失败案例与"本轮不允许的主张"见
 [`experiments/p0_feature_probe/notes.md`](p0_feature_probe/notes.md)。
 

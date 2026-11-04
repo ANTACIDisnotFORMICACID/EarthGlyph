@@ -190,11 +190,18 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 |------|--------|------|----------|
 | 2026-11-05 | `6c71245` | P0-0 / P0-1 / P0-2 基线（首个检查点） | ✅ `origin/main` |
 | 2026-11-05 | `737ea68` | `docs:` 写入仓库维护与小版本推送规则 + `.gitignore` 审查包 | ✅ `git ls-remote origin` = `737ea681fa02beb8c4865e8528b71dd5fe67c3b3` |
+| 2026-11-05 | `fc35ba9` | `docs:` 记录检查点 | ✅ `origin/main` |
+| 2026-11-05 | `77b083c` | **P0-3 检查点**：特征模块 + 保真度度量 + 采样消融 + 形状索引 + 144 项新单测 + 文档（39 文件） | ✅ `git ls-remote origin` = `77b083c931b72cf4fd153a9185254f5a9486aeab` = `git rev-parse HEAD`（`fc35ba9..77b083c main -> main`） |
 
-- 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；提交身份用一次性 `-c` 参数传入，未修改机器级 `git config`。
-- 复现前检查：`pytest`（281 passed）· `ruff check .`（All checks passed）· `mypy`（no issues in 17 source files）。
-- 待办：P0-3 检查点在本次提交中落地，其 commit sha 与远端核验由紧随的 `docs:` 提交记录
-  （提交自身无法把 sha 写进自己；索引 manifest 的 `git_commit` 在提交后重建以对齐检查点）。
+- 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
+  `mypy` → no issues in 17 source files；
+  `data/index/` 三产物 sha256 见 [`DATA_PIPELINE.md`](DATA_PIPELINE.md) §10.1，
+  **在 `77b083c` 提交后重建得到字节一致的文件**，其 `data_manifest.json` 的
+  `git_commit` 已等于该检查点 sha（紧随的 `docs:` 提交只补记本行核验，
+  因为提交无法把自己的 sha 写进自身，不另立检查点）。
+- 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
+- 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
+  未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
 
 ## 阻塞（当前）
 

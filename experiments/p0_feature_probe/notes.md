@@ -195,8 +195,7 @@ GEOS 距离是**顶点离散**值，是连续距离的下界，不能当作"精�
 
 ## 6. Task D — 索引构建与一致性
 
-产物与校验和见 [`docs/DATA_PIPELINE.md`](../../docs/DATA_PIPELINE.md) §10。
-一致性检查（数量相等、id 唯一、行序契约 `feature_row`、全部有限、维度/宽度、
+产物与校验和见 [`docs/DATA_PIPELINE.md`](../../docs/DATA_PIPELINE.md) §10。一致性检查（数量相等、id 唯一、行序契约 `feature_row`、全部有限、维度/宽度、
 轮廓可回推、经纬度合法、`n_points` 一致、重建字节一致）由 `earthglyph/data/index.py`
 强制，异常注入由 `tests/test_index.py`（31 项）覆盖。
 确定性实测：同命令两次构建三个产物字节一致；float32 往返最大绝对误差
@@ -211,6 +210,8 @@ release `2026-10-21.0` 的真实 feature，`lon/lat` 为 `representative_point`�
 单测确认正式索引不含任何合成记录。
 耗时（本机本次）：特征计算 1.659 s / 839 候选；批量描述子 0.0211 s；
 839 候选全量 L2 扫描 1.7e-5 s；粗筛宽度对成本影响线性。
+**检查点对齐**：P0-3 检查点 `77b083c` 推送后，工作区干净状态下重建索引，
+三个产物 sha256 与提交前记录逐字节一致，manifest 的 `git_commit` = 该检查点 sha。
 
 ## 7. Task E — 候选库规模与多样性（未下载新数据）
 

@@ -237,6 +237,12 @@ python scripts/build_index.py --contours data/processed/contours.parquet \
 
 索引默认**不入 Git**（AGENTS.md 禁止入库）；版本化 = manifest + sha256 + 上面的复现命令。
 
+**代码版本对齐（已实测）**：P0-3 检查点 `77b083c931b72cf4fd153a9185254f5a9486aeab` 推送后，
+在工作区干净的状态下重建索引 —— 三个产物 sha256 与上表**逐字节一致**，
+`data_manifest.json` 的 `git_commit` 随之等于该检查点 sha，
+即"入库代码"与"入库数据"版本自洽（D17）。提交后重建不改变任何字节，
+说明特征计算不含隐藏状态、随机性或时间依赖。
+
 ### 10.2 计数与一致性
 
 | 项 | 值 |
