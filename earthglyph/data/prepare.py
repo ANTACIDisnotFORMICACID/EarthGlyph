@@ -124,7 +124,7 @@ def content_digest(ids: list[Any], geometries: list[Any]) -> dict[str, Any]:
 
 
 @dataclass
-class _PartCandidate:
+class PartCandidate:
     """A part that passed geometry checks; dedup runs before it is emitted."""
 
     candidate_id: str
@@ -134,6 +134,34 @@ class _PartCandidate:
     polygon_metric: Any
     polygon_geo: Any
     record: dict[str, Any]
+
+
+@dataclass
+class SourceBuild:
+    """Everything derived from the raw extract, before files are written.
+
+    Split out of :func:`prepare_contours` so an experiment can replay exactly the
+    candidate selection and metric polygons of the released dataset (the sampling
+    ablation must resample from the *original* boundary, not from a stored
+    contour) without re-implementing the filter chain.
+    """
+
+    input_path: Path
+    frame: tuple[float, float, float, float] | None
+    gdf: pd.DataFrame
+    meta: dict[str, Any]
+    projection: AeqdProjection
+    candidates: list[PartCandidate]
+    rejections: RejectionLog
+    stats: dict[str, int]
+    raw_rows: int
+
+    @property
+    def records(self) -> list[dict[str, Any]]:
+        return [candidate.record for candidate in self.candidates]
+
+    def candidate_by_id(self) -> dict[str, PartCandidate]:
+        return {candidate.candidate_id: candidate for candidate in self.candidates}
 
 
 @dataclass
@@ -176,7 +204,7 @@ def build_candidates(
     config: FilterConfig,
     n_points: int,
     frame: tuple[float, float, float, float] | None = None,
-) -> tuple[list[_PartCandidate], RejectionLog, dict[str, int]]:
+) -> tuple[list[PartCandidate], RejectionLog, dict[str, int]]:
     """Run extraction, filtering, projection and normalization over all rows."""
     geoms = list(gdf.geometry)
     ids = _column(gdf, "id")
@@ -186,7 +214,7 @@ def build_candidates(
     salt = _column(gdf, "is_salt")
 
     rejections = RejectionLog()
-    candidates: list[_PartCandidate] = []
+    candidates: list[PartCandidate] = []
     feature_reasons: Counter[str] = Counter()
     part_reasons: Counter[str] = Counter()
 
@@ -296,7 +324,7 @@ def build_candidates(
                 "contour": contour.points.reshape(-1).tolist(),
             }
             candidates.append(
-                _PartCandidate(
+                PartCandidate(
                     candidate_id=candidate_id,
                     source_id=source_id,
                     part_index=part.part_index,
@@ -553,6 +581,50 @@ def _area_percentiles(values: list[float]) -> dict[str, float]:
     return {k: float(v) for k, v in zip(keys, qs, strict=True)}
 
 
+def build_from_source(
+    input_path: Path | str,
+    *,
+    n_points: int = 128,
+    config: FilterConfig | None = None,
+) -> SourceBuild:
+    """Run the whole P0-2 candidate chain from a raw extract, writing nothing.
+
+    Returns the metric polygons behind every ``candidate_id``, which is what the
+    sampling ablation needs in order to resample from the original boundary.
+    """
+    input_path = Path(input_path)
+    if n_points < 3:
+        raise ValueError(f"n_points must be >= 3, got {n_points}")
+    if not input_path.is_file():
+        raise FileNotFoundError(f"input GeoParquet not found: {input_path}")
+
+    config = config or FilterConfig()
+    gdf, meta = _read_source(input_path)
+    bounds = [float(v) for v in gdf.geometry.total_bounds]
+    projection = AeqdProjection.from_bounds(
+        (bounds[0], bounds[1], bounds[2], bounds[3])
+    )
+    frame = _frame_from_meta(meta)
+    candidates, rejections, stats = build_candidates(
+        gdf,
+        projection=projection,
+        config=config,
+        n_points=n_points,
+        frame=frame,
+    )
+    return SourceBuild(
+        input_path=input_path,
+        frame=frame,
+        gdf=gdf,
+        meta=meta,
+        projection=projection,
+        candidates=candidates,
+        rejections=rejections,
+        stats=stats,
+        raw_rows=int(len(gdf)),
+    )
+
+
 def prepare_contours(
     input_path: Path | str,
     out_dir: Path | str,
@@ -570,10 +642,6 @@ def prepare_contours(
     input_path = Path(input_path)
     out_dir = Path(out_dir)
     config = config or FilterConfig()
-    if n_points < 3:
-        raise ValueError(f"n_points must be >= 3, got {n_points}")
-    if not input_path.is_file():
-        raise FileNotFoundError(f"input GeoParquet not found: {input_path}")
 
     contours_path = out_dir / CONTOURS_FILENAME
     manifest_path = out_dir / MANIFEST_FILENAME
@@ -582,22 +650,16 @@ def prepare_contours(
             f"{contours_path} already exists; pass --force to rebuild it"
         )
 
-    gdf, meta = _read_source(input_path)
-    raw_rows = int(len(gdf))
-    frame = _frame_from_meta(meta)
-    bounds = [float(v) for v in gdf.geometry.total_bounds]
-    projection = AeqdProjection.from_bounds(
-        (bounds[0], bounds[1], bounds[2], bounds[3])
-    )
-
-    candidates, rejections, stats = build_candidates(
-        gdf,
-        projection=projection,
-        config=config,
-        n_points=n_points,
-        frame=frame,
-    )
+    build = build_from_source(input_path, n_points=n_points, config=config)
+    gdf = build.gdf
+    meta = build.meta
+    raw_rows = build.raw_rows
+    projection = build.projection
+    candidates = build.candidates
+    rejections = build.rejections
+    stats = build.stats
     records = [c.record for c in candidates]
+    bounds = [float(v) for v in gdf.geometry.total_bounds]
 
     ids = [rec["candidate_id"] for rec in records]
     duplicates = [cid for cid, count in Counter(ids).items() if count > 1]

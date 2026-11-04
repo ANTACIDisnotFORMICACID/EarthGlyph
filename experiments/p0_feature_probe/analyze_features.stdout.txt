@@ -1,0 +1,133 @@
+839 candidates, 128 points each
+{
+  "h12": {
+    "min": 0.53318,
+    "p10": 0.70246,
+    "p50": 0.90067,
+    "max": 0.99831
+  },
+  "h16": {
+    "min": 0.53323,
+    "p10": 0.70249,
+    "p50": 0.90077,
+    "max": 0.99833
+  },
+  "h24": {
+    "min": 0.53327,
+    "p10": 0.70251,
+    "p50": 0.90097,
+    "max": 0.99834
+  }
+}
+{
+  "h12": {
+    "pairwise_l2": {
+      "p10": 0.05007,
+      "p50": 0.12899,
+      "p90": 0.27509
+    },
+    "pairwise_l2_mean": 0.15402,
+    "nearest_neighbour_l2": {
+      "median": 0.02146,
+      "p10": 0.00987,
+      "min": 0.004475
+    },
+    "spread_ratio_mean_over_min": 34.4,
+    "pairs_below_0.02": 2006,
+    "pairs_below_0.05": 35057
+  },
+  "h16": {
+    "pairwise_l2": {
+      "p10": 0.05022,
+      "p50": 0.12917,
+      "p90": 0.27555
+    },
+    "pairwise_l2_mean": 0.15427,
+    "nearest_neighbour_l2": {
+      "median": 0.0218,
+      "p10": 0.01018,
+      "min": 0.004533
+    },
+    "spread_ratio_mean_over_min": 34.0,
+    "pairs_below_0.02": 1939,
+    "pairs_below_0.05": 34830
+  },
+  "h24": {
+    "pairwise_l2": {
+      "p10": 0.05031,
+      "p50": 0.1293,
+      "p90": 0.27584
+    },
+    "pairwise_l2_mean": 0.15444,
+    "nearest_neighbour_l2": {
+      "median": 0.02203,
+      "p10": 0.01034,
+      "min": 0.004565
+    },
+    "spread_ratio_mean_over_min": 33.8,
+    "pairs_below_0.02": 1897,
+    "pairs_below_0.05": 34690
+  }
+}
+{
+  "h12_vs_h16": {
+    "pearson": 0.999993,
+    "spearman": 0.99999,
+    "mean_relative_change": 0.00203
+  },
+  "h16_vs_h24": {
+    "pearson": 0.99999,
+    "spearman": 0.999989,
+    "mean_relative_change": 0.00126
+  },
+  "h12_vs_h24": {
+    "pearson": 0.999974,
+    "spearman": 0.999965,
+    "mean_relative_change": 0.00329
+  }
+}
+{
+  "h12_vs_h16": {
+    "queries": 120,
+    "k": 10,
+    "mean_overlap": 0.9808,
+    "p10_overlap": 0.9,
+    "min_overlap": 0.9
+  },
+  "h16_vs_h16": {
+    "queries": 120,
+    "k": 10,
+    "mean_overlap": 1.0,
+    "p10_overlap": 1.0,
+    "min_overlap": 1.0
+  },
+  "h24_vs_h16": {
+    "queries": 120,
+    "k": 10,
+    "mean_overlap": 0.9875,
+    "p10_overlap": 0.9,
+    "min_overlap": 0.9
+  }
+}
+{
+  "thresholds": {
+    "index_feature_l2": 0.02,
+    "full_spectrum_l2": 0.03,
+    "relative_area": 0.02
+  },
+  "pairs": 23,
+  "candidates_in_any_pair": 42,
+  "clusters": 20,
+  "largest_cluster": 3,
+  "cluster_size_histogram": {
+    "3": 2,
+    "2": 18
+  },
+  "own_nearest_neighbour_l2": {
+    "median": 0.0218,
+    "p10": 0.01018,
+    "min": 0.004533
+  },
+  "caveat": "rotation and cyclic start are unaligned, so this is a lower bound on how confusable the library is; duplicate decisions belong to P0-4"
+}
+summary written: experiments\p0_feature_probe\features_summary.json

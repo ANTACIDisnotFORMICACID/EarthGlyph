@@ -33,6 +33,19 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from probe_shared import (  # noqa: E402
+    draw_contour as _draw_contour,
+)
+from probe_shared import (
+    draw_geometry as _draw_geometry,
+)
+from probe_shared import (
+    projection_from_manifest as _projection,
+)
+from probe_shared import (
+    stratified_pick as _stratified_pick,
+)
+
 from earthglyph.data.prepare import load_contours, stack_contours  # noqa: E402
 from earthglyph.geometry import AeqdProjection, split_feature  # noqa: E402
 
@@ -42,13 +55,6 @@ PROBE_LABEL = (
 )
 PROBE_LABEL_SHORT = "REAL Overture water - P0-2 preprocessing result, NOT retrieval"
 CIRCLE_COMPLEXITY = 4.0 * np.pi  # perimeter^2 / area for a perfect disc
-
-
-def _projection(manifest: dict[str, Any]) -> AeqdProjection:
-    proj = manifest["projection"]
-    return AeqdProjection(lon0=float(proj["lon0"]), lat0=float(proj["lat0"]))
-
-
 def _raw_geometries(raw_path: Path) -> dict[str, Any]:
     import geopandas as gpd
 
@@ -65,91 +71,6 @@ def _source_part(raw_geoms: dict[str, Any], source_id: str, part_index: int) -> 
     if part_index >= len(parts):
         return None
     return parts[part_index].polygon
-
-
-def _geom_paths(geom: Any) -> list[Any]:
-    """Matplotlib paths for any polygonal geometry (holes rendered empty)."""
-    from matplotlib.path import Path
-
-    parts: list[Any] = []
-    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
-    for poly in polys:
-        parts.append(Path(np.asarray(poly.exterior.coords)))
-        for hole in poly.interiors:
-            parts.append(Path(np.asarray(hole.coords)[::-1]))
-    return parts
-
-
-def _draw_geometry(
-    ax: Any,
-    geom: Any,
-    *,
-    facecolor: str = "#7fb2d9",
-    edgecolor: str = "#28556e",
-    lw: float = 0.8,
-    pad_frac: float = 0.08,
-) -> None:
-    """Draw a shapely geometry of any type into an equal-aspect axis."""
-    import matplotlib
-    from matplotlib.path import Path
-
-    geom_type = geom.geom_type
-    if geom.is_empty:
-        ax.text(0.5, 0.5, "empty geometry", ha="center", va="center", fontsize=6)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        return
-    if geom_type in ("Polygon", "MultiPolygon"):
-        patch = matplotlib.patches.PathPatch(
-            Path.make_compound_path(*_geom_paths(geom)),
-            facecolor=facecolor,
-            edgecolor=edgecolor,
-            lw=lw,
-        )
-        ax.add_patch(patch)
-    elif geom_type in ("LineString", "MultiLineString", "LinearRing"):
-        lines = list(geom.geoms) if geom_type == "MultiLineString" else [geom]
-        for line in lines:
-            xy = np.asarray(line.coords)
-            ax.plot(xy[:, 0], xy[:, 1], color=edgecolor, lw=max(lw, 1.0))
-    elif geom_type in ("Point", "MultiPoint"):
-        pts = np.asarray(geom.coords if geom_type == "Point" else [p.coords[0] for p in geom.geoms])
-        ax.plot(pts[:, 0], pts[:, 1], "o", ms=3.0, color=edgecolor)
-    else:  # GeometryCollection and anything unexpected
-        for sub in getattr(geom, "geoms", []):
-            _draw_geometry(ax, sub, facecolor=facecolor, edgecolor=edgecolor, lw=lw)
-        return
-    minx, miny, maxx, maxy = geom.bounds
-    pad = max(maxx - minx, maxy - miny) * pad_frac + 1e-9
-    ax.set_xlim(minx - pad, maxx + pad)
-    ax.set_ylim(miny - pad, maxy + pad)
-    ax.set_aspect("equal")
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-
-def _draw_contour(
-    ax: Any, points: np.ndarray, *, color: str = "#28556e", face: str = "#cfe3f2"
-) -> None:
-    """Draw a normalized (N,2) contour closed onto itself."""
-    ring = np.vstack([points, points[:1]])
-    ax.fill(ring[:, 0], ring[:, 1], facecolor=face, edgecolor="none", zorder=1)
-    ax.plot(ring[:, 0], ring[:, 1], color=color, lw=0.9, zorder=2)
-    ax.plot(points[:, 0], points[:, 1], ".", ms=1.4, color=color, zorder=3)
-    ax.set_aspect("equal")
-    ax.set_xticks([])
-    ax.set_yticks([])
-    lim = float(np.abs(points).max()) * 1.15 + 1e-9
-    ax.set_xlim(-lim, lim)
-    ax.set_ylim(-lim, lim)
-
-
-def _stratified_pick(order: np.ndarray, k: int) -> list[int]:
-    """Deterministic spread: one index per equal slice of a sorted order."""
-    slices = np.array_split(order, k)
-    return [int(s[len(s) // 2]) for s in slices if len(s) > 0]
-
-
 def _shape_metrics(geom_metric: Any, row: pd.Series) -> dict[str, float]:
     """Dimensionless shape descriptors used to pick the figure-D cases."""
     area = float(geom_metric.area)

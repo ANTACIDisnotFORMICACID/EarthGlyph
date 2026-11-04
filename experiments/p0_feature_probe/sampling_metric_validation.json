@@ -1,0 +1,55 @@
+{
+  "stage": "P0-3 sampling study - fidelity metric validation",
+  "kind": "measurement correctness (NOT a retrieval result)",
+  "candidates": 839,
+  "elapsed_seconds": 57.68,
+  "data": {
+    "raw_path": "data/raw/wisconsin_water.parquet"
+  },
+  "what": "study cloud Hausdorff vs GEOS discrete Hausdorff and an 8x finer cloud",
+  "reference": "shapely.hausdorff_distance on the CLOSED curves (vertex-based, a lower bound of the continuous distance)",
+  "expected_gap_scale": "one cloud step = step_m / 8",
+  "densify_divisor": 8,
+  "refined_divisor": 64,
+  "per_n": {
+    "64": {
+      "pairs": 839,
+      "median_cloud_m": 2.489464,
+      "median_geos_m": 2.44661,
+      "median_gap_vs_geos_m": 0.0122,
+      "max_abs_gap_vs_geos_m": 6.212876,
+      "max_gap_vs_geos_over_cloud_step": 0.12025,
+      "pairs_over_one_cloud_step_vs_geos": 0,
+      "median_gap_vs_refined_m": 0.011767,
+      "max_abs_gap_vs_refined_m": 6.148183,
+      "pairs_over_cloud_step_vs_refined": 0
+    },
+    "128": {
+      "pairs": 839,
+      "median_cloud_m": 1.188103,
+      "median_geos_m": 1.173662,
+      "median_gap_vs_geos_m": 0.006803,
+      "max_abs_gap_vs_geos_m": 2.970758,
+      "max_gap_vs_geos_over_cloud_step": 0.463895,
+      "pairs_over_one_cloud_step_vs_geos": 0,
+      "median_gap_vs_refined_m": 0.006537,
+      "max_abs_gap_vs_refined_m": 2.474734,
+      "pairs_over_cloud_step_vs_refined": 0
+    },
+    "256": {
+      "pairs": 839,
+      "median_cloud_m": 0.61427,
+      "median_geos_m": 0.600019,
+      "median_gap_vs_geos_m": 0.003755,
+      "max_abs_gap_vs_geos_m": 0.732513,
+      "max_gap_vs_geos_over_cloud_step": 0.429624,
+      "pairs_over_one_cloud_step_vs_geos": 0,
+      "median_gap_vs_refined_m": 0.003653,
+      "max_abs_gap_vs_refined_m": 0.729774,
+      "pairs_over_cloud_step_vs_refined": 0
+    }
+  },
+  "reproduce": {
+    "command": "python scripts/analyze_sampling.py --validate-exact --raw 'data\\raw\\wisconsin_water.parquet' --contours 'data\\processed\\contours.parquet' --out-dir 'experiments\\p0_feature_probe'"
+  }
+}

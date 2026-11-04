@@ -1,0 +1,191 @@
+{
+  "stage": "P0-3 Task F pending-class review (analysis only, NOT added to the index)",
+  "not_a_retrieval_result": true,
+  "decision_owner": "P0-4 - expand only if real queries fail for lack of a class",
+  "built_at_utc": "2026-11-04T20:43:05+00:00",
+  "deterministic": true,
+  "random_seed": null,
+  "elapsed_seconds": 4.4,
+  "inputs": {
+    "pending_path": "data/processed/pending_analysis.parquet",
+    "pending_sha256": "b58b660dae90652f5c862b1e2dc63593b4872c7d50c752e49ccdeca4e602e309",
+    "pending_rows": 1034,
+    "pending_file_modified": false,
+    "contours_path": "data/processed/contours.parquet",
+    "index_path": "data/index",
+    "index_release": "2026-10-21.0",
+    "index_candidates": 839,
+    "standardization": {
+      "n_points": 128,
+      "n_harmonics": 16,
+      "same_chain_as_index": "build_contour(exterior_ring(projected part))"
+    }
+  },
+  "health": {
+    "features": 1034,
+    "parts": 1035,
+    "invalid_before_repair": 0,
+    "repaired": 0,
+    "no_polygonal_part": 0,
+    "below_min_area": 310,
+    "standardization_failed": 0
+  },
+  "by_subtype_features": {
+    "water": 836,
+    "river": 143,
+    "human_made": 50,
+    "stream": 4,
+    "canal": 1
+  },
+  "by_class_features": {
+    "water": 813,
+    "river": 143,
+    "swimming_pool": 50,
+    "wastewater": 23,
+    "stream": 4,
+    "ditch": 1
+  },
+  "pending_shape_distribution": {
+    "compactness": {
+      "p5": 0.0517,
+      "p50": 0.6262,
+      "p95": 0.9346
+    },
+    "solidity": {
+      "p5": 0.2299,
+      "p50": 0.9441,
+      "p95": 1.0
+    },
+    "aspect_ratio": {
+      "p5": 1.0431,
+      "p50": 1.9659,
+      "p95": 7.3261
+    },
+    "diameter_fill": {
+      "p5": 0.0484,
+      "p50": 0.4214,
+      "p95": 0.7963
+    },
+    "area_ha": {
+      "min": 0.0023,
+      "p50": 0.2078,
+      "p90": 3.4272,
+      "max": 1676.3791
+    },
+    "rows": 1035
+  },
+  "indexed_shape_distribution": {
+    "compactness": {
+      "p5": 0.1574,
+      "p50": 0.6138,
+      "p95": 0.9057
+    },
+    "solidity": {
+      "p5": 0.4792,
+      "p50": 0.9036,
+      "p95": 1.0
+    },
+    "aspect_ratio": {
+      "p5": 1.0938,
+      "p50": 1.8073,
+      "p95": 4.6712
+    },
+    "diameter_fill": {
+      "p5": 0.1232,
+      "p50": 0.4279,
+      "p95": 0.7378
+    },
+    "area_ha": {
+      "min": 0.1002,
+      "p50": 1.9643,
+      "p90": 18.7711,
+      "max": 9819.8715
+    },
+    "rows": 839
+  },
+  "descriptor_gap_to_library": {
+    "descriptor_group": "fourier",
+    "n_harmonics": 16,
+    "nearest_candidate_l2": {
+      "p10": 0.00929,
+      "p50": 0.01782,
+      "p90": 0.06212,
+      "max": 0.17704
+    },
+    "indexed_library_own_spacing_p90": 0.05749,
+    "share_farther_than_library_spacing": 0.1179,
+    "reading": "a pending outline whose nearest released candidate is farther than the library's own p90 spacing carries a shape the index does not have"
+  },
+  "per_subtype": {
+    "canal": {
+      "features": 1,
+      "parts": 1,
+      "area_ha_median": 0.0125,
+      "compactness_median": 0.8767,
+      "solidity_median": 1.0,
+      "aspect_ratio_median": 1.1873,
+      "diameter_fill_median": 0.6851,
+      "nearest_candidate_l2_median": 0.01155,
+      "share_farther_than_library_spacing": 0.0
+    },
+    "human_made": {
+      "features": 50,
+      "parts": 50,
+      "area_ha_median": 0.0078,
+      "compactness_median": 0.7497,
+      "solidity_median": 1.0,
+      "aspect_ratio_median": 1.3917,
+      "diameter_fill_median": 0.5612,
+      "nearest_candidate_l2_median": 0.01845,
+      "share_farther_than_library_spacing": 0.04
+    },
+    "river": {
+      "features": 143,
+      "parts": 144,
+      "area_ha_median": 1.2911,
+      "compactness_median": 0.1059,
+      "solidity_median": 0.3474,
+      "aspect_ratio_median": 3.0756,
+      "diameter_fill_median": 0.0868,
+      "nearest_candidate_l2_median": 0.0512,
+      "share_farther_than_library_spacing": 0.4236
+    },
+    "stream": {
+      "features": 4,
+      "parts": 4,
+      "area_ha_median": 0.151,
+      "compactness_median": 0.0701,
+      "solidity_median": 0.205,
+      "aspect_ratio_median": 5.6617,
+      "diameter_fill_median": 0.0361,
+      "nearest_candidate_l2_median": 0.04982,
+      "share_farther_than_library_spacing": 0.5
+    },
+    "water": {
+      "features": 836,
+      "parts": 836,
+      "area_ha_median": 0.2052,
+      "compactness_median": 0.6642,
+      "solidity_median": 0.9569,
+      "aspect_ratio_median": 1.9093,
+      "diameter_fill_median": 0.4342,
+      "nearest_candidate_l2_median": 0.01629,
+      "share_farther_than_library_spacing": 0.0682
+    }
+  },
+  "would_add": {
+    "parts_above_min_area": 725,
+    "min_area_m2": 1000.0,
+    "note": "parts clearing the released minimum-area filter; the subtype allowlist and duplicate resolution would still apply, and river/stream outlines are linear features whose closed outline is a poor target for a shape query"
+  },
+  "standardization_failures": [],
+  "recommendation": {
+    "add_now": false,
+    "reason": "no retrieval experiment has shown a missing-class failure yet, and the pending classes are dominated by linear features whose closed outline is not what a hand-drawn shape query describes",
+    "revisit_in": "P0-4 (real hand-drawn queries) and P0-6"
+  },
+  "reproduce": {
+    "command": "python scripts/analyze_pending.py --out-dir experiments/p0_feature_probe",
+    "note": "read-only over pending_analysis.parquet; writes only --out-dir"
+  }
+}

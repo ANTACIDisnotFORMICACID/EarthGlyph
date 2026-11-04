@@ -1,0 +1,497 @@
+{
+  "stage": "P0-3 feature and candidate-library study",
+  "kind": "feature-space geometry + library diversity (NOT retrieval accuracy)",
+  "not_a_retrieval_result": true,
+  "query_sketch_used": false,
+  "deterministic": true,
+  "random_seed": null,
+  "built_at_utc": "2026-11-04T20:36:07+00:00",
+  "data": {
+    "contours_path": "data/processed/contours.parquet",
+    "candidates": 839,
+    "n_points": 128,
+    "source": {
+      "name": "Overture Maps (Base theme), https://docs.overturemaps.org/",
+      "dataset": "Overture Maps base theme, type=water",
+      "release": "2026-10-21.0",
+      "download_time_utc": "2026-11-04T15:44:28+00:00",
+      "fetch_method": "duckdb-httpfs",
+      "bbox": {
+        "min_lon": -90.0,
+        "min_lat": 44.0,
+        "max_lon": -89.0,
+        "max_lat": 45.0,
+        "order": "min_lon,min_lat,max_lon,max_lat"
+      },
+      "input_path": "data/raw/wisconsin_water.parquet",
+      "input_size_bytes": 5536172,
+      "input_sha256": "1c5431f2aa73c99d8b1cca7e65918640587bcb21445890bf739c9a0a5ff1a417",
+      "input_content_digest": {
+        "algorithm": "sha256 over sorted lines '<id>\\t<wkb-hex>' (missing geometry -> '<null>')",
+        "rows": 6543,
+        "value": "22d143e4fa85c0829ae6182e59ca17a7e5940c10396765019328cb22cd249b9d"
+      },
+      "input_crs": "{\"$schema\": \"https://proj.org/schemas/v0.5/projjson.schema.json\", \"type\": \"GeographicCRS\", \"name\": \"WGS 84 (G730)\", \"datum\": {\"type\": \"GeodeticReferenceFrame\", \"name\": \"World Geodetic System 1984\", \"ellipsoid\": {\"name\": \"WGS 84\", \"semi_major_axis\": 6378137, \"inverse_flattening\": 298.257223563}}, \"coordinate_system\": {\"subtype\": \"ellipsoidal\", \"axis\": [{\"name\": \"Geodetic longitude\", \"abbreviation\": \"Lon\", \"direction\": \"east\", \"unit\": \"degree\"}, {\"name\": \"Geodetic latitude\", \"abbreviation\": \"Lat\", \"direction\": \"north\", \"unit\": \"degree\"}]}, \"id\": {\"authority\": \"EPSG\", \"code\": 4326}}",
+      "input_columns": [
+        "id",
+        "names",
+        "subtype",
+        "class",
+        "sources",
+        "source_tags",
+        "level",
+        "wikidata",
+        "is_intermittent",
+        "is_salt",
+        "geometry",
+        "version",
+        "bbox",
+        "theme",
+        "type"
+      ]
+    },
+    "contours_sha256": null
+  },
+  "parameters": {
+    "harmonic_options": [
+      12,
+      16,
+      24
+    ],
+    "reference_harmonics": 16,
+    "fold": "positive",
+    "per_sample_normalization": true,
+    "query_stride": 7,
+    "neighbour_k": 10,
+    "collision_epsilon": 0.02
+  },
+  "harmonic_ablation": {
+    "reference_harmonics": 16,
+    "energy_capture": {
+      "h12": {
+        "min": 0.53318,
+        "p10": 0.70246,
+        "p50": 0.90067,
+        "max": 0.99831
+      },
+      "h16": {
+        "min": 0.53323,
+        "p10": 0.70249,
+        "p50": 0.90077,
+        "max": 0.99833
+      },
+      "h24": {
+        "min": 0.53327,
+        "p10": 0.70251,
+        "p50": 0.90097,
+        "max": 0.99834
+      }
+    },
+    "energy_capture_definition_check_max_abs_error": 3.3306690738754696e-16,
+    "feature_space": {
+      "h12": {
+        "pairwise_l2": {
+          "p10": 0.05007,
+          "p50": 0.12899,
+          "p90": 0.27509
+        },
+        "pairwise_l2_mean": 0.15402,
+        "nearest_neighbour_l2": {
+          "median": 0.02146,
+          "p10": 0.00987,
+          "min": 0.004475
+        },
+        "spread_ratio_mean_over_min": 34.4,
+        "pairs_below_0.02": 2006,
+        "pairs_below_0.05": 35057
+      },
+      "h16": {
+        "pairwise_l2": {
+          "p10": 0.05022,
+          "p50": 0.12917,
+          "p90": 0.27555
+        },
+        "pairwise_l2_mean": 0.15427,
+        "nearest_neighbour_l2": {
+          "median": 0.0218,
+          "p10": 0.01018,
+          "min": 0.004533
+        },
+        "spread_ratio_mean_over_min": 34.0,
+        "pairs_below_0.02": 1939,
+        "pairs_below_0.05": 34830
+      },
+      "h24": {
+        "pairwise_l2": {
+          "p10": 0.05031,
+          "p50": 0.1293,
+          "p90": 0.27584
+        },
+        "pairwise_l2_mean": 0.15444,
+        "nearest_neighbour_l2": {
+          "median": 0.02203,
+          "p10": 0.01034,
+          "min": 0.004565
+        },
+        "spread_ratio_mean_over_min": 33.8,
+        "pairs_below_0.02": 1897,
+        "pairs_below_0.05": 34690
+      }
+    },
+    "pairwise_distance_agreement": {
+      "h12_vs_h16": {
+        "pearson": 0.999993,
+        "spearman": 0.99999,
+        "mean_relative_change": 0.00203
+      },
+      "h16_vs_h24": {
+        "pearson": 0.99999,
+        "spearman": 0.999989,
+        "mean_relative_change": 0.00126
+      },
+      "h12_vs_h24": {
+        "pearson": 0.999974,
+        "spearman": 0.999965,
+        "mean_relative_change": 0.00329
+      }
+    },
+    "neighbour_agreement": {
+      "h12_vs_h16": {
+        "queries": 120,
+        "k": 10,
+        "mean_overlap": 0.9808,
+        "p10_overlap": 0.9,
+        "min_overlap": 0.9
+      },
+      "h16_vs_h16": {
+        "queries": 120,
+        "k": 10,
+        "mean_overlap": 1.0,
+        "p10_overlap": 1.0,
+        "min_overlap": 1.0
+      },
+      "h24_vs_h16": {
+        "queries": 120,
+        "k": 10,
+        "mean_overlap": 0.9875,
+        "p10_overlap": 0.9,
+        "min_overlap": 0.9
+      }
+    },
+    "timing": {
+      "descriptor_batch_seconds": 0.0211,
+      "one_full_l2_scan_seconds": 6e-05,
+      "note": "this machine, this run; scan cost is linear in candidates"
+    },
+    "not_measured": "retrieval accuracy: no ground-truth pairs and no hand-drawn queries exist yet, so a wider descriptor is only justified by the geometry above"
+  },
+  "what_amplitudes_discard": {
+    "candidates": 839,
+    "descriptor_identical_by_construction": true,
+    "region_iou": {
+      "min": 0.0007,
+      "p10": 0.1535,
+      "p50": 0.5338,
+      "p90": 0.805
+    },
+    "hausdorff_norm": {
+      "p50": 0.7775,
+      "p90": 1.9649,
+      "max": 5.1735
+    },
+    "chamfer_norm_median": 0.252,
+    "share_with_iou_below_0.9": 0.9881,
+    "worst_impostors": [
+      {
+        "candidate_id": "85f4cea4-1992-30e3-9a59-bb1b327263bb",
+        "subtype": "pond",
+        "area_ha": 0.4663,
+        "region_iou": 0.0007,
+        "hausdorff_norm": 5.0178
+      },
+      {
+        "candidate_id": "3962966b-100a-34fb-8d8f-69db5a26873e",
+        "subtype": "lake",
+        "area_ha": 3.4338,
+        "region_iou": 0.0033,
+        "hausdorff_norm": 2.9209
+      },
+      {
+        "candidate_id": "0d031140-bcea-332f-98e8-5829bc514b96",
+        "subtype": "lake",
+        "area_ha": 0.5176,
+        "region_iou": 0.0048,
+        "hausdorff_norm": 3.0528
+      },
+      {
+        "candidate_id": "831070eb-7aea-3a66-ab1a-7356fca87a53",
+        "subtype": "lake",
+        "area_ha": 2.1685,
+        "region_iou": 0.0104,
+        "hausdorff_norm": 5.1735
+      },
+      {
+        "candidate_id": "ac53d044-68e1-3f17-9bff-f0805e52353b",
+        "subtype": "pond",
+        "area_ha": 1.3701,
+        "region_iou": 0.0119,
+        "hausdorff_norm": 3.0886
+      },
+      {
+        "candidate_id": "6dffd536-72d9-3086-82f6-1871abee2a5e",
+        "subtype": "lake",
+        "area_ha": 5.7228,
+        "region_iou": 0.0124,
+        "hausdorff_norm": 4.8642
+      }
+    ],
+    "reading": "a coarse amplitude-only match can therefore never be the final answer: phase (or an explicit geometric re-rank) is what separates these impostors"
+  },
+  "near_duplicates": {
+    "thresholds": {
+      "index_feature_l2": 0.02,
+      "full_spectrum_l2": 0.03,
+      "relative_area": 0.02
+    },
+    "pairs": 23,
+    "candidates_in_any_pair": 42,
+    "clusters": 20,
+    "largest_cluster": 3,
+    "cluster_size_histogram": {
+      "3": 2,
+      "2": 18
+    },
+    "own_nearest_neighbour_l2": {
+      "median": 0.0218,
+      "p10": 0.01018,
+      "min": 0.004533
+    },
+    "caveat": "rotation and cyclic start are unaligned, so this is a lower bound on how confusable the library is; duplicate decisions belong to P0-4"
+  },
+  "library_review": {
+    "candidates": 839,
+    "subtypes": {
+      "pond": 472,
+      "lake": 312,
+      "reservoir": 55
+    },
+    "classes": {
+      "pond": 472,
+      "lake": 288,
+      "reservoir": 52,
+      "lagoon": 22,
+      "basin": 3,
+      "oxbow": 2
+    },
+    "area_ha": {
+      "min": 0.1002,
+      "p10": 0.1848,
+      "p50": 1.9643,
+      "p90": 18.7711,
+      "max": 9819.8715
+    },
+    "area_orders_of_magnitude": 4.99,
+    "geometry_stats": {
+      "compactness": {
+        "p5": 0.1574,
+        "p50": 0.6138,
+        "p95": 0.9057
+      },
+      "solidity": {
+        "p5": 0.4792,
+        "p50": 0.9036,
+        "p95": 1.0
+      },
+      "aspect_ratio": {
+        "p5": 1.0938,
+        "p50": 1.8073,
+        "p95": 4.6712
+      },
+      "diameter_fill": {
+        "p5": 0.1232,
+        "p50": 0.4279,
+        "p95": 0.7378
+      }
+    },
+    "per_subtype": {
+      "lake": {
+        "count": 312,
+        "area_ha": {
+          "min": 0.2243,
+          "p50": 6.3391,
+          "max": 140.8711
+        },
+        "compactness_median": 0.6063
+      },
+      "pond": {
+        "count": 472,
+        "area_ha": {
+          "min": 0.1002,
+          "p50": 0.5177,
+          "max": 41.8726
+        },
+        "compactness_median": 0.6571
+      },
+      "reservoir": {
+        "count": 55,
+        "area_ha": {
+          "min": 0.2327,
+          "p50": 17.4507,
+          "max": 9819.8715
+        },
+        "compactness_median": 0.2398
+      }
+    },
+    "with_holes": 45,
+    "multi_part_sources": 17,
+    "repaired": 0,
+    "extends_beyond_frame": 8,
+    "coverage_note": "one 1x1 degree frame (bbox -90,44,-89,45) inside a single state; the library is geographically narrow, so a shape that is rare here may be common elsewhere (Type B risk, see failure_type_fields)"
+  },
+  "failure_type_fields": {
+    "per_query_fields_planned": [
+      "query_sketch_id",
+      "query_source (hand-drawn | synthetic-perturbation)",
+      "topk_candidate_ids",
+      "topk_feature_l2",
+      "topk_aligned_geometric_score (P0-4 re-rank)",
+      "human_label (relevant / partially / not relevant)"
+    ],
+    "library_fields_available_now": [
+      "candidate_id",
+      "source_id",
+      "subtype",
+      "area_ha",
+      "compactness / solidity / aspect_ratio / diameter_fill",
+      "lon / lat (so a wrong match can be located on a map)"
+    ],
+    "type_b_signal": {
+      "definition": "no library candidate reaches an aligned geometric score above the acceptance threshold, even at the widest descriptor tested",
+      "supporting_counts_available": {
+        "candidates": 839,
+        "subtypes": [
+          "lake",
+          "pond",
+          "reservoir"
+        ],
+        "distinct_subtype_count": 3,
+        "near_duplicate_pairs": 23
+      }
+    },
+    "type_a_signal": {
+      "definition": "a library candidate that visually matches the query ranks poorly under the descriptor, i.e. the failure is in the feature or the distance, not in the data",
+      "known_limits_measured_here": [
+        "amplitude-only descriptor ignores phase (quantified in what_amplitudes_discard)",
+        "rotation and cyclic start unaligned until the P0-4 re-rank",
+        "no mirror handling beyond CCW winding normalization"
+      ]
+    },
+    "status": "prepared, not concluded"
+  },
+  "reproduce": {
+    "command": "python scripts/analyze_features.py --contours 'data\\processed\\contours.parquet' --out-dir 'experiments\\p0_feature_probe'"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0"
+  },
+  "near_duplicate_pairs_file": {
+    "file": "near_duplicate_pairs.csv",
+    "rows": 23
+  },
+  "figures": [
+    {
+      "file": "harmonic_ablation.png"
+    },
+    {
+      "file": "candidate_distribution.png"
+    },
+    {
+      "file": "phase_loss_examples.png",
+      "entries": [
+        {
+          "candidate_id": "85f4cea4-1992-30e3-9a59-bb1b327263bb",
+          "source_id": "85f4cea4-1992-30e3-9a59-bb1b327263bb",
+          "subtype": "pond",
+          "area_ha": 0.4663,
+          "lon": -89.667663,
+          "lat": 44.204631,
+          "impostor_region_iou": 0.0007,
+          "selected_by": "worst IoU"
+        },
+        {
+          "candidate_id": "3962966b-100a-34fb-8d8f-69db5a26873e",
+          "source_id": "3962966b-100a-34fb-8d8f-69db5a26873e",
+          "subtype": "lake",
+          "area_ha": 3.4338,
+          "lon": -89.681118,
+          "lat": 44.17874,
+          "impostor_region_iou": 0.0033,
+          "selected_by": "worst IoU"
+        },
+        {
+          "candidate_id": "0d031140-bcea-332f-98e8-5829bc514b96",
+          "source_id": "0d031140-bcea-332f-98e8-5829bc514b96",
+          "subtype": "lake",
+          "area_ha": 0.5176,
+          "lon": -89.425192,
+          "lat": 44.226089,
+          "impostor_region_iou": 0.0048,
+          "selected_by": "worst IoU"
+        },
+        {
+          "candidate_id": "831070eb-7aea-3a66-ab1a-7356fca87a53",
+          "source_id": "831070eb-7aea-3a66-ab1a-7356fca87a53",
+          "subtype": "lake",
+          "area_ha": 2.1685,
+          "lon": -89.618144,
+          "lat": 44.223747,
+          "impostor_region_iou": 0.0104,
+          "selected_by": "worst IoU"
+        },
+        {
+          "candidate_id": "a7a37b96-18ad-3d0d-99f5-d6fe588d3905",
+          "source_id": "a7a37b96-18ad-3d0d-99f5-d6fe588d3905",
+          "subtype": "pond",
+          "area_ha": 0.1443,
+          "lon": -89.945651,
+          "lat": 44.617238,
+          "impostor_region_iou": 0.792,
+          "selected_by": "area-stratified"
+        },
+        {
+          "candidate_id": "bf7514fe-6be9-3ac0-8497-19d906f5e9ad",
+          "source_id": "bf7514fe-6be9-3ac0-8497-19d906f5e9ad",
+          "subtype": "pond",
+          "area_ha": 0.1716,
+          "lon": -89.728578,
+          "lat": 44.342475,
+          "impostor_region_iou": 0.475,
+          "selected_by": "area-stratified"
+        },
+        {
+          "candidate_id": "869411ea-a983-3551-b5e9-db4ee34cd003",
+          "source_id": "869411ea-a983-3551-b5e9-db4ee34cd003",
+          "subtype": "pond",
+          "area_ha": 0.8543,
+          "lon": -89.706988,
+          "lat": 44.932229,
+          "impostor_region_iou": 0.5403,
+          "selected_by": "area-stratified"
+        },
+        {
+          "candidate_id": "c1e1bfb4-c832-3d1c-b5ae-b59cf2941a7b",
+          "source_id": "c1e1bfb4-c832-3d1c-b5ae-b59cf2941a7b",
+          "subtype": "reservoir",
+          "area_ha": 59.3978,
+          "lon": -89.611562,
+          "lat": 44.923631,
+          "impostor_region_iou": 0.1511,
+          "selected_by": "area-stratified"
+        }
+      ]
+    }
+  ]
+}

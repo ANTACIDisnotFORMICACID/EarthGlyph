@@ -44,7 +44,7 @@
 6. 外环简化 / 平滑克制；按弧长均匀采样 **128 点**（可研究 64/256 影响）；中心平移原点，按 RMS 半径缩放得归一化轮廓。
    （P0-2 落实：`arc_length_resample` 按累积弧长插值，非顶点序号等间隔；不做旋转 / 循环起点对齐，见 D23。）
 7. 预计算粗筛特征（低频 Fourier 12–24 维、紧致度、长宽比、凹凸性），保留 128 点标准化轮廓供精排。
-   （属 P0-3，尚未实施。）
+   （P0-3 落实：16 谐波幅值 + 4 个几何统计量 = 20 维，见 §10 与 RETRIEVAL_DESIGN §8。）
 
 ## 5. 数据记录（必须）
 
@@ -209,7 +209,79 @@ python scripts/visualize_geometry.py \
 
 ### 9.4 已知限制
 
-- N=128 对极端枝状岸线欠采样：最坏弧长步长偏差约 104%（`4b2c4aea-…-part1`，
-  2,269.8 ha、全边界约 213 km）；中位数偏差约 0.5%。采样点数 / 自适应 N 消融留给 P0-3（D7）。
+- N=128 对极端枝状岸线欠采样：最坏**弦长离散度**约 104%（`4b2c4aea-…-part1`，
+  2,269.8 ha、全边界约 213 km）；中位数约 0.5%。该数字不是重建误差（P0-3 复核见 D30）；
+  采样点数 / 自适应 N 消融已在 P0-3 完成，N=128 保留（D29，见 §10.4）。
 - 孔洞（岛屿）不进入轮廓，仅以 `n_holes` 记录；若后续检索需要"带岛轮廓"，需另设产物。
 - 极区与跨 180° 经线区域未验证（本 bbox 不涉及），aeqd 原点取样本中心（D16）。
+
+## 10. P0-3 实测记录（特征提取与索引构建，2026-11-05）
+
+### 10.1 构建命令与产物
+
+```bash
+python scripts/build_index.py --contours data/processed/contours.parquet \
+    --out-dir data/index --n-harmonics 16 --fold positive --dtype float32 --force
+```
+
+输入 = P0-2 的 `data/processed/contours.parquet`（839 候选，sha256
+`65cafc2d03f2a82fe4153273cef3ea26e0d215acf3d2acf2a4899e913e2d2740`），
+**不再读原始 GeoParquet**；来源、release、内容摘要沿 `data/processed/data_manifest.json` 传递。
+
+| 产物 | 内容 | size / sha256 |
+|------|------|---------------|
+| `data/index/features.npy` | `(839, 20)` float32 小端 C-order 粗筛向量（16 谐波幅值 + 4 几何统计量） | 67,248 B / `b7255ede076922e9bf26877a1535840a4efc239e31a0fe55f79f1fbf5562e063` |
+| `data/index/shapes.npy` | `(839, 128, 2)` float32 标准化外环轮廓（供 P0-4 精排） | 859,264 B / `fbaf4933e1e1585bf21878f4cdfe0a4355ffed6565494123ed06e142520a2776` |
+| `data/index/metadata.parquet` | 839 行地理 / 溯源元数据（含 `feature_row`） | 124,467 B / `e18c3f95039f3f8d8283f0fe87eb05f31574902731163d08e0e117548859a211` |
+| `data/index/data_manifest.json` | schema 版本、来源+release+输入 sha256+内容摘要、投影与清洗参数、特征定义与维度、依赖版本、git commit、完整构建命令、输出校验和 | — |
+
+索引默认**不入 Git**（AGENTS.md 禁止入库）；版本化 = manifest + sha256 + 上面的复现命令。
+
+### 10.2 计数与一致性
+
+| 项 | 值 |
+|----|----|
+| 输入候选 / 入索引 / 跳过 | 839 / **839** / 0 |
+| subtype | pond 472 / lake 312 / reservoir 55 |
+| feature_dim | 20（fourier 16 + geometry 4，组偏移记录在 `index.feature_groups`） |
+| 唯一 `candidate_id` | 839（重复即构建失败） |
+| 有限值 / 经纬度合法 / `n_points` 一致 | 全部通过（异常注入由 31 个单测覆盖） |
+| float32 往返最大绝对误差 | features 6.70e-7，shapes 5.96e-8 |
+| 重建确定性 | 同命令两次构建，三个产物**字节一致** |
+
+### 10.3 可回查性（真实数据，非合成）
+
+- 每个 `candidate_id` → `source_id` + `part_index` → Overture release `2026-10-21.0`
+  中的真实 feature；`lon` / `lat` 是源 part 的 `representative_point`，落在水体内部（D12）。
+- 单测读回 `data/index/` 后验证：轮廓可由 `contours.parquet` 的几何重新算出、
+  元数据面积/周长可复算、索引中不含任何合成记录（合成样本只存在于 `tests/` 的 `tmp_path`）。
+
+### 10.4 采样点数消融（Task C，几何保真度与特征稳定性，**非检索指标**）
+
+```bash
+python scripts/analyze_sampling.py --raw data/raw/wisconsin_water.parquet \
+    --contours data/processed/contours.parquet --out-dir experiments/p0_feature_probe
+python scripts/analyze_sampling.py --validate-exact --raw data/raw/wisconsin_water.parquet \
+    --contours data/processed/contours.parquet --out-dir experiments/p0_feature_probe
+```
+
+全部 839 个候选**从原始外环重新弧长采样**到 64 / 128 / 256（禁止用已存 128 点插值加密）。
+结论与数字见 D29 / D30；产物 `sampling_metrics.csv`（2,517 行）、`sampling_summary.json`、
+`sampling_metric_validation.{csv,json}` 与三张对比图在 `experiments/p0_feature_probe/`。
+
+### 10.5 候选库与待分析类别（Task E / F，只分析不扩容）
+
+- 候选库：4.99 个数量级面积跨度（0.10–9,819.87 ha）、3 个 subtype / 6 个 class
+  （含 lagoon 22、basin 3、oxbow 2）、45 个带孔洞、17 个 MultiPolygon part、
+  23 对近重复（42 个候选 / 20 簇）→ 见 `features_summary.json`、`candidate_distribution.png`。
+- `pending_analysis.parquet`（1,034 feature / 1,035 part）**未修改、未删除、未入索引**；
+  `add_now: false`（D32），扩容决策留给 P0-4 / P0-6 → 见 `pending_summary.json`、
+  `pending_distribution.png`。
+
+### 10.6 已知限制
+
+- 索引只有**粗筛幅值 + 完整轮廓**：旋转对齐 θ、循环移位 s、镜像开关、Chamfer/IoU 精排
+  均未实现，属 P0-4；因此本轮**没有任何检索命中率数字**。
+- 单区域（1°×1°）候选库覆盖窄，形状稀此处可能在他处常见（Type B 风险，字段已备好未判定）。
+- 8 个候选在任何测试 N 下都达不到 region IoU ≥ 0.95（7 个 reservoir）；
+  N=128 下 5 个候选的重建多边形自交（已上报不静默修复）。跨区域的无效几何覆盖度仍未测。

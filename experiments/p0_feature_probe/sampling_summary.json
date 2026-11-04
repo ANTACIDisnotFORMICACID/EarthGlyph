@@ -1,0 +1,1038 @@
+{
+  "stage": "P0-3 sampling-resolution study",
+  "kind": "geometric fidelity + feature stability (NOT a retrieval result)",
+  "not_a_retrieval_result": true,
+  "query_sketch_used": false,
+  "deterministic": true,
+  "random_seed": null,
+  "built_at_utc": "2026-11-04T20:22:15+00:00",
+  "data": {
+    "raw_path": "data/raw/wisconsin_water.parquet",
+    "contours_path": "data/processed/contours.parquet",
+    "source_manifest": "2026-10-21.0",
+    "projection": {
+      "name": "aeqd",
+      "lon0": -89.4323509,
+      "lat0": 44.51248355,
+      "proj_string": "+proj=aeqd +lat_0=44.51248355 +lon_0=-89.4323509 +ellps=WGS84 +units=m +no_defs",
+      "units": "m",
+      "input_crs": "EPSG:4326"
+    },
+    "raw_file": {
+      "path": "data\\raw\\wisconsin_water.parquet",
+      "size_bytes": 5536172,
+      "sha256": "1c5431f2aa73c99d8b1cca7e65918640587bcb21445890bf739c9a0a5ff1a417",
+      "rows": 6543
+    },
+    "raw_release": "2026-10-21.0",
+    "raw_source": "Overture Maps (Base theme), https://docs.overturemaps.org/",
+    "raw_bbox": {
+      "min_lon": -90.0,
+      "min_lat": 44.0,
+      "max_lon": -89.0,
+      "max_lat": 45.0,
+      "order": "min_lon,min_lat,max_lon,max_lat"
+    },
+    "raw_rows": 6543
+  },
+  "parameters": {
+    "sample_points": [
+      64,
+      128,
+      256
+    ],
+    "reference_points": 128,
+    "stability_harmonics": 12,
+    "iou_target": 0.95,
+    "hausdorff_norm_target": 0.05,
+    "query_stride": 7,
+    "neighbour_k": 10,
+    "resampling": "arc-length uniform, from the ORIGINAL exterior ring",
+    "forbidden_shortcut": "no interpolation of stored 128-point contours"
+  },
+  "measurement": {
+    "candidates": 839,
+    "rows": 2517,
+    "seconds": 22.55,
+    "failed_measurements": [],
+    "stored_contour_round_trip_max_abs_error": 0.0,
+    "round_trip_tolerance": 1e-09,
+    "round_trip_ok": true,
+    "projection": {
+      "name": "aeqd",
+      "lon0": -89.4323509,
+      "lat0": 44.51248355,
+      "proj_string": "+proj=aeqd +lat_0=44.51248355 +lon_0=-89.4323509 +ellps=WGS84 +units=m +no_defs",
+      "units": "m",
+      "input_crs": "EPSG:4326"
+    }
+  },
+  "aggregate": {
+    "n64": {
+      "candidates": 839,
+      "hausdorff_m": {
+        "p50": 2.49,
+        "p90": 13.01,
+        "p99": 107.38,
+        "max": 801.85
+      },
+      "hausdorff_norm": {
+        "p50": 0.0313,
+        "p90": 0.0708,
+        "p99": 0.153,
+        "max": 0.2568
+      },
+      "chamfer_norm": {
+        "p50": 0.0049,
+        "p90": 0.0118,
+        "max": 0.0456
+      },
+      "region_iou": {
+        "min": 0.6772,
+        "p10": 0.9704,
+        "p50": 0.9957,
+        "mean": 0.9863
+      },
+      "area_rel_error_p90_abs": 0.0052,
+      "perimeter_retention_p10": 0.9527,
+      "max_shortcut_ratio_p90": 0.4993,
+      "chord_dispersion_max": 1.2514,
+      "self_intersecting_polylines": 5,
+      "source_rings_needing_repair": 0
+    },
+    "n128": {
+      "candidates": 839,
+      "hausdorff_m": {
+        "p50": 1.19,
+        "p90": 6.67,
+        "p99": 64.03,
+        "max": 543.14
+      },
+      "hausdorff_norm": {
+        "p50": 0.0157,
+        "p90": 0.0344,
+        "p99": 0.0834,
+        "max": 0.1483
+      },
+      "chamfer_norm": {
+        "p50": 0.0022,
+        "p90": 0.0048,
+        "max": 0.0221
+      },
+      "region_iou": {
+        "min": 0.8104,
+        "p10": 0.9913,
+        "p50": 0.9989,
+        "mean": 0.9949
+      },
+      "area_rel_error_p90_abs": 0.0014,
+      "perimeter_retention_p10": 0.9769,
+      "max_shortcut_ratio_p90": 0.4564,
+      "chord_dispersion_max": 1.0448,
+      "self_intersecting_polylines": 5,
+      "source_rings_needing_repair": 0
+    },
+    "n256": {
+      "candidates": 839,
+      "hausdorff_m": {
+        "p50": 0.61,
+        "p90": 3.12,
+        "p99": 31.31,
+        "max": 310.34
+      },
+      "hausdorff_norm": {
+        "p50": 0.0078,
+        "p90": 0.0178,
+        "p99": 0.0458,
+        "max": 0.0789
+      },
+      "chamfer_norm": {
+        "p50": 0.001,
+        "p90": 0.002,
+        "max": 0.0117
+      },
+      "region_iou": {
+        "min": 0.8959,
+        "p10": 0.9977,
+        "p50": 0.9997,
+        "mean": 0.9982
+      },
+      "area_rel_error_p90_abs": 0.0004,
+      "perimeter_retention_p10": 0.9887,
+      "max_shortcut_ratio_p90": 0.4286,
+      "chord_dispersion_max": 0.9094,
+      "self_intersecting_polylines": 4,
+      "source_rings_needing_repair": 0
+    }
+  },
+  "failure_cases": {
+    "self_intersecting_by_n": {
+      "n64": 5,
+      "n128": 5,
+      "n256": 4
+    },
+    "self_intersecting_at_reference": [
+      {
+        "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+        "source_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b",
+        "subtype": "reservoir",
+        "area_ha": 2269.757,
+        "n_source_vertices": 8085,
+        "region_iou": 0.8104,
+        "hausdorff_norm": 0.1483,
+        "perimeter_retention": 0.5548,
+        "validity_reason": "Self-intersection[-18189.9953585799 23510.2937687377]",
+        "lon": -89.712692,
+        "lat": 44.723411
+      },
+      {
+        "candidate_id": "dbdc7403-0bd9-3a8f-8f51-ac3ca8eae7fe",
+        "source_id": "dbdc7403-0bd9-3a8f-8f51-ac3ca8eae7fe",
+        "subtype": "reservoir",
+        "area_ha": 242.286,
+        "n_source_vertices": 1691,
+        "region_iou": 0.8276,
+        "hausdorff_norm": 0.1201,
+        "perimeter_retention": 0.6369,
+        "validity_reason": "Self-intersection[-20920.0789599804 33366.8935085573]",
+        "lon": -89.70781,
+        "lat": 44.813125
+      },
+      {
+        "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part2",
+        "source_id": "d7182ef0-579e-3189-a649-fc108826d3a3",
+        "subtype": "reservoir",
+        "area_ha": 5747.628,
+        "n_source_vertices": 8779,
+        "region_iou": 0.8569,
+        "hausdorff_norm": 0.1242,
+        "perimeter_retention": 0.4763,
+        "validity_reason": "Self-intersection[-44259.8098373224 -57719.1126028202]",
+        "lon": -89.962269,
+        "lat": 43.960317
+      },
+      {
+        "candidate_id": "9038d463-425c-385f-805a-59d836363444",
+        "source_id": "9038d463-425c-385f-805a-59d836363444",
+        "subtype": "reservoir",
+        "area_ha": 208.668,
+        "n_source_vertices": 1861,
+        "region_iou": 0.8786,
+        "hausdorff_norm": 0.1138,
+        "perimeter_retention": 0.6789,
+        "validity_reason": "Self-intersection[-22470.1875740146 32278.2467723896]",
+        "lon": -89.692346,
+        "lat": 44.800261
+      },
+      {
+        "candidate_id": "0575ce64-d713-3de2-8fad-690c36aa17c6",
+        "source_id": "0575ce64-d713-3de2-8fad-690c36aa17c6",
+        "subtype": "reservoir",
+        "area_ha": 197.176,
+        "n_source_vertices": 955,
+        "region_iou": 0.8848,
+        "hausdorff_norm": 0.0949,
+        "perimeter_retention": 0.753,
+        "validity_reason": "Self-intersection[-30860.2195946223 -19037.3124693789]",
+        "lon": -89.82538,
+        "lat": 44.341718
+      }
+    ],
+    "worst_perimeter_retention_at_reference": [
+      {
+        "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part2",
+        "subtype": "reservoir",
+        "area_ha": 5747.628,
+        "perimeter_retention": 0.4763,
+        "max_shortcut_ratio": 0.9416,
+        "n_source_vertices": 8779
+      },
+      {
+        "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+        "subtype": "reservoir",
+        "area_ha": 2269.757,
+        "perimeter_retention": 0.5548,
+        "max_shortcut_ratio": 0.8973,
+        "n_source_vertices": 8085
+      },
+      {
+        "candidate_id": "dbdc7403-0bd9-3a8f-8f51-ac3ca8eae7fe",
+        "subtype": "reservoir",
+        "area_ha": 242.286,
+        "perimeter_retention": 0.6369,
+        "max_shortcut_ratio": 0.9473,
+        "n_source_vertices": 1691
+      },
+      {
+        "candidate_id": "1c0fe7a9-a139-358b-b908-c87a030f2c6a-part0",
+        "subtype": "reservoir",
+        "area_ha": 9819.872,
+        "perimeter_retention": 0.6411,
+        "max_shortcut_ratio": 0.8982,
+        "n_source_vertices": 4373
+      },
+      {
+        "candidate_id": "9038d463-425c-385f-805a-59d836363444",
+        "subtype": "reservoir",
+        "area_ha": 208.668,
+        "perimeter_retention": 0.6789,
+        "max_shortcut_ratio": 0.8864,
+        "n_source_vertices": 1861
+      },
+      {
+        "candidate_id": "28bbcf56-986c-3fbe-bba0-1a20cfcc2596",
+        "subtype": "reservoir",
+        "area_ha": 2592.861,
+        "perimeter_retention": 0.7377,
+        "max_shortcut_ratio": 0.844,
+        "n_source_vertices": 2710
+      },
+      {
+        "candidate_id": "0575ce64-d713-3de2-8fad-690c36aa17c6",
+        "subtype": "reservoir",
+        "area_ha": 197.176,
+        "perimeter_retention": 0.753,
+        "max_shortcut_ratio": 0.913,
+        "n_source_vertices": 955
+      },
+      {
+        "candidate_id": "c1e1bfb4-c832-3d1c-b5ae-b59cf2941a7b",
+        "subtype": "reservoir",
+        "area_ha": 59.398,
+        "perimeter_retention": 0.8133,
+        "max_shortcut_ratio": 0.9237,
+        "n_source_vertices": 450
+      },
+      {
+        "candidate_id": "bcb74a8c-e9cf-39ab-a6b0-e60154d95e2c",
+        "subtype": "reservoir",
+        "area_ha": 157.525,
+        "perimeter_retention": 0.8484,
+        "max_shortcut_ratio": 0.7915,
+        "n_source_vertices": 690
+      },
+      {
+        "candidate_id": "6d52b947-304c-3fac-9642-bf6a61ed2ff5",
+        "subtype": "lake",
+        "area_ha": 112.659,
+        "perimeter_retention": 0.8647,
+        "max_shortcut_ratio": 0.7333,
+        "n_source_vertices": 787
+      }
+    ]
+  },
+  "feature_stability": {
+    "descriptor": "fourier amplitudes, 12 harmonics",
+    "aligned_candidates": 839,
+    "excluded_candidates": [],
+    "n64_vs_reference": {
+      "abs_l2_percentiles": {
+        "p50": 0.000461,
+        "p90": 0.001246,
+        "p99": 0.005972,
+        "max": 0.017366
+      },
+      "relative_l2_percentiles": {
+        "p50": 0.000485,
+        "p90": 0.001361,
+        "p99": 0.007291,
+        "max": 0.020097
+      },
+      "cosine_distance_p99": 2.5866260478659698e-05
+    },
+    "n128_vs_reference": {
+      "abs_l2_percentiles": {
+        "p50": 0.0,
+        "p90": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "relative_l2_percentiles": {
+        "p50": 0.0,
+        "p90": 0.0,
+        "p99": 0.0,
+        "max": 0.0
+      },
+      "cosine_distance_p99": 1.1102230246251565e-16
+    },
+    "n256_vs_reference": {
+      "abs_l2_percentiles": {
+        "p50": 0.00011,
+        "p90": 0.00029,
+        "p99": 0.001647,
+        "max": 0.00507
+      },
+      "relative_l2_percentiles": {
+        "p50": 0.000118,
+        "p90": 0.000325,
+        "p99": 0.001969,
+        "max": 0.005867
+      },
+      "cosine_distance_p99": 1.8324212654485806e-06
+    },
+    "n64_geometry_rel_delta_p99": {
+      "stat_compactness": 0.247458,
+      "stat_solidity": 0.044073,
+      "stat_aspect_ratio": 0.096956,
+      "stat_diameter_fill": 0.043038
+    },
+    "n64_geometry_rel_delta_max": {
+      "stat_compactness": 0.580207,
+      "stat_solidity": 0.10661,
+      "stat_aspect_ratio": 0.352789,
+      "stat_diameter_fill": 0.061566
+    },
+    "n128_geometry_rel_delta_p99": {
+      "stat_compactness": 0.0,
+      "stat_solidity": 0.0,
+      "stat_aspect_ratio": 0.0,
+      "stat_diameter_fill": 0.0
+    },
+    "n128_geometry_rel_delta_max": {
+      "stat_compactness": 0.0,
+      "stat_solidity": 0.0,
+      "stat_aspect_ratio": 0.0,
+      "stat_diameter_fill": 0.0
+    },
+    "n256_geometry_rel_delta_p99": {
+      "stat_compactness": 0.162325,
+      "stat_solidity": 0.020093,
+      "stat_aspect_ratio": 0.056663,
+      "stat_diameter_fill": 0.019534
+    },
+    "n256_geometry_rel_delta_max": {
+      "stat_compactness": 0.387359,
+      "stat_solidity": 0.059518,
+      "stat_aspect_ratio": 0.316746,
+      "stat_diameter_fill": 0.032798
+    },
+    "neighbour_agreement": {
+      "queries": 120,
+      "library": 839,
+      "k": 10,
+      "distance": "L2 to the N=128 reference library",
+      "n64_top10_overlap_with_reference": {
+        "mean": 0.9925,
+        "p10": 1.0,
+        "min": 0.9
+      },
+      "n64_own_reference_rank": {
+        "median": 1.0,
+        "p90": 1.0,
+        "worst": 1,
+        "top1_share": 1.0
+      },
+      "n128_top10_overlap_with_reference": {
+        "mean": 1.0,
+        "p10": 1.0,
+        "min": 1.0
+      },
+      "n128_own_reference_rank": {
+        "median": 1.0,
+        "p90": 1.0,
+        "worst": 1,
+        "top1_share": 1.0
+      },
+      "n256_top10_overlap_with_reference": {
+        "mean": 0.9967,
+        "p10": 1.0,
+        "min": 0.9
+      },
+      "n256_own_reference_rank": {
+        "median": 1.0,
+        "p90": 1.0,
+        "worst": 1,
+        "top1_share": 1.0
+      }
+    }
+  },
+  "adaptive_sampling_evidence": {
+    "targets": {
+      "region_iou": 0.95,
+      "hausdorff_norm": 0.05
+    },
+    "aligned_candidates": 839,
+    "excluded_candidates": [],
+    "smallest_passing_n": {
+      "n64": 648,
+      "n128": 152,
+      "n256": 31,
+      "none_of_the_tested_values": 8
+    },
+    "smallest_passing_n_by_subtype": {
+      "lake": {
+        "n64": 237,
+        "n256": 14,
+        "none_of_the_tested_values": 1,
+        "n128": 60
+      },
+      "pond": {
+        "n64": 400,
+        "n128": 69,
+        "n256": 3
+      },
+      "reservoir": {
+        "none_of_the_tested_values": 7,
+        "n256": 14,
+        "n128": 23,
+        "n64": 11
+      }
+    },
+    "candidates_failing_at_every_tested_n": 8,
+    "worst_hausdorff_norm_at_reference": [
+      {
+        "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+        "subtype": "reservoir",
+        "area_ha": 2269.7571,
+        "hausdorff_norm": 0.1483,
+        "region_iou": 0.8104
+      },
+      {
+        "candidate_id": "bcb74a8c-e9cf-39ab-a6b0-e60154d95e2c",
+        "subtype": "reservoir",
+        "area_ha": 157.5249,
+        "hausdorff_norm": 0.1296,
+        "region_iou": 0.8209
+      },
+      {
+        "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part2",
+        "subtype": "reservoir",
+        "area_ha": 5747.6279,
+        "hausdorff_norm": 0.1242,
+        "region_iou": 0.8569
+      },
+      {
+        "candidate_id": "dbdc7403-0bd9-3a8f-8f51-ac3ca8eae7fe",
+        "subtype": "reservoir",
+        "area_ha": 242.2863,
+        "hausdorff_norm": 0.1201,
+        "region_iou": 0.8276
+      },
+      {
+        "candidate_id": "28bbcf56-986c-3fbe-bba0-1a20cfcc2596",
+        "subtype": "reservoir",
+        "area_ha": 2592.8608,
+        "hausdorff_norm": 0.1149,
+        "region_iou": 0.8553
+      },
+      {
+        "candidate_id": "9038d463-425c-385f-805a-59d836363444",
+        "subtype": "reservoir",
+        "area_ha": 208.6683,
+        "hausdorff_norm": 0.1138,
+        "region_iou": 0.8786
+      },
+      {
+        "candidate_id": "c1e1bfb4-c832-3d1c-b5ae-b59cf2941a7b",
+        "subtype": "reservoir",
+        "area_ha": 59.3978,
+        "hausdorff_norm": 0.098,
+        "region_iou": 0.8989
+      },
+      {
+        "candidate_id": "0575ce64-d713-3de2-8fad-690c36aa17c6",
+        "subtype": "reservoir",
+        "area_ha": 197.176,
+        "hausdorff_norm": 0.0949,
+        "region_iou": 0.8848
+      },
+      {
+        "candidate_id": "00ed6caf-2c9c-3f42-9569-8097a0fd2d48",
+        "subtype": "lake",
+        "area_ha": 7.1363,
+        "hausdorff_norm": 0.0849,
+        "region_iou": 0.9111
+      },
+      {
+        "candidate_id": "94b3d732-79f6-3b29-945f-7a221c6a75aa",
+        "subtype": "reservoir",
+        "area_ha": 95.2268,
+        "hausdorff_norm": 0.0811,
+        "region_iou": 0.9132
+      }
+    ]
+  },
+  "engineering_cost": {
+    "storage": {
+      "per_candidate_bytes": {
+        "contour_n64": 512,
+        "contour_n128": 1024,
+        "contour_n256": 2048
+      },
+      "per_candidate_bytes_features": 80,
+      "totals": {
+        "candidates_839": {
+          "n64": {
+            "contours_mib": 0.41,
+            "features_mib": 0.06
+          },
+          "n128": {
+            "contours_mib": 0.82,
+            "features_mib": 0.06
+          },
+          "n256": {
+            "contours_mib": 1.64,
+            "features_mib": 0.06
+          }
+        },
+        "candidates_5000": {
+          "n64": {
+            "contours_mib": 2.44,
+            "features_mib": 0.38
+          },
+          "n128": {
+            "contours_mib": 4.88,
+            "features_mib": 0.38
+          },
+          "n256": {
+            "contours_mib": 9.77,
+            "features_mib": 0.38
+          }
+        },
+        "candidates_50000": {
+          "n64": {
+            "contours_mib": 24.41,
+            "features_mib": 3.81
+          },
+          "n128": {
+            "contours_mib": 48.83,
+            "features_mib": 3.81
+          },
+          "n256": {
+            "contours_mib": 97.66,
+            "features_mib": 3.81
+          }
+        }
+      }
+    },
+    "coarse_scan": {
+      "measured_candidates": 839,
+      "feature_dim": 16,
+      "full_scan_seconds": 1.7e-05,
+      "per_candidate_microseconds": 0.02,
+      "projected_50k_full_scan_seconds": 0.001,
+      "note": "single-thread NumPy L2 over the study descriptor (12 harmonics + 4 geometry columns); the released index vector is wider, cost scales with width"
+    },
+    "rerank_proxy_symmetric_chamfer": {
+      "n64": {
+        "per_pair_microseconds": 181.59,
+        "top100_seconds": 0.0182
+      },
+      "n128": {
+        "per_pair_microseconds": 212.72,
+        "top100_seconds": 0.0213
+      },
+      "n256": {
+        "per_pair_microseconds": 280.15,
+        "top100_seconds": 0.028
+      }
+    },
+    "single_descriptor_microseconds": 70.17,
+    "caveat": "timings are this machine and this run (feature bytes assume the released index width of 20 columns); scan cost grows linearly in candidates"
+  },
+  "representative_selection": {
+    "round_lake": {
+      "candidate_id": "8ee9166f-d5e8-3ff0-901a-020a6829b7a2",
+      "source_id": "8ee9166f-d5e8-3ff0-901a-020a6829b7a2",
+      "subtype": "lake",
+      "area_ha": 11.1997,
+      "pool_size": 69,
+      "rule": "max exterior compactness; area >= 2 ha, solidity >= 0.90, aspect <= 1.4, hull compactness >= 0.80",
+      "stage": 1,
+      "n_stages": 3,
+      "metrics": {
+        "compactness": 0.972609,
+        "solidity": 0.99831,
+        "aspect_ratio": 1.072131,
+        "diameter_fill": 0.902741,
+        "solidity_source": 0.99831,
+        "hull_deficits": 1.0,
+        "dominant_defect_share": 1.0,
+        "hull_compactness": 0.974514,
+        "exterior_area_m2": 111996.83217
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 22
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 2.2,
+          "hausdorff_norm": 0.0117,
+          "region_iou": 0.9983,
+          "perimeter_retention": 0.997,
+          "self_intersected": false
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 1.2,
+          "hausdorff_norm": 0.0062,
+          "region_iou": 0.9997,
+          "perimeter_retention": 0.9987,
+          "self_intersected": false
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 0.6,
+          "hausdorff_norm": 0.0032,
+          "region_iou": 0.9999,
+          "perimeter_retention": 0.9992,
+          "self_intersected": false
+        }
+      ]
+    },
+    "crescent": {
+      "candidate_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+      "source_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+      "subtype": "lake",
+      "area_ha": 8.1039,
+      "pool_size": 2,
+      "rule": "min solidity; one dominant hull deficit on a disc-like hull",
+      "stage": 1,
+      "n_stages": 3,
+      "metrics": {
+        "compactness": 0.592021,
+        "solidity": 0.808292,
+        "aspect_ratio": 1.400253,
+        "diameter_fill": 0.560607,
+        "solidity_source": 0.808292,
+        "hull_deficits": 3.0,
+        "dominant_defect_share": 0.978631,
+        "hull_compactness": 0.891672,
+        "exterior_area_m2": 81039.425507
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 47
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 2.7,
+          "hausdorff_norm": 0.0167,
+          "region_iou": 0.9956,
+          "perimeter_retention": 0.9948,
+          "self_intersected": false
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 1.5,
+          "hausdorff_norm": 0.0096,
+          "region_iou": 0.9987,
+          "perimeter_retention": 0.9968,
+          "self_intersected": false
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 1.2,
+          "hausdorff_norm": 0.0072,
+          "region_iou": 0.9997,
+          "perimeter_retention": 0.9983,
+          "self_intersected": false
+        }
+      ]
+    },
+    "slender": {
+      "candidate_id": "7ce4100d-f21f-3781-845b-7e932a91d3aa",
+      "source_id": "7ce4100d-f21f-3781-845b-7e932a91d3aa",
+      "subtype": "lake",
+      "area_ha": 2.933,
+      "pool_size": 512,
+      "rule": "max aspect ratio; area >= 1 ha",
+      "stage": 1,
+      "n_stages": 2,
+      "metrics": {
+        "compactness": 0.149541,
+        "solidity": 0.969955,
+        "aspect_ratio": 18.306094,
+        "diameter_fill": 0.065738,
+        "solidity_source": 0.969955,
+        "hull_deficits": 4.0,
+        "dominant_defect_share": 0.519941,
+        "hull_compactness": 0.154753,
+        "exterior_area_m2": 29330.030048
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 32
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 5.5,
+          "hausdorff_norm": 0.0569,
+          "region_iou": 0.9899,
+          "perimeter_retention": 0.9926,
+          "self_intersected": false
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 2.7,
+          "hausdorff_norm": 0.0284,
+          "region_iou": 0.9971,
+          "perimeter_retention": 0.9961,
+          "self_intersected": false
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 1.6,
+          "hausdorff_norm": 0.0163,
+          "region_iou": 0.9993,
+          "perimeter_retention": 0.9984,
+          "self_intersected": false
+        }
+      ]
+    },
+    "dendritic_reservoir": {
+      "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+      "source_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b",
+      "subtype": "reservoir",
+      "area_ha": 2269.7571,
+      "pool_size": 20,
+      "rule": "min compactness among reservoirs; area >= 50 ha",
+      "stage": 1,
+      "n_stages": 3,
+      "metrics": {
+        "compactness": 0.018621,
+        "solidity": 0.293162,
+        "aspect_ratio": 1.821444,
+        "diameter_fill": 0.137896,
+        "solidity_source": 0.293162,
+        "hull_deficits": 15.0,
+        "dominant_defect_share": 0.585483,
+        "hull_compactness": 0.771046,
+        "exterior_area_m2": 25476973.034679
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 8085
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 632.0,
+          "hausdorff_norm": 0.2219,
+          "region_iou": 0.7037,
+          "perimeter_retention": 0.4493,
+          "self_intersected": true
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 422.3,
+          "hausdorff_norm": 0.1483,
+          "region_iou": 0.8104,
+          "perimeter_retention": 0.5548,
+          "self_intersected": true
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 224.6,
+          "hausdorff_norm": 0.0789,
+          "region_iou": 0.8959,
+          "perimeter_retention": 0.6351,
+          "self_intersected": true
+        }
+      ]
+    },
+    "deep_concave": {
+      "candidate_id": "bcb74a8c-e9cf-39ab-a6b0-e60154d95e2c",
+      "source_id": "bcb74a8c-e9cf-39ab-a6b0-e60154d95e2c",
+      "subtype": "reservoir",
+      "area_ha": 157.5249,
+      "pool_size": 258,
+      "rule": "min solidity; area >= 5 ha",
+      "stage": 1,
+      "n_stages": 2,
+      "metrics": {
+        "compactness": 0.030886,
+        "solidity": 0.212859,
+        "aspect_ratio": 1.073275,
+        "diameter_fill": 0.131062,
+        "solidity_source": 0.212859,
+        "hull_deficits": 14.0,
+        "dominant_defect_share": 0.66553,
+        "hull_compactness": 0.839622,
+        "exterior_area_m2": 1575248.907735
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 690
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 169.6,
+          "hausdorff_norm": 0.2395,
+          "region_iou": 0.6772,
+          "perimeter_retention": 0.7548,
+          "self_intersected": true
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 91.7,
+          "hausdorff_norm": 0.1296,
+          "region_iou": 0.8209,
+          "perimeter_retention": 0.8484,
+          "self_intersected": false
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 39.1,
+          "hausdorff_norm": 0.0553,
+          "region_iou": 0.915,
+          "perimeter_retention": 0.9207,
+          "self_intersected": false
+        }
+      ]
+    },
+    "multi_bay": {
+      "candidate_id": "28bbcf56-986c-3fbe-bba0-1a20cfcc2596",
+      "source_id": "28bbcf56-986c-3fbe-bba0-1a20cfcc2596",
+      "subtype": "reservoir",
+      "area_ha": 2592.8608,
+      "pool_size": 139,
+      "rule": "most convex-hull deficits (>= 4); area >= 10 ha",
+      "stage": 1,
+      "n_stages": 3,
+      "metrics": {
+        "compactness": 0.037381,
+        "solidity": 0.397133,
+        "aspect_ratio": 5.035263,
+        "diameter_fill": 0.087036,
+        "solidity_source": 0.397133,
+        "hull_deficits": 20.0,
+        "dominant_defect_share": 0.415211,
+        "hull_compactness": 0.446661,
+        "exterior_area_m2": 26122126.924802
+      },
+      "panels": [
+        {
+          "panel": "original",
+          "n_source_vertices": 2710
+        },
+        {
+          "panel": "n64",
+          "hausdorff_m": 524.9,
+          "hausdorff_norm": 0.182,
+          "region_iou": 0.7568,
+          "perimeter_retention": 0.6749,
+          "self_intersected": false
+        },
+        {
+          "panel": "n128",
+          "hausdorff_m": 331.4,
+          "hausdorff_norm": 0.1149,
+          "region_iou": 0.8553,
+          "perimeter_retention": 0.7377,
+          "self_intersected": false
+        },
+        {
+          "panel": "n256",
+          "hausdorff_m": 163.4,
+          "hausdorff_norm": 0.0567,
+          "region_iou": 0.922,
+          "perimeter_retention": 0.8253,
+          "self_intersected": false
+        }
+      ]
+    }
+  },
+  "selection_rules": {
+    "round_lake": [
+      "max exterior compactness; area >= 2 ha, solidity >= 0.90, aspect <= 1.4, hull compactness >= 0.80",
+      "relaxed: dropped the hull-compactness test",
+      "fallback: area >= 0.5 ha"
+    ],
+    "crescent": [
+      "min solidity; one dominant hull deficit on a disc-like hull",
+      "relaxed: dropped the disc-like-hull test",
+      "fallback: single dominant deficit"
+    ],
+    "slender": [
+      "max aspect ratio; area >= 1 ha",
+      "fallback: area >= 0.2 ha"
+    ],
+    "dendritic_reservoir": [
+      "min compactness among reservoirs; area >= 50 ha",
+      "relaxed: reservoir of any area",
+      "fallback: min compactness over all candidates"
+    ],
+    "deep_concave": [
+      "min solidity; area >= 5 ha",
+      "fallback: area >= 1 ha"
+    ],
+    "multi_bay": [
+      "most convex-hull deficits (>= 4); area >= 10 ha",
+      "relaxed: >= 3 deficits, area >= 2 ha",
+      "fallback: area >= 1 ha"
+    ]
+  },
+  "reproduce": {
+    "command": "python scripts/analyze_sampling.py --raw 'data\\raw\\wisconsin_water.parquet' --contours 'data\\processed\\contours.parquet' --out-dir 'experiments\\p0_feature_probe'"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0"
+  },
+  "figures": [
+    {
+      "file": "sampling_comparison.png",
+      "categories": [
+        "round_lake",
+        "crescent",
+        "slender",
+        "dendritic_reservoir",
+        "deep_concave",
+        "multi_bay"
+      ]
+    },
+    {
+      "file": "sampling_zoom.png",
+      "entries": [
+        {
+          "category": "dendritic_reservoir",
+          "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+          "subtype": "reservoir",
+          "area_ha": 2269.7571,
+          "worst_deviation_m_at_n256": 224.6,
+          "zoom_center_lonlat": [
+            -89.697777,
+            44.791391
+          ]
+        },
+        {
+          "category": "deep_concave",
+          "candidate_id": "bcb74a8c-e9cf-39ab-a6b0-e60154d95e2c",
+          "subtype": "reservoir",
+          "area_ha": 157.5249,
+          "worst_deviation_m_at_n256": 39.1,
+          "zoom_center_lonlat": [
+            -89.748342,
+            44.207436
+          ]
+        },
+        {
+          "category": "multi_bay",
+          "candidate_id": "28bbcf56-986c-3fbe-bba0-1a20cfcc2596",
+          "subtype": "reservoir",
+          "area_ha": 2592.8608,
+          "worst_deviation_m_at_n256": 163.4,
+          "zoom_center_lonlat": [
+            -89.828791,
+            44.741338
+          ]
+        }
+      ]
+    },
+    {
+      "file": "sampling_error_scatter.png"
+    }
+  ],
+  "table": {
+    "file": "sampling_metrics.csv",
+    "rows": 2517
+  }
+}

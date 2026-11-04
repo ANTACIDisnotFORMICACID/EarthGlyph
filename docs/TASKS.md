@@ -1,7 +1,7 @@
 # TASKS — 当前任务、状态、阻塞与下一步
 
 > 规则见 [`AGENTS.md`](../AGENTS.md)；阶段门禁见 [`ROADMAP.md`](ROADMAP.md)。
-> 最后更新：2026-11-05（P0-2 完成，等待授权启动 P0-3；仓库维护规则已写入 `AGENTS.md`）。
+> 最后更新：2026-11-05（**P0-3 完成**，等待授权启动 P0-4；P0 门禁仍未通过）。
 
 ## 已完成：项目初始化 ✅
 
@@ -65,8 +65,35 @@ lake/pond/reservoir 约 979 个 + 需逐个检查的 `water` 836 个 —— 候�
 数据损失全部可解释（4,559 非闭合几何、1,034 待分析 subtype、121 小于 0.1 ha）。
 枝状水库在 N=128 下最坏弧长步长偏差约 104%，采样点数消融留给 P0-3（D7 注记）。
 
+## 已完成：P0-3 特征提取与索引构建 ✅（2026-11-05）
+
+| 项 | 状态 |
+|----|------|
+| Task A Fourier 描述子（定义 / DC 丢弃 / `\|Z_k\|/N` 逐样本归一 / 折叠模式 / Nyquist 上限 / 单点=批量） | ✅ `earthglyph/features/fourier.py`；49 项单测；见 D24/D25/D26 |
+| 谐波数消融 12 / 16 / 24（839 真实候选） | ✅ 取 **16**：能量捕获 p10 三者同为 0.7025、成对距离 pearson ≥ 0.99997 → 更宽无可测增益 |
+| 幅值丢相代价量化 | ✅ "同幅值随机相位"冒形 region IoU 中位 0.5338、98.81% < 0.9 → 幅值只可粗筛（D10 复核） |
+| Task B 辅助几何特征（compactness / solidity / aspect_ratio / diameter_fill） | ✅ 公式与基准写入 manifest；退化输入抛错计数（0 跳过）；见 D27 |
+| GEOS `minimum_rotated_rectangle` 缺陷（有效 40 顶点凸包塌成 6.279e-18 细条） | ✅ 改自实现凸包 + 旋转卡尺，见 D28 |
+| 特征组独立可消融，**无未验证融合权重** | ✅ `fusion: none`，组偏移入 manifest |
+| Task C 采样点数消融 N=64/128/256（全部从**原始外环**重采样，未用 128→256 插值捷径） | ✅ 839×3=2,517 行 + 3 张对比图 + 局部放大 + 真实经纬度 |
+| Task C 结论 | ✅ **保留 N=128**：64 使 `compactness` p99 漂移 24.7%、最坏 IoU 0.677；256 增益（最坏 IoU 0.81→0.90）不值轮廓字节翻倍（5 万候选 48.8→97.7 MiB）；自适应 N 有证据但本轮不实施（D29） |
+| 失败案例 | ✅ 8 个候选任何 N 都达不到 IoU≥0.95（7 个 reservoir）；N=128 下 5 个候选重建自交（上报不修复）；P0-2 "104%" 重新归类为弦长离散度（D30） |
+| 度量正确性校验（新增 `--validate-exact`） | ✅ 2,517 对 vs GEOS + 8× 细云：超一个云步长的违例 **0**，偏差偏保守 |
+| Task D `scripts/build_index.py` + `earthglyph/data/index.py` | ✅ `data/index/{features.npy, shapes.npy, metadata.parquet, data_manifest.json}`；839 行 / 0 跳过 / 两次构建字节一致 |
+| 一致性检查（数量、id 唯一、行序契约 `feature_row`、有限值、维度、轮廓回推、经纬度合法、确定性） | ✅ 31 项单测含异常注入；float32 往返误差 6.7e-7 / 6.0e-8 |
+| 每候选回查真实地点 | ✅ `candidate_id → source_id + part_index`，`lon/lat` 为 representative_point（D12）；单测确认正式索引无合成记录 |
+| Task E 候选库规模与多样性（**未下载新数据**） | ✅ 面积跨 4.99 个数量级、6 个 class、45 带孔洞、23 对近重复（20 簇）；Type A/B 判别字段已备好**未判定** |
+| Task F pending 类别（只读分析，文件未删改、未入索引） | ✅ 1,034 feature：water 冗余（6.82% 超候选库间距）、river 新但线状 → **`add_now: false`**，决策留给 P0-4/P0-6（D32） |
+| 自动化测试 | ✅ **281 passed**（P0-2 基线 137 + P0-3 新增 144）；`ruff check .` 全过；`mypy` strict 17 文件无问题 |
+| 实验记录 | ✅ `experiments/p0_feature_probe/{notes.md,features_summary.json,sampling_summary.json,sampling_metric_validation.json,pending_summary.json,…}` + 6 张图 |
+
+**P0-3 结论（特征与几何侧，非检索结论）：** 839 个真实候选已转为可批量读取的 20 维粗筛
+向量 + 128 点精排轮廓，特征按声明定义计算、不变性由单测钉住、逐候选可回查真实地点；
+N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库是已知短板）。
+**仍未验证：手绘 → Top-K 是否肉眼相似** —— 属 P0-4～P0-6。
+
 > ⚠️ **P0 门禁仍未通过**：真实数据的"可检索性"（手绘草图 → Top-10 肉眼相似）尚未验证，
-> 属 P0-2～P0-6 范围。P0 未通过前不进行大规模 Web 开发。
+> 属 P0-4～P0-6 范围。P0 未通过前不进行大规模 Web 开发。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
@@ -98,10 +125,12 @@ lake/pond/reservoir 约 979 个 + 需逐个检查的 `water` 836 个 —— 候�
 - 验收：单元测试覆盖平移/缩放/旋转不变性、镜像开关、无效草图、重复水体过滤；输出真实轮廓缩略图 + 坐标 + 来源 ID。→ ✅ 137 passed；四类真实数据检查图见 `experiments/p0_geometry_probe/`。
 - 实测修正：D15 框边过滤作废（无裁剪证据，改信息性标志）；面积/长宽比不做硬性形状删除（月牙、枝状、细长湖均保留，见图 D）。
 
-**P0-3 特征与索引构建**
+**P0-3 特征与索引构建** ✅ 完成（见上）
 - 计算 Fourier 描述子（12–24 维）+ 紧致度/长宽比等粗筛特征；保留 128 点精排轮廓。
 - 交付：`scripts/build_index.py`、`earthglyph/features`、`data/index/`（features/metadata/shapes/data_manifest.json）。
-- 验收：`data_manifest.json` 记录来源/版本/下载时间/覆盖/过滤/有效地物数/许可/commit；每个候选可经 id 回查真实经纬度。
+- 验收：`data_manifest.json` 记录来源/版本/下载时间/覆盖/过滤/有效地物数/许可/commit；每个候选可经 id 回查真实经纬度。→ ✅ 全部满足；839/839 入索引、0 跳过、两次构建字节一致。
+- 实测修正：谐波数 16（12/24 无可测增益）；**N=128 保留**（64/256 对照见 D29）；
+  GEOS 最小外接矩形在有效凸包上退化 → 自实现（D28）；P0-2 的"104% 步长偏差"是弦长离散度不是重建误差（D30）。
 
 **P0-4 检索 Baseline**
 - 实现 ≥2 种基线：Hu 矩（`cv2.matchShapes`）+ Fourier 粗筛 + 轮廓对齐精排（复数相关求 θ + 循环移位）。
@@ -141,11 +170,17 @@ lake/pond/reservoir 约 979 个 + 需逐个检查的 `water` 836 个 —— 候�
 ### 主要失败风险
 
 1. **数据下载被网络阻断**（github 已现 clone 超时）：Overture/Geofabrik 端点可达性需先验证；阻塞则如实报告，不伪造。
+   → P0-1 未触发（真实数据 6,543 行已入库；备用通道见 D13）。
 2. **候选库多样性不足**：若过滤后多为相似椭圆，检索无惊喜感 → 需换区域或调过滤。
+   → P0-3 部分量化：面积跨 4.99 个数量级、6 个 class、solidity p5 0.479（非"一库椭圆"），
+   但 reservoir 仅 55 个且**库只覆盖单 1°×1° 区域** → Type B 风险成立，判定需 P0-4 真实查询。
 3. **真实手绘形变超出几何匹配能力**：合成扰动通过但真人手绘失败 → 精排需加 Chamfer/IoU 或调整产品定位。
+   → 仍未验证（P0-6）；P0-3 已量化"同幅值不同相位"的失效面（98.81% 冒形 IoU < 0.9）。
 4. **浏览器端检索延迟**：1–5 万候选在 Worker 内可能偏慢 → 先优化数据格式，不急上后端。
-5. **Qoder Sites 发布流程与预期不符**：P0-7 需提前验证，避免 P4 踩坑。
-6. **pip/npm 代理不稳定**：环境曾现 127.0.0.1 代理告警，依赖安装需复测。
+   → 本机已测：839 候选全量 L2 扫描 1.7e-5 s、N=256 会使轮廓字节翻倍（48.8→97.7 MiB @5 万）；
+   **浏览器 Worker 内仍未测**（P1 验证）。
+5. **Qoder Sites 发布流程与预期不符**：P0-7 需提前验证，避免 P4 踩坑。→ 未验证。
+6. **pip/npm 代理不稳定**：环境曾现 127.0.0.1 代理告警，依赖安装需复测。→ 本轮未安装新依赖，未触发。
 
 ## 仓库维护检查点
 
@@ -157,27 +192,38 @@ lake/pond/reservoir 约 979 个 + 需逐个检查的 `water` 836 个 —— 候�
 | 2026-11-05 | `737ea68` | `docs:` 写入仓库维护与小版本推送规则 + `.gitignore` 审查包 | ✅ `git ls-remote origin` = `737ea681fa02beb8c4865e8528b71dd5fe67c3b3` |
 
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；提交身份用一次性 `-c` 参数传入，未修改机器级 `git config`。
-- 复现前检查：`pytest -q`（137 passed）· `ruff check .`（passed）· `mypy`（no issues in 13 files）。
-- 待办：P0-3 完成后按同一规则提交并推送，记录 commit sha 与数据 sha256。
+- 复现前检查：`pytest`（281 passed）· `ruff check .`（All checks passed）· `mypy`（no issues in 17 source files）。
+- 待办：P0-3 检查点在本次提交中落地，其 commit sha 与远端核验由紧随的 `docs:` 提交记录
+  （提交自身无法把 sha 写进自己；索引 manifest 的 `git_commit` 在提交后重建以对齐检查点）。
 
 ## 阻塞（当前）
 
-- **无阻塞。** P0-0 / P0-1 / P0-2 已完成，标准轮廓库可用。
-- 按任务边界，**P0-3 未启动**（等待授权）：P0-2 只证明"真实地物可转为统一轮廓"，不证明"可检索"。
+- **无阻塞。** P0-0 / P0-1 / P0-2 / P0-3 已完成，标准轮廓库 + 特征索引可用。
+- 按任务边界，**P0-4 未启动**（等待授权）：P0-3 只证明"特征可定义、可计算、索引可回查真实地点"，
+  **不证明"可检索"** —— 本轮无任何 Top-K 命中数字。
+- P0-3 留下的已知风险（不是阻塞，但决定 P0-4 该看什么）：
+  8 个候选（7 reservoir）在任何测试 N 下 region IoU 都 < 0.95；N=128 下 5 个候选重建自交；
+  候选库仅单 1°×1° 区域（Type B 覆盖风险）。
 - 非阻塞遗留：系统 GDAL CLI 未安装（Python 栈已覆盖需求）；`web/` 的 `npm audit` 6 个开发链依赖项待 P1 复评；
-  `scripts/inspect_data.py` / `scripts/preview_data.py` 有 10 个 mypy strict 报错（P0-1 遗留，配置范围为 `earthglyph/`，未阻塞）。
+  `scripts/inspect_data.py` / `scripts/preview_data.py` 有 10 个 mypy strict 报错（P0-1 遗留，配置范围为 `earthglyph/`，未阻塞）；
+  跨区域 / 极区无效几何覆盖度未测（`make_valid` 路径仅由合成单测覆盖）。
 
-## 下一步：P0-3 特征与索引构建（待授权）
+## 下一步：P0-4 检索 Baseline（待授权）
 
-P0-2 已给出明确的 P0-3 输入条件：
+P0-3 已给出明确的 P0-4 输入与判据：
 
-1. **输入**：`data/processed/contours.parquet`（839 候选，128 点外环轮廓 + 元数据），
-   无需再读原始 GeoParquet；`data_manifest.json` 提供来源与内容摘要。
-2. **特征**：Fourier 描述子（12–24 维）+ 紧致度 / 长宽比等粗筛特征；保留 128 点精排轮廓。
-3. **采样点数消融（D7）**：P0-2 实测枝状水库最坏弧长步长偏差约 104%，
-   建议 P0-3 同时评估 N=64/128/256 与按复杂度自适应 N。
-4. **待分析数据**：`pending_analysis.parquet`（1,034 个 river/canal/human_made/water 多边形）
-   可在 P0-3 决定是否扩入候选库（D19）。
-5. 交付后进入 P0-4（Baseline）→ P0-5（合成扰动）→ P0-6（真实手绘）→ P0-8 Go/No-Go。
+1. **输入**：`data/index/features.npy`（839×20 float32）、`data/index/shapes.npy`（839×128×2）、
+   `data/index/metadata.parquet`（含 `feature_row` 行序契约与 `lon/lat`）；
+   构建命令与 sha256 见 `data/index/data_manifest.json`（复现见 `experiments/p0_feature_probe/notes.md` §2）。
+2. **精排实现**：`D(A,B) = min_{s,θ} mean |a_k − e^{iθ} b_{(k+s) mod N}|²`，θ 由复数相关求（D8），
+   镜像走显式复共轭并由开关控制（D9），起点用循环移位对齐；预处理刻意未做旋转/起点对齐（D23）。
+3. **Baseline 对照**：Hu 矩（`cv2.matchShapes`）vs Fourier 幅值 vs Fourier 粗筛 + 精排，
+   同一候选库、同一查询集；粗筛向量两组（fourier / geometry）保持可拆以便消融。
+4. **必须交付真实证据**：≥1 组真实手绘查询的 Top-10 叠加图 + 每候选真实地图定位；
+   用 `notes.md` §7 的字段把每个失败查询记为 **Type A（算法）** 或 **Type B（数据覆盖）**。
+5. **只有 P0-4/P0-6 能回答的问题**：Fourier 粗筛 + 对齐精排在真实手绘（含形变）下的命中率；
+   极端枝状 reservoir 是否是失败主因（若是→单独提高 N 或另设精排基准）；
+   `river`/`water` 是否需要入场（`add_now: false` 的复核）；1–5 万候选在浏览器 Worker 的延迟。
+6. 之后 P0-5（合成扰动曲线，与 P0-6 指标**不可互换**）→ P0-6（≥10 固定手绘查询）→ P0-8 Go/No-Go。
 
-**P0 门禁仍未通过**：在完成 P0-3～P0-6 并拿到真实手绘查询的 Top-10 证据前，不启动大规模 Web 开发。
+**P0 门禁仍未通过**：在完成 P0-4～P0-6 并拿到真实手绘查询的 Top-10 证据前，不启动大规模 Web 开发。
