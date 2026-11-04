@@ -1,0 +1,588 @@
+{
+  "stage": "P0-2 geometry cleaning / contour extraction",
+  "kind": "data preprocessing inspection",
+  "not_a_retrieval_result": true,
+  "query_sketch_used": null,
+  "deterministic": true,
+  "random_seed": null,
+  "inputs": {
+    "contours": "data/processed/contours.parquet",
+    "rejected_samples": "data/processed/rejected_samples.parquet",
+    "manifest": "data/processed/data_manifest.json",
+    "raw_source": "data/raw/wisconsin_water.parquet"
+  },
+  "source": {
+    "name": "Overture Maps (Base theme), https://docs.overturemaps.org/",
+    "dataset": "Overture Maps base theme, type=water",
+    "release": "2026-10-21.0",
+    "download_time_utc": "2026-11-04T15:44:28+00:00",
+    "fetch_method": "duckdb-httpfs",
+    "bbox": {
+      "min_lon": -90.0,
+      "min_lat": 44.0,
+      "max_lon": -89.0,
+      "max_lat": 45.0,
+      "order": "min_lon,min_lat,max_lon,max_lat"
+    },
+    "input_path": "data/raw/wisconsin_water.parquet",
+    "input_size_bytes": 5536172,
+    "input_sha256": "1c5431f2aa73c99d8b1cca7e65918640587bcb21445890bf739c9a0a5ff1a417",
+    "input_content_digest": {
+      "algorithm": "sha256 over sorted lines '<id>\\t<wkb-hex>' (missing geometry -> '<null>')",
+      "rows": 6543,
+      "value": "22d143e4fa85c0829ae6182e59ca17a7e5940c10396765019328cb22cd249b9d"
+    },
+    "input_crs": "{\"$schema\": \"https://proj.org/schemas/v0.5/projjson.schema.json\", \"type\": \"GeographicCRS\", \"name\": \"WGS 84 (G730)\", \"datum\": {\"type\": \"GeodeticReferenceFrame\", \"name\": \"World Geodetic System 1984\", \"ellipsoid\": {\"name\": \"WGS 84\", \"semi_major_axis\": 6378137, \"inverse_flattening\": 298.257223563}}, \"coordinate_system\": {\"subtype\": \"ellipsoidal\", \"axis\": [{\"name\": \"Geodetic longitude\", \"abbreviation\": \"Lon\", \"direction\": \"east\", \"unit\": \"degree\"}, {\"name\": \"Geodetic latitude\", \"abbreviation\": \"Lat\", \"direction\": \"north\", \"unit\": \"degree\"}]}, \"id\": {\"authority\": \"EPSG\", \"code\": 4326}}",
+    "input_columns": [
+      "id",
+      "names",
+      "subtype",
+      "class",
+      "sources",
+      "source_tags",
+      "level",
+      "wikidata",
+      "is_intermittent",
+      "is_salt",
+      "geometry",
+      "version",
+      "bbox",
+      "theme",
+      "type"
+    ]
+  },
+  "counts": {
+    "raw_rows": 6543,
+    "raw_geometry_types": {
+      "LineString": 4505,
+      "Polygon": 1974,
+      "Point": 54,
+      "MultiPolygon": 10
+    },
+    "rejected_features_total": 5593,
+    "rejected_features_by_reason": {
+      "subtype_not_in_allowlist": 1034,
+      "wrong_type": 4559
+    },
+    "features_reaching_part_stage": 950,
+    "parts_extracted": 960,
+    "rejected_parts_by_reason": {
+      "area_below_minimum": 121
+    },
+    "candidates": 839,
+    "features_with_candidates": 831,
+    "candidate_by_subtype": {
+      "pond": 472,
+      "lake": 312,
+      "reservoir": 55
+    },
+    "candidates_extending_beyond_frame": 8,
+    "candidates_repaired": 0,
+    "candidates_with_holes": 45,
+    "candidates_from_multipolygon": 17
+  },
+  "cleaning": {
+    "subtype_allowlist": [
+      "lake",
+      "pond",
+      "reservoir"
+    ],
+    "min_area_m2": 1000.0,
+    "min_area_ha": 0.1,
+    "max_iou": 0.95,
+    "dedupe": true,
+    "frame_clip_filter": "not applied - bbox contact is not clipping evidence (D15 revised)"
+  },
+  "projection": {
+    "name": "aeqd",
+    "lon0": -89.4323509,
+    "lat0": 44.51248355,
+    "proj_string": "+proj=aeqd +lat_0=44.51248355 +lon_0=-89.4323509 +ellps=WGS84 +units=m +no_defs",
+    "units": "m",
+    "input_crs": "EPSG:4326",
+    "center_from": "centre of the data bounds",
+    "data_bounds_lonlat": [
+      -90.1841583,
+      43.767861,
+      -88.6805435,
+      45.2571061
+    ]
+  },
+  "n_points": 128,
+  "figures": {
+    "A_before_after": {
+      "file": "before_after.png",
+      "panels": 8,
+      "selection": "area-stratified across all candidates, plus the most holed and a MultiPolygon part",
+      "entries": [
+        {
+          "candidate_id": "2b1350f7-ffd1-34a9-8fb6-28761ec2447b",
+          "source_id": "2b1350f7-ffd1-34a9-8fb6-28761ec2447b",
+          "subtype": "pond",
+          "area_ha": 0.1653366581995931,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.59283160372016,
+          "lat": 44.46996615
+        },
+        {
+          "candidate_id": "79949450-3338-3631-8ae8-f54e9a908f14",
+          "source_id": "79949450-3338-3631-8ae8-f54e9a908f14",
+          "subtype": "pond",
+          "area_ha": 0.4238943876783297,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.71620951643627,
+          "lat": 44.89503965
+        },
+        {
+          "candidate_id": "8997cb13-4853-30be-9aa1-126aaef444e4",
+          "source_id": "8997cb13-4853-30be-9aa1-126aaef444e4",
+          "subtype": "pond",
+          "area_ha": 1.1918770586741716,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.85104706430214,
+          "lat": 44.170633550000005
+        },
+        {
+          "candidate_id": "23e5d091-b686-315a-b02c-bac4dae2a785",
+          "source_id": "23e5d091-b686-315a-b02c-bac4dae2a785",
+          "subtype": "pond",
+          "area_ha": 3.170689644656982,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.18815144743846,
+          "lat": 44.067461699999996
+        },
+        {
+          "candidate_id": "840849b8-569d-3e22-83a6-b7e051d73aa1",
+          "source_id": "840849b8-569d-3e22-83a6-b7e051d73aa1",
+          "subtype": "lake",
+          "area_ha": 6.684597327439795,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.20526476767834,
+          "lat": 44.20357965
+        },
+        {
+          "candidate_id": "16ec4fd3-16fc-30a2-93e7-237ad9bd3de0",
+          "source_id": "16ec4fd3-16fc-30a2-93e7-237ad9bd3de0",
+          "subtype": "lake",
+          "area_ha": 22.932333763012597,
+          "n_holes": 0,
+          "n_parts": 1,
+          "lon": -89.31695207134598,
+          "lat": 44.8571242
+        },
+        {
+          "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part2",
+          "source_id": "d7182ef0-579e-3189-a649-fc108826d3a3",
+          "subtype": "reservoir",
+          "area_ha": 5747.627856201325,
+          "n_holes": 234,
+          "n_parts": 3,
+          "lon": -89.96226884726876,
+          "lat": 43.9603171
+        },
+        {
+          "candidate_id": "1c0fe7a9-a139-358b-b908-c87a030f2c6a-part0",
+          "source_id": "1c0fe7a9-a139-358b-b908-c87a030f2c6a",
+          "subtype": "reservoir",
+          "area_ha": 9819.871501090842,
+          "n_holes": 55,
+          "n_parts": 2,
+          "lon": -89.93999573819517,
+          "lat": 44.1645965
+        }
+      ]
+    },
+    "B_candidate_gallery": {
+      "file": "candidate_gallery.png",
+      "panels": 36,
+      "selection": "one candidate per equal slice of the area-sorted list (deterministic, no seed)",
+      "entries": [
+        {
+          "candidate_id": "0a8d689a-345a-372d-b0b4-ebc3de0fdf8e",
+          "subtype": "pond",
+          "area_ha": 0.10786652121317143,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "393ce2b1-e012-316f-be3b-7ae5806d28a1",
+          "subtype": "pond",
+          "area_ha": 0.13166506993455174,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "8fbfa303-f972-302b-b196-80ead41bb415",
+          "subtype": "pond",
+          "area_ha": 0.1543264921225796,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "8a7e6504-0fcb-3537-aea2-70c03303bfa9",
+          "subtype": "pond",
+          "area_ha": 0.18545173202019533,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "b62e1127-096f-317e-ab28-2e571327c022",
+          "subtype": "pond",
+          "area_ha": 0.211105990795144,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "ba9aa783-b66a-356e-a478-ad5f529ea316",
+          "subtype": "pond",
+          "area_ha": 0.25618233457763,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "7522c4ed-b28a-3b74-86c9-0b5296fbd0a0",
+          "subtype": "pond",
+          "area_ha": 0.29442708935348444,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "075d3173-2a50-3e6d-a068-e0eee4ade5a9",
+          "subtype": "pond",
+          "area_ha": 0.3467953761329123,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "4b359549-65a4-37f8-b77a-0f46d3f45d7d",
+          "subtype": "pond",
+          "area_ha": 0.4063366976187061,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "6a3b8c32-eee8-37f1-a138-cb56da55cac1",
+          "subtype": "pond",
+          "area_ha": 0.479431615093441,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "169223b1-585c-3e8e-b871-39ba9d61ea06",
+          "subtype": "pond",
+          "area_ha": 0.5549434534216805,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "bd9b935f-94f4-3d6e-b67c-e03643d2cc37",
+          "subtype": "pond",
+          "area_ha": 0.691556380848495,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "22969d67-e8c3-3532-ba15-516628cf83e4",
+          "subtype": "pond",
+          "area_ha": 0.8470640339978649,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "740e7b24-fdaf-3261-9d54-744e25718205",
+          "subtype": "pond",
+          "area_ha": 0.9677457350298069,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "eb5292d7-ccf8-3ecf-a531-ea20a4da92d8",
+          "subtype": "lake",
+          "area_ha": 1.1543598757051112,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "12067a97-59cd-3c4f-8e14-6b4fb7961a4f",
+          "subtype": "pond",
+          "area_ha": 1.260417375133737,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "6842e2b8-ad11-3b03-90c7-a5b4358ddd0e",
+          "subtype": "pond",
+          "area_ha": 1.5321546263737096,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "a770c7ff-1d7c-375a-be71-b40f1e526cbc",
+          "subtype": "pond",
+          "area_ha": 1.851478055863157,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "e3c33649-597d-391b-9f9a-49baa4c2a0ce",
+          "subtype": "pond",
+          "area_ha": 2.3519184415138903,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part1",
+          "subtype": "reservoir",
+          "area_ha": 2.5785843201786194,
+          "n_holes": 0,
+          "n_parts": 3
+        },
+        {
+          "candidate_id": "7ce4100d-f21f-3781-845b-7e932a91d3aa",
+          "subtype": "lake",
+          "area_ha": 2.9330030047673925,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "dc6d9458-57d9-3b5a-89b9-17b6961cc7c6",
+          "subtype": "lake",
+          "area_ha": 3.4525696507361374,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "81fe792c-acbe-3879-be21-e59e233d085f",
+          "subtype": "lake",
+          "area_ha": 3.9043383294420595,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "0aaf7774-327a-37c9-acfc-8e142c88c9c4",
+          "subtype": "lake",
+          "area_ha": 4.527454160927674,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "53bdfcf7-0ffd-35b0-b810-47d7ddfbd166",
+          "subtype": "lake",
+          "area_ha": 4.882886777557633,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "f00b9a80-9f95-3c8e-b712-f0be8231b9aa",
+          "subtype": "lake",
+          "area_ha": 5.5213964177280666,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "6b36bf72-1129-36f2-9b7c-40d2076f977b",
+          "subtype": "pond",
+          "area_ha": 6.215636296152706,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "4650fabd-f4ae-3782-85c5-8814aecf2483",
+          "subtype": "reservoir",
+          "area_ha": 7.320115100975377,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "c65950d2-438f-357f-b048-5c9af36313b3",
+          "subtype": "pond",
+          "area_ha": 8.37307096486799,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "0b2fa08c-760c-3545-ab02-53afb13a9f05",
+          "subtype": "lake",
+          "area_ha": 10.756093536115884,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "8e570d9c-da50-33bc-8e9a-a8006fa12a7e",
+          "subtype": "pond",
+          "area_ha": 13.068333197516102,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "3a9a0190-d8b3-3926-9652-cc5aa3393963",
+          "subtype": "reservoir",
+          "area_ha": 16.482090245145038,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "8e47393b-2f30-3e44-8879-b10a507a87cb",
+          "subtype": "lake",
+          "area_ha": 20.38598020463449,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "7932063f-4f22-3afa-8c13-de32f457f772",
+          "subtype": "lake",
+          "area_ha": 29.835104889249447,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "6a41f6a5-776e-3433-b7fe-990dfb794192",
+          "subtype": "lake",
+          "area_ha": 46.64971261474674,
+          "n_holes": 0,
+          "n_parts": 1
+        },
+        {
+          "candidate_id": "1a583f99-1aac-370c-ac5d-5c0575f91ff7",
+          "subtype": "reservoir",
+          "area_ha": 114.92008392676028,
+          "n_holes": 0,
+          "n_parts": 1
+        }
+      ]
+    },
+    "C_rejected_examples": {
+      "file": "rejected_examples.png",
+      "panels": 13,
+      "reasons_present_in_saved_samples": {
+        "area_below_minimum": {
+          "total_rejected": 121,
+          "panels_shown": 4,
+          "source_ids": [
+            "bb34a9da-9524-32c7-ad93-fb322fc4d0d1",
+            "c8c4b559-0ff1-3e7d-9fd5-c9e3cc22178a",
+            "25aa6ab4-944f-3351-8a14-314276907324",
+            "2efc8079-267c-3f37-8efe-9383512884f4"
+          ]
+        },
+        "subtype_not_in_allowlist": {
+          "total_rejected": 1034,
+          "panels_shown": 4,
+          "source_ids": [
+            "c07a822b-2e48-342a-ac39-0f888f8dabb6",
+            "0669be82-48d8-3633-b9eb-07a83fdc5dea",
+            "d8131ccf-b89c-366d-af2e-c1a5ff8d0ace",
+            "ba06a064-9adc-304c-b093-0913b63c0749"
+          ]
+        },
+        "wrong_type": {
+          "total_rejected": 4559,
+          "panels_shown": 4,
+          "source_ids": [
+            "a100485b-f39a-3388-b939-2500d9a0d454",
+            "3645d700-8a74-3793-ad1e-20e9fdfc23cd",
+            "ff3eb287-2f18-3719-832b-0daa76ec01a6",
+            "d2dd93e4-c225-3037-b72f-b8a771fab253"
+          ]
+        }
+      },
+      "reasons_with_zero_real_occurrences": {
+        "empty_geometry": 0,
+        "null_geometry": 0,
+        "unrepairable_after_make_valid": 0,
+        "degenerate_ring": 0,
+        "duplicate_high_overlap": 0
+      },
+      "note": "full per-reason counts come from data_manifest.json; the parquet holds a capped sample"
+    },
+    "D_complex_contours": {
+      "file": "complex_contours.png",
+      "panels": 5,
+      "metric_definitions": {
+        "complexity": "perimeter^2 / area; 4*pi = 12.57 for a disc, higher = more branching",
+        "solidity": "area / convex_hull.area; low = concave (crescent, oxbow)",
+        "aspect_ratio": "long / short side of the minimum rotated rectangle",
+        "hull_defects": "number of convex-hull deficit polygons (concave bays)",
+        "dominant_defect_share": "largest bay / total hull deficit; ~1.0 = one clean crescent bay",
+        "crescent_rule": "hull_defects==1 and dominant_defect_share>0.95 and 0.6<=solidity<=0.9 and complexity<60 and area>=0.25 ha, deepest bay wins"
+      },
+      "entries": [
+        {
+          "case": "dendritic",
+          "candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+          "source_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b",
+          "subtype": "reservoir",
+          "area_ha": 2269.757140826733,
+          "perimeter_m": 212816.25699308372,
+          "complexity_perimeter2_over_area": 1995.401112563506,
+          "solidity": 0.2611799358434073,
+          "aspect_ratio": 1.8214435783127898,
+          "n_holes": 208,
+          "n_parts": 2,
+          "why_selected": "highest perimeter^2/area - branching shoreline; 128 points under-sample it"
+        },
+        {
+          "case": "crescent / oxbow",
+          "candidate_id": "8d19ab82-63ee-337e-be59-704e480f2612",
+          "source_id": "8d19ab82-63ee-337e-be59-704e480f2612",
+          "subtype": "pond",
+          "area_ha": 0.511981195012749,
+          "perimeter_m": 413.7937630732931,
+          "complexity_perimeter2_over_area": 33.44366551472519,
+          "solidity": 0.6553227885395919,
+          "aspect_ratio": 3.1514655359836317,
+          "n_holes": 0,
+          "n_parts": 1,
+          "why_selected": "deepest single concave bay on a compact body - a real crescent, kept intact"
+        },
+        {
+          "case": "with holes",
+          "candidate_id": "d7182ef0-579e-3189-a649-fc108826d3a3-part2",
+          "source_id": "d7182ef0-579e-3189-a649-fc108826d3a3",
+          "subtype": "reservoir",
+          "area_ha": 5747.627856201325,
+          "perimeter_m": 298284.1114511399,
+          "complexity_perimeter2_over_area": 1548.002295385207,
+          "solidity": 0.3743236210732067,
+          "aspect_ratio": 1.6642175317053325,
+          "n_holes": 234,
+          "n_parts": 3,
+          "why_selected": "most interior rings - only the exterior boundary is stored, holes counted in metadata"
+        },
+        {
+          "case": "MultiPolygon part",
+          "candidate_id": "e1c8bced-ad98-3326-b281-c017ecce576a-part1",
+          "source_id": "e1c8bced-ad98-3326-b281-c017ecce576a",
+          "subtype": "lake",
+          "area_ha": 2.4797231691911135,
+          "perimeter_m": 585.5381790791912,
+          "complexity_perimeter2_over_area": 13.826340110021812,
+          "solidity": 0.9792770031357465,
+          "aspect_ratio": 1.235339050591746,
+          "n_holes": 0,
+          "n_parts": 2,
+          "why_selected": "a simple part of a split feature; parent source_id + part_index preserved"
+        },
+        {
+          "case": "slender but valid",
+          "candidate_id": "7ce4100d-f21f-3781-845b-7e932a91d3aa",
+          "source_id": "7ce4100d-f21f-3781-845b-7e932a91d3aa",
+          "subtype": "lake",
+          "area_ha": 2.9330030047673925,
+          "perimeter_m": 1569.9306420697224,
+          "complexity_perimeter2_over_area": 84.0327206246731,
+          "solidity": 0.9699547553228157,
+          "aspect_ratio": 18.30609404087784,
+          "n_holes": 0,
+          "n_parts": 1,
+          "why_selected": "highest aspect ratio with complexity < 100 - kept on purpose (no aspect-ratio filter)"
+        }
+      ]
+    }
+  }
+}

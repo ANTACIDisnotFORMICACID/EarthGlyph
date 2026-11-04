@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / Web
+node_modules/
+web/dist/
+web/.vite/
+npm-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# Data & large artifacts (raw sources and generated indexes are NOT committed)
+data/raw/*
+data/processed/*
+data/index/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/index/.gitkeep
+*.parquet
+*.geoparquet
+*.pbf
+*.tif
+*.tiff
+# keep small experiment result images/logs tracked; ignore bulky generated shape dumps
+experiments/**/shapes/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Env / secrets
+.env
+.env.*

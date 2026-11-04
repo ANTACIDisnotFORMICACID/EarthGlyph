@@ -1,0 +1,118 @@
+{
+  "file": {
+    "path": "data\\raw\\wisconsin_water.parquet",
+    "size_bytes": 5536172
+  },
+  "rows": 6543,
+  "columns": {
+    "id": "str",
+    "names": "object",
+    "subtype": "str",
+    "class": "str",
+    "sources": "object",
+    "source_tags": "object",
+    "level": "float64",
+    "wikidata": "str",
+    "is_intermittent": "object",
+    "is_salt": "object",
+    "geometry": "geometry",
+    "version": "int32",
+    "bbox": "object",
+    "theme": "str",
+    "type": "str"
+  },
+  "crs": "{\"$schema\": \"https://proj.org/schemas/v0.5/projjson.schema.json\", \"type\": \"GeographicCRS\", \"name\": \"WGS 84 (G730)\", \"datum\": {\"type\": \"GeodeticReferenceFrame\", \"name\": \"World Geodetic System 1984\", \"ellipsoid\": {\"name\": \"WGS 84\", \"semi_major_axis\": 6378137, \"inverse_flattening\": 298.257223563}}, \"coordinate_system\": {\"subtype\": \"ellipsoidal\", \"axis\": [{\"name\": \"Geodetic longitude\", \"abbreviation\": \"Lon\", \"direction\": \"east\", \"unit\": \"degree\"}, {\"name\": \"Geodetic latitude\", \"abbreviation\": \"Lat\", \"direction\": \"north\", \"unit\": \"degree\"}]}, \"id\": {\"authority\": \"EPSG\", \"code\": 4326}}",
+  "geometry": {
+    "column": "geometry",
+    "type_counts": {
+      "Polygon": 1974,
+      "LineString": 4505,
+      "Point": 54,
+      "MultiPolygon": 10
+    },
+    "null_geometries": 0,
+    "empty_geometries": 0,
+    "invalid_geometries": 0,
+    "invalid_examples": []
+  },
+  "subtype_distribution": {
+    "stream": 3407,
+    "water": 836,
+    "canal": 773,
+    "pond": 585,
+    "river": 473,
+    "lake": 310,
+    "reservoir": 84,
+    "human_made": 50,
+    "physical": 17,
+    "spring": 8
+  },
+  "class_distribution": {
+    "stream": 3407,
+    "water": 813,
+    "ditch": 586,
+    "pond": 585,
+    "river": 473,
+    "lake": 284,
+    "drain": 107,
+    "canal": 80,
+    "reservoir": 79,
+    "swimming_pool": 50,
+    "lagoon": 24,
+    "wastewater": 23,
+    "waterfall": 9,
+    "bay": 8,
+    "spring": 8,
+    "basin": 5,
+    "oxbow": 2
+  },
+  "subtype_distribution_of_usable_closed": {
+    "water": 836,
+    "pond": 585,
+    "lake": 310,
+    "river": 143,
+    "reservoir": 55,
+    "human_made": 50,
+    "stream": 4,
+    "canal": 1
+  },
+  "null_counts_by_column": {
+    "id": 0,
+    "names": 4887,
+    "subtype": 0,
+    "class": 0,
+    "sources": 0,
+    "source_tags": 0,
+    "level": 6003,
+    "wikidata": 6517,
+    "is_intermittent": 5176,
+    "is_salt": 6523,
+    "version": 0,
+    "bbox": 0,
+    "theme": 0,
+    "type": 0
+  },
+  "duplicate_ids": 0,
+  "usable_closed_contours": {
+    "definition": "Polygon/MultiPolygon AND valid AND non-empty",
+    "count": 1984,
+    "share_of_rows": 0.3032
+  },
+  "areas_m2_of_usable": {
+    "count": 1984,
+    "min": 16.828389218710775,
+    "p1": 54.79750716271383,
+    "p5": 237.1576893282746,
+    "median": 4071.060055936159,
+    "p95": 213132.2449011349,
+    "p99": 1157712.3543917737,
+    "max": 98198880.59950474,
+    "size_buckets": {
+      "< 0.01 ha (100 m2)": 49,
+      "0.01-1 ha": 1181,
+      "1-100 ha": 729,
+      "100 ha-10 km2": 19,
+      "> 10 km2": 6
+    }
+  }
+}
