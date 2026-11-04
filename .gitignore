@@ -46,3 +46,7 @@ Thumbs.db
 # Env / secrets
 .env
 .env.*
+
+# Review / packaging artifacts (rebuildable from source + scripts; not source of truth)
+EarthGlyph_*_review_*.zip
+*.rar

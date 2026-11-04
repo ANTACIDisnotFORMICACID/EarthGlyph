@@ -29,12 +29,71 @@
 **P0（真实数据 + 检索可行性）未通过前，不进行大规模 Web 产品开发。**
 Go/No-Go 判据见 `docs/EXPERIMENTS.md`。
 
-## Git 规范
+## Git 规范与仓库维护
+
+### 提交内容标准
 
 采用 Conventional Commits：`feat:` `fix:` `refactor:` `test:` `docs:` `data:` `exp:` `chore:`。
 一次提交聚焦一个改动；不同时修改多个不相关模块。
 原始地理数据与生成索引（`data/raw`、`data/processed`、`data/index`）默认不提交。
 未经授权不删除重要数据与实验结果。
+
+**禁止入库**（由 `.gitignore` 强制，提交前复核暂存清单）：
+
+- 地理数据与生成产物：`*.parquet` / `*.geoparquet` / `*.pbf` / `*.tif`、`data/raw|processed|index` 内容（仅保留 `.gitkeep`）。
+- 环境与依赖：`.venv/`、`node_modules/`、`__pycache__/`、`*.egg-info/`、`.pytest_cache/`、`.mypy_cache/`、`.ruff_cache/`。
+- 敏感与临时：`.env*`、任何密钥 / token / 私钥（`~/.ssh/*` 不得复制进仓库）。
+- 审查打包产物：`EarthGlyph_*_review_*.zip`、`*.rar`（可由源码 + 脚本重建，不是事实来源）。
+- 单个超过 1 MB 的二进制需在提交信息中说明理由；轮廓库以"manifest + sha256 + 复现命令"版本化，不提交二进制。
+
+### 小版本检查点（必须推送远程）
+
+**完整小版本** = 一个阶段子任务（P0-1、P0-2、P1-1 …）或 `pyproject.toml` 的 `x.y` 变更，
+且同时满足：功能实现完成 → 测试全绿 → 文档已更新 → 复现命令可执行。
+
+**每完成一个完整小版本，必须依次执行本地提交与远程推送，不得把多个小版本攒在一起推送。**
+紧急修复可单独提交，同样需要推送。
+
+提交前检查清单：
+
+```bash
+pytest -q                 # 全通过；不得跳过失败用例
+ruff check .              # All checks passed
+mypy                      # 配置范围内 no issues
+# 另需：docs/TASKS.md 状态更新；算法/实验改动写 experiments/experiment_log.md
+git add -A && git status --short   # 复核暂存清单，确认无上面"禁止入库"项
+```
+
+推送后核验（两条都要做，作为检查点完成的证据）：
+
+```bash
+git ls-remote origin | head        # refs sha 必须等于 git rev-parse HEAD
+git log -1 --format='%H %an %ae'   # 提交与作者信息正确
+```
+
+检查点完成后在 `docs/TASKS.md`（或实验日志）记录：commit sha、构建/复现命令、
+数据 sha256 与内容摘要、测试与静态检查输出。
+
+### 远程与分支
+
+- `origin`：`https://github.com/ANTACIDisnotFORMICACID/EarthGlyph`，默认分支 `main`。
+- 小版本检查点直接提交到 `main`；周期长、可能失败的大改动用 feature 分支，合并后再推。
+- 本网络下 `github.com:443` HTTPS 被阻断，实测可用通道是 SSH over 443：
+
+```bash
+git remote set-url origin ssh://git@ssh.github.com:443/ANTACIDisnotFORMICACID/EarthGlyph.git
+# 回退 HTTPS：
+git remote set-url origin https://github.com/ANTACIDisnotFORMICACID/EarthGlyph.git
+```
+
+### 历史与工作区保护
+
+- 不得 `push --force`（尤其 `main`）；不得 amend / rebase 已推送的提交；需要修正时新增提交。
+- 破坏性命令（`reset --hard`、`clean -fdx`、`checkout --`、`branch -D`、删除数据目录）执行前
+  必须先 `git status` 确认无未保存工作，并向用户说明后进行。
+- 不修改机器级 `git config`；提交身份用一次性参数传入：
+  `git -c user.name=<name> -c user.email=<email> commit ...`。
+- 对 `~/.ssh`、代理、远程 URL 等本机配置的改动必须范围最小、可回退，并在完成报告中写明回退方法。
 
 ## 安全边界
 
