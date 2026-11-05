@@ -256,6 +256,8 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   实验产物 151 个文件（8.7 MiB，单文件最大 950 KB < 1 MiB 门槛），
   `results.csv` 241 行可由同一命令重建（该表不含计时列）；调试 CLI 的输出 JSON
   除 `timings` 字段外逐字节一致（本轮实测三次相同）。
+  紧随的 `docs:` 提交 `e9ba12d`（`8cec88b..e9ba12d main -> main`）补记本行核验并修正
+  排序契约的表述；和 P0-3 一样，记录核验的提交无法写入自身 sha，故不再另立检查点。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
