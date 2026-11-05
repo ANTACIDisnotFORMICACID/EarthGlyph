@@ -128,11 +128,14 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 > 固定查询集与人工肉眼判读（P0-6），仍需 P0-5 的 100–200 形状分级曲线。
 > **P0 未通过前不进行大规模 Web 开发。**
 
-## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint A（2026-11-06）
+## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint B（2026-11-06）
 
-任务边界：本次做到 **Checkpoint A（数据与实验设计 + 受控图库 + control_gallery + 固定划分）**
-即停止提交同步；B（E1/E2/E3 实现）、C（全方法运行 + 对比图）、D（指标 + 盲评 + 结论）为后续检查点。
+任务边界：**Checkpoint A** 做到「数据与实验设计 + 受控图库 + control_gallery + 固定划分」即停止；
+**Checkpoint B** 做到「E1/E2/E3 三臂实现 + 同一评分契约 + 自测量探针 + 测试全绿」即停止。
+**未运行任何检索评价**（无命中率、无排名、无对比图 → 属 Checkpoint C），
 **未进入 P0-5 扰动分级曲线，未开发任何 Web 产品界面。**
+
+### Checkpoint A：受控感知图库 ✅
 
 | 项 | 状态 |
 |----|------|
@@ -146,7 +149,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | Task B 近重复控制（数据卫生） | ✅ `align(allow_mirror=True)` ≤0.02 → 9 对近重复，**在 T2 中剔除**，任何方法无法靠返回查询的刚性副本得分；不影响 839 真实候选，不是地理去重规则 |
 | Task B 三种设置 | ✅ 定义与实现口径写入 manifest `settings`：T1 含目标（仅实现自测）、T2 去目标/刚性副本/近重复（判别性主设置）、T3 图库形状混入 839 真实候选同一检索空间（**逐候选 provenance；不合并进正式索引**，`data/index` 仍为 `77b083c9`） |
 | Task B 预处理一致性 | ✅ 图库成员与用户查询走 **同一条** `contour_from_points(closed=True)` → 128 点弧长重采样（`standardization` 记录），杜绝"两条管线比距离" |
-| Task D `control_gallery.png` | ✅ 22 行 × 14 列（1 184 570 B，入库理由：受控设计的人工复核物，可由命令重建，见提交信息）；标签 "Controlled Shape Retrieval — 非真实地理景观" |
+| Task D `control_gallery.png` | ✅ 22 行 × 14 列（1 184 570 B，入库理由：受控设计的人工复核物，可由命令重建，见提交信息）；标签 "Controlled Shape Retrieval — 非真实地理景观"。**Checkpoint B 的 `_bevel` 修复后重建为 1 184 600 B / sha256 `585ffb28…`**，见下表 |
 | Task E 标签冻结 | ✅ `labels.json`（118 796 B，sha256 `26e444ce…`）在 **任何算法看它之前** 生成；`queries/*.json` 18 个与 P0-4 查询加载器同格式；`near_duplicate_pairs` 一并冻结 |
 | 确定性 | ✅ 无随机数；Quick Draw 字节区间首次联网钉死、此后（含 `--offline`）只能重放；同一 cache 重建到临时目录 → `gallery.jsonl` / `labels.json` / `rejections.csv` / `queries/*.json`(18) / `control_gallery.png` **全部字节一致**，`diff -r` 仅差 `built_at_utc` 与命令字符串 |
 | 发现的实现缺陷（已修 + 已钉测试） | ✅ `svg_path.py`：`Z` 因 `and buffer` 守卫 **从未派发**（丢失全部闭合语义）+ 已在起点的路径被再补一次起点 + `<circle>` 误报 `ellipse`。**实测影响**：修复前后 14/25 个 Phosphor 成员的标准化轮廓变化（最大逐点位移 0.0879，对齐复测 0.0525），角色不变（D47）；构建器 `queries/` 只增不减导致的 **假查询** → 新增 `prune_stale_queries`（只删本构建器自己写的过期文件） |
@@ -159,6 +162,41 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 未做查询挑选或权重调参（划分先于运行冻结，sha256 为凭证）。
 已知局限：包络匹配在 crescent/heart/star 仅部分达标；`concave_deficiency` 是面积型指标，
 分不清"深而窄"与"浅而宽"，Checkpoint B 的 E2 必须用带符号转角/曲率序列补足。
+
+### Checkpoint B：E1/E2/E3 三臂实现 + 四臂同一评分契约 ✅
+
+| 项 | 状态 |
+|----|------|
+| 四臂同一契约 | ✅ `perceptual_methods.py`（137 行）：`CONTOUR_POINTS=128`、`check_contour`（点数 <4 / 形状不对 / 非有限值 → `PerceptualMethodError`）、`contour_stack`（**混合采样点数即抛错**，杜绝 128 vs 100 的"距离"）、`rank_order`（稳定 argsort，平票按行序 = D42）、`score_library(method, …)` 分派 E0/E1/E2/E3 并**连同该臂自己的 POLICY 一起返回**；分数越小越近；**没有粗筛窗口**（四臂在同一 179 行全库上打分） |
+| E0 默认行为不变 | ✅ `perceptual_e0.py`（88 行）只是适配器，`POLICY["new_code_in_this_checkpoint"] is False`；契约测试钉住 E0 距离与 `alignment.align()` **逐位相等**、`search_by_contour` 默认值（top_k 10 / shortlist 200 / `fourier_align` / `allow_mirror=False` / `smoothing=light`）不变；P0-4 产品链路 `alignment.py` / `search.py` / `coarse.py` / `chamfer.py` / `hu_baseline.py` 本轮 **0 改动**（`git show --stat 1696873` = 9 个新文件，无既有文件修改） |
+| E1 ShapeComp-inspired | ✅ 91 维 / 5 组可消融（10 global + 6 moments + 18 curvature + 15 Fourier + 42 tangent-angle），`groups=` 是所有入口的参数 → "哪一组值钱"不需改代码；逐描述子尺度/归一化口径显式写入 POLICY（`provenance` 声明**不是**原始 ShapeComp，I7 有意省略并记入差异） |
+| E1 主轴正则形 + 各向同性回退 | ✅ `ORIENTATION_ISOTROPY_MAX=0.98`，符号由归一化三阶矩定。实测 λ2/λ1：circle/square 1.00000、pentagon 0.99939、hexagon 0.99922、triangle 0.99904、star5 0.99869、star6 0.99582 → **isotropic-fallback**（此时 42 列切向角块**不再旋转不变**）；crescent 0.31132 / heart 0.59892 / chiral 0.76984 → canonical。逐候选可查：`orientation_statuses()` |
+| E1 旋转代价（同一 5 行库实测） | ✅ star 与自身 37° 旋转副本：E0 0.0000 / E2 0.0000 / E3 0.1405 / **E1 canonical 4.8047（raw 4.6945）**；对照 chiral：canonical 8.35e-14≈0、raw 1.3434 → 主轴机制"**有轴时是全部不变性来源，无轴时静默退化为 raw**"，已写入 `known_limitations`，不粉饰为全域旋转不变 |
+| E1 自拟合尺度的副作用 | ✅ 归一化常数由**当前库**拟合 → 同一查询在 3 行库中旋转副本排第 2（[7.5459, 8.2187, 7.5072]）、5 行库排第 1 → **E1 的距离跨库不可比**，写进 POLICY，Checkpoint C 必须固定库再报数 |
+| E2 显著结构匹配 | ✅ 带符号转角的 5 尺度尺度空间（1/64…1/4）→ 峰值 + 持续性 → 单调 DP 对齐；代价 = 转角差 + 较小转角 × 超 2% 预算的弧长漂移 + 0.25 × 尖度差，**除以整周 2π**（分母是平面的性质，不是这一对的性质）。star(5) 实测 10 事件（5 凸 5 凹），角电荷 1.169–2.426 rad |
+| E2 噪声 ≠ 结构 | ✅ 0.2% 径向噪声**不产生任何事件**（距离恰 0.0），0.5% 只产生 1 个 0.505 rad 事件，值 0.0805 = circle-vs-star 2.8610 的 **2.81%** |
+| E2 两个被否决的公式（连数字留档） | ✅ ① 把 persistence 再乘进每个电荷：同寿命对 4 位小数**完全不变**（worn star 0.2348、pentagon-disk 1.0000、噪声 0.0805），而 star-vs-five-lobed 1.5045 → **5.3802** → 是缩放不是过滤；② 漂移超预算除以预算：star6 **3.9716** > star-disk 2.8610 → **顺序反转**（圆盘无事件、全是 gap，该公式动不了它；人有 5/6 个角的区分，但先看星 vs 圆） |
+| E2 尖度增益取 0.25 的依据 | ✅ 同一对形状扫增益：0 → 1.8e-15（"磨损"看不见）、0.25 → 0.2348、1.0 → 0.9391；而 gain=1 时 star-vs-star6 = 1.3909（0.9391 已占其 **68%**）→ 单位增益会把"磨圆"重新分类成"另一个形状" |
+| E2 `_mirror` 真 bug 已修 | ✅ 原写法 `(x,y)→(-y,x)` 行列式 **+1，是 1/4 转不是镜像** → `allow_mirror` 对手性对完全无效（开关两侧同为 0.6181）；改用 `alignment.mirror_points` 后 off=0.6181 / on=**0.0000**，四臂的 `allow_mirror` 从此同一语义 |
+| E3 Shape Context | ✅ 纯 numpy 自实现（`shape_context_baseline.py` 717 行，与论文的 MATLAB 差异逐条写入 POLICY `deviations_from_the_paper`）：对数极坐标上下文 + **chi-square** + `linear_sum_assignment`（EMD 只作说明，不用：无可复现的 EMD 实现依赖，且代价 O(n³)）；`orientation="sample"`（24 步旋转搜索）与 `"canonical"` 两档 |
+| E3 分数不对称（实测，不掩饰） | ✅ 前 40 个图库成员 780 对：median **0.0061** / mean **0.0092** / max **0.0610**（0–1 分度），45 对完全相等、**735 对非零** → POLICY 明写"排序对参数顺序敏感，实验必须固定 `d(query, candidate)` 方向" |
+| E3 代价实测 | ✅ 179 候选 / 查询：sample **7.18 / 6.95 s**（两次完整运行只差这一行墙钟，±3%）、canonical **0.37 s**（两次相同）≈ 24× 匹配量。全量 18 查询 × 3 设置 × 两档在 C 里要**报告耗时而不是隐藏它** |
+| 每个写进 POLICY 的数字都能重跑 | ✅ 新增 [`verify_policy_claims.py`](../experiments/p0_perceptual_probe/verify_policy_claims.py)：逐条 `[ok]` 比对 POLICY 引用值与本次实测值，**超容差即非零退出**（约 4 分钟）；三臂 POLICY 新增 `measurements` 键指向它，契约测试断言脚本存在且仍 import 对应模块 → 该做法固化为 **D48** |
+| 本轮修掉的转录错误 | ✅ 该脚本首版把被否决的漂移公式误写成 `min(abs(left), right)`（少一个 `abs`），实测得到 **−17.0258** 的负代价而非 3.9716 → 与仓库内公式对齐后复现 3.9716；**负数没有进任何文档或 POLICY**，但记录在此：把开发期脚本转正时会带进转录错误 |
+| 数据回归（`_bevel` 修复的下游） | ✅ `5a9f1bc` 修复后离线重建（`1b8461c`）：`gallery.jsonl` `3a764664…` → **`15be97ae…`**、`control_gallery.png` `8c07d12a…` → **`585ffb28…`**（1 184 570 → **1 184 600 B**）、`labels.json` `26e444ce…` **不变**，manifest `reproduce.git_commit` = `5a9f1bcc…`；E3 不对称普查在重建前后**逐位相同** |
+| 自动化测试 | ✅ **605 passed**（A 的 498 + `test_perceptual_gallery.py` 磨损星 1 + `test_salient_structure.py` 28 + `test_shape_context_baseline.py` 27 + `test_perceptual_features.py` 24 + `test_perceptual_contract.py` 27）；`ruff check .` All checks passed；`mypy` strict **31 文件** no issues |
+
+**Checkpoint B 能主张的**：四臂在同一冻结图库上都可运行、输入校验 / 平票规则 / 参数口径一致，
+每臂的不变性与**被否决的公式**都由实测数字钉住且一条命令可复现；E0（产品链路）默认行为未变。
+**Checkpoint B 不能主张的**：任何检索命中率 / mAP / Top-K 排名 / "哪个方法更符合肉眼"
+——**本轮一个检索评价都没做**，只有对合成形状与图库成员的自测量探针；不得把 POLICY 的自测量
+数字称"人眼匹配准确率"；不得把 E1 的 ShapeComp-inspired 近邻当人类真值；T1/T2/T3 指标仍未计算。
+已知局限（留给 C/D）：E1 的各向同性回退使切向角块在正多边形/星形上不旋转不变（已量化、**未修复**，
+修复需形状族特定的轴约定 → 过度设计）；E1 距离自拟合、跨库不可比；E3 sample 模式昂贵；
+包络匹配 crescent/heart/star 仅部分达标仍是图库属性。
+**下一步 = Checkpoint C**（E0–E3 同集跑 T1/T2/T3 + 逐查询 Top-K 对比图 + 失败案例，
+合成扰动与真人画作来源**分开**评价）→ **Checkpoint D**（指标表 + 不变性探针 + 人工盲评 + 结论）。
+**仍未进入 P0-5 / P0-6，未做 Web 产品开发。**
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
@@ -272,6 +310,9 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | 2026-11-05 | `77b083c` | **P0-3 检查点**：特征模块 + 保真度度量 + 采样消融 + 形状索引 + 144 项新单测 + 文档（39 文件） | ✅ `git ls-remote origin` = `77b083c931b72cf4fd153a9185254f5a9486aeab` = `git rev-parse HEAD`（`fc35ba9..77b083c main -> main`） |
 | 2026-11-05 | `8cec88b` | **P0-4 检查点**：手绘抽象提取 + 两级检索 + 三 baseline + 本项目第一个检索实验（176 文件 = `earthglyph/` 10 + `scripts/` 4 + `tests/` 5 + `tools/sketch_pad.html` + 文档 5 + 实验产物 151；新增 144 项单测 → 425 passed） | ✅ `git ls-remote origin` = `8cec88b9c9fe8ef31f84575a360f017c4861da75` = `git rev-parse HEAD`（`899101d..8cec88b main -> main`，7.37 MiB / 189 objects） |
 | 2026-11-06 | `10c9e8f` | **P0-4.5 Checkpoint A**：受控感知图库（179 成员 / 18 查询 / 7 类 / 三来源许可与逐资产哈希 / 75 968 次拒绝计数）+ SVG 解码器闭合语义修复 + 结构角色审计 + 标签冻结 + `control_gallery.png` + 研究台账（34 文件 = `earthglyph/data/` 2 + `scripts/` 2 + `tests/` 2 + 实验产物 24 + 文档 4，含 `.gitignore`）；新增 73 项单测 → **498 passed** | ✅ `git ls-remote origin` = `10c9e8fab8ca39401b6f2e1336780bbb90f54718` = `git rev-parse HEAD`（`4c4bf66..10c9e8f main -> main`）；**提交后离线重建**：`gallery.jsonl` `3a764664…` / `labels.json` `26e444ce…` / `control_gallery.png` `8c07d12a…` 三个 sha256 **与提交内一致**，只有 `dataset_manifest.json` 的 `built_at_utc` 与 `git_commit`（现等于 `10c9e8fa…`）按预期变化 |
+| 2026-11-06 | `5a9f1bc` | Checkpoint B 第 1 步（`fix:`）：`_bevel` 只切角的一侧 → 圆角星变成尖刺（实测最坏顶点转角 176.8°，应为 48.0°）；两侧各切 + 钉测试 `test_a_rounded_star_is_worn_and_not_spiked` | ✅ 随 `6535e98..1696873` 一并推送（见下行核验）；本行是 Checkpoint B 这一**完整小版本**内的第 1 个 commit，不是独立小版本，故不单独核验远程 |
+| 2026-11-06 | `1b8461c` | Checkpoint B 第 2 步（`data:`）：用修复后的生成器离线重建图库 → `gallery.jsonl` `3a764664…`→**`15be97ae…`**、`control_gallery.png` `8c07d12a…`→**`585ffb28…`**（1 184 570→1 184 600 B）、`labels.json` **不变**，manifest `git_commit` = `5a9f1bcc…`（构建时 sha，早于本 data commit，符合"提交无法写入自身"） | ✅ 同上（`6535e98..1696873`）；重建命令 `python scripts/prepare_perceptual_dataset.py --offline --force --out-dir 'experiments\p0_perceptual_probe'` |
+| 2026-11-06 | `1696873` | **P0-4.5 Checkpoint B**：E1（`perceptual_features.py` 1520 行）+ E2（`salient_structure.py` 831 行）+ E3（`shape_context_baseline.py` 717 行）+ 四臂契约 `perceptual_methods.py`（137 行）+ E0 适配器 `perceptual_e0.py`（88 行，**产品代码 0 改动**）+ 4 个测试文件 105 项 → **604 passed** | ✅ `git ls-remote origin` = `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`（`6535e98..1696873 main -> main`，9 文件全为新增）；提交前 `pytest -o addopts="" -q` 604 passed · `ruff check .` All checks passed · `mypy` no issues in 31 source files |
 
 - 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
   `mypy` → no issues in 17 source files；
@@ -291,6 +332,14 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   除 `timings` 字段外逐字节一致（本轮实测三次相同）。
   紧随的 `docs:` 提交 `e9ba12d`（`8cec88b..e9ba12d main -> main`）补记本行核验并修正
   排序契约的表述；和 P0-3 一样，记录核验的提交无法写入自身 sha，故不再另立检查点。
+- 复现命令与证据（P0-4.5 · Checkpoint B）：`pytest -o addopts="" -q` → **605 passed** ·
+  `ruff check .` → All checks passed · `mypy` → no issues in 31 source files；
+  **POLICY 里每个数字的重跑命令**：`python experiments/p0_perceptual_probe/verify_policy_claims.py`
+  （约 4 分钟，逐条 `[ok]`，超容差非零退出；它读不入库的 `gallery.jsonl`，
+  该文件由 `python scripts/prepare_perceptual_dataset.py --offline --force` 重建，
+  E3 普查规模用 `--pairs` 调节）；本轮**未运行任何检索评价** → `results.csv` 无新行，
+  台账只登记自测量探针（见 [`experiment_log.md`](../experiments/experiment_log.md) 的
+  「P0-4.5 · Checkpoint B」小节）。紧随的 `docs:` 提交补记本行核验，同样写不进自身 sha。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
@@ -299,10 +348,16 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 - **无阻塞。** P0-0 / P0-1 / P0-2 / P0-3 / P0-4 已完成：标准轮廓库、特征索引与
   真实索引上的两级检索链路均可用（`search_by_contour` / `search_by_image`）。
-- **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`）已完成并推送
-  （`10c9e8fa`）；**Checkpoint B（E1/E2/E3 实现）→ C（全方法同集运行 + 对比图）→
-  D（T1/T2/T3 指标 + 不变性探针 + 人工盲评 + 结论）尚未开始**。
-  已知的真实外部约束（不是代码缺陷）：ShapeComp **官方** MATLAB 实现、权重与商业剪影
+- **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`，`10c9e8fa`）
+  与 **Checkpoint B（E1/E2/E3 三臂 + 四臂评分契约 + POLICY 数字重跑脚本，`5a9f1bc` / `1b8461c` /
+  `1696873`，已推送 `6535e98..1696873`）** 均已完成；
+  **Checkpoint C（E0–E3 同集运行 T1/T2/T3 + 逐查询 Top-K 对比图 + 失败案例）→
+  D（指标表 + 不变性探针 + 人工盲评 + 结论）尚未开始**。
+  B 遗留的**测量学**约束（不是代码缺陷，但决定 C 怎么跑）：E1 的归一化常数自拟合于当前库 →
+  跨库数字不可比；E1 的各向同性回退使 42 列切向角块在正多边形 / 星形上不旋转不变；
+  E3 的分数对参数顺序不对称（780 对实测 median 0.0061）→ C 必须固定 `d(query, candidate)` 方向；
+  E3 sample 模式约 7 s/查询 → 全量运行要在 C 里如实报告耗时。
+  已知的真实外部约束：ShapeComp **官方** MATLAB 实现、权重与商业剪影
   在本机不可达 → E1 只能是明确标注 **ShapeComp-inspired** 的自实现基线（D46）；
   人工盲评需要真人，若最终拿不到评分则交付盲评图 + 评分表并 **如实标注"未获评分"**。
 - 按任务边界，**P0-5 / P0-6 未启动**（等待授权）：P0-4 交付的是 6 候选 × 受控扰动族 +
@@ -321,11 +376,14 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 ## 下一步：P0-5 合成扰动分级曲线 与 P0-6 真人手绘（未启动，等待授权）
 
-> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint B**：在当前授权范围内继续
-> E2（`salient_structure.py`）/ E3（`shape_context_baseline.py`）/ E1
-> （`perceptual_features.py`，ShapeComp-inspired）的实现与测试，复用 A 已冻结的
-> 18 查询 / 179 成员 / `labels.json`（sha256 `26e444ce…`）与 `data/index`（`77b083c9`），
-> E0 的默认行为保持不变。下列 P0-5 / P0-6 条目仍是**未启动、等待授权**。
+> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint C**：B 已把 E1（`perceptual_features.py`，
+> ShapeComp-inspired）/ E2（`salient_structure.py`）/ E3（`shape_context_baseline.py`）
+> 与四臂契约 `perceptual_methods.py` 实现并测试完毕（`1696873`，605 passed），
+> E0 默认行为经契约测试证明未变。C 做的是**第一次真正的检索评价**：
+> 同一冻结划分（18 查询 / 179 成员 / `labels.json` sha256 `26e444ce…`）上跑 T1/T2/T3，
+> 出逐查询 Top-K 对比图与失败案例，合成扰动族与"真人画作来源"族**分开**记录。
+> T3 仍**不得**把图库形状合并进正式索引（`data/index` 保持 `77b083c9`）。
+> 下列 P0-5 / P0-6 条目仍是**未启动、等待授权**。
 
 P0-4 已给出明确的输入、判据与"本轮不能宣称"的清单（`experiments/p0_retrieval_baseline/notes.md` §12）：
 

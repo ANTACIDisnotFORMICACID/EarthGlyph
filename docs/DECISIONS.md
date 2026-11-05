@@ -390,11 +390,35 @@ Fourier 粗筛欧氏距离 0.003–0.023，对齐精排 RMS 边界偏移 0.052�
 （最大逐点位移 0.0879，`ph-spiral-fill`；用本项目对齐复测最大 0.0525），
 角色/族/成员清单不受影响，仅 `ph-heart-fill ↔ ph-heart-half-fill` 的
 `align_distance` 由 0.002278 → 0.001748（仍 < 0.02，T2 剔除集合不变）。
-影响：① 冻结的 `gallery.jsonl`（sha256 `3a764664…`）只在当前解码器下可复现，
+影响：① 冻结的 `gallery.jsonl`（sha256 `3a764664…`，Checkpoint A 构建）只在当前解码器下可复现，
 复现必须用仓库内 `earthglyph/data/svg_path.py`，`tests/test_svg_path.py` 不得跳过；
+**Checkpoint B 的 `_bevel` 修复又改变了一次生成几何**（`5a9f1bc` 修复 + `1b8461c` 离线重建 →
+`gallery.jsonl` `15be97ae…`、`control_gallery.png` `585ffb28…`），
+但两份 manifest 的递归 diff **只差 3 个字段**（`built_at_utc` /
+`content_sha256["gallery.jsonl"]` / `reproduce.git_commit`）→ 角色审计、拒绝计数（75 968）、
+近重复（9 对）、包络匹配残差（6/10 达标，未达标 id 与最大残差 0.395 相同）、
+逐资产哈希与 `labels.json`（`26e444ce…`）**全部未变**（比对命令见
+[`notes.md`](../experiments/p0_perceptual_probe/notes.md) §12），
+所以同一条规则对新产物同样成立：**改共享几何代码就必须重放并核对哈希，且要按 commit 顺序绑定**
+（manifest 的 `reproduce.git_commit` = `5a9f1bcc…`，即"能复现这份 gallery"的最小 commit）；
 ② 这 **不是** 无害清理，任何"改解码器不影响结果"的说法都必须先做同样的重建比对；
 ③ 顺带修掉构建器只增不减导致的 **假查询**（降级后的 `qd-moon-query-01.json` 仍留在
 `queries/`）：`prune_stale_queries` 只删除带本构建器 `tool` 标记且不在本轮查询集内的文件。
+
+**D48 算法自述（POLICY）里的每个数字必须有仓库内重跑命令** — 已定
+依据：Checkpoint B 的三臂用散文写明自己的不变性、代价与"被否决的公式"，而这些数字最初都来自
+开发期一次性脚本（`.scratch/`，已 gitignore，随工作区清理消失）→ 读者无法核验，等于把主张
+建在证据之外。把脚本转成入库文件时 **实测到一次转录错误**：被否决的漂移公式少写一个 `abs`
+（`min(abs(left), right)`），得到 **−17.0258** 的负代价，而仓库公式是 3.9716；负数被容差检查
+当场拦下、没有进入任何文档，但这类错误正是"prose 里的数字"默认不可信的理由。
+影响：① 唯一入口 `python experiments/p0_perceptual_probe/verify_policy_claims.py`，逐条打印
+`[ok] 实测值 vs POLICY 引用值`，**超容差即非零退出**（不是警告）；E3 普查读不入库的
+`gallery.jsonl`，故同时给出重建命令，`--pairs` 只用于抽样、默认 40（780 对）才是被引用的那组数；
+② E1/E2/E3 的 POLICY 各带 `measurements` 键指向该脚本，`tests/test_perceptual_contract.py` 断言
+脚本存在 **且仍 import 对应模块**，防止"指针指向已经不存在的证据"；
+③ Checkpoint C/D 的结果表必须打印 `describe_policy()` 返回的口径，而不是把注释抄成表格列，
+任何 **新** 数字进入文档前先加进该脚本的容差检查；
+④ 墙钟类数字允许抖动，必须写实测范围（E3 sample 两次完整运行 7.18 / 6.95 s）而不是单点。
 
 ## 待验证假设清单（P0 跟踪）
 

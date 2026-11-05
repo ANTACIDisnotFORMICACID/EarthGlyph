@@ -10,6 +10,8 @@
 | 2026-11-05 | `p0_geometry_probe` | **数据预处理检查（非检索）** | 同上原始数据 → `data/processed/contours.parquet`（839 候选） | 目视确认清洗与标准化未破坏真实形状、过滤不过度、复杂形状（枝状/月牙/带孔/MultiPolygon/细长）保留 | `before_after.png`, `candidate_gallery.png`, `rejected_examples.png`, `complex_contours.png`, `summary.json`, `notes.md` | 6,543 行 → 839 标准轮廓，损失全部可解释；归一化保持比例；D15 框边过滤被几何证据推翻改为标志位；N=128 对极端枝状岸线欠采样（最坏步长偏差 ~104%）→ 采样消融留给 P0-3；**未验证检索命中率** |
 | 2026-11-05 | `p0_feature_probe` | **特征定义 / 几何保真度 / 特征空间测量（非检索）** | Overture release 2026-10-21.0, bbox -90,44,-89,45 → `data/processed/contours.parquet`（839 候选，128 点）→ `data/index/` | ① Fourier 幅值描述子与 4 个几何统计量的定义、不变性与退化处理；② 谐波数 12/16/24 取舍；③ N=64/128/256 采样消融（从原始外环重采样）；④ 索引确定性与可回查；⑤ 候选库多样性与 pending 类别是否扩容 | `features_summary.json`, `harmonic_ablation.png`, `phase_loss_examples.png`, `near_duplicate_pairs.csv`, `candidate_distribution.png`, `sampling_metrics.csv`(2,517 行), `sampling_summary.json`, `sampling_comparison.png`, `sampling_zoom.png`, `sampling_error_scatter.png`, `sampling_metric_validation.{csv,json}`, `pending_summary.json`, `pending_parts.csv`, `pending_distribution.png`, `notes.md` | 谐波数取 16（12/24 无可测增益）；**N=128 保留**（Hausdorff 归一 p50 0.0157、region IoU 均值 0.9949；256 的增益不值字节翻倍），8 个候选在任何 N 都达不到 IoU≥0.95、5 个在 N=128 重建自交（全为 reservoir，已上报不修复）；云近似偏差经 2,517 对实测 0 违例；索引 839 行确定性构建、逐候选可回查真实经纬度；pending 建议 `add_now: false`；**未验证检索命中率** |
 | 2026-11-05 | `p0_retrieval_baseline` | **检索实验（本项目第一个）** | 同 `data/index`（839 候选 / 128 点 / 20 维，索引 commit `77b083c9`）+ `scripts/make_retrieval_queries.py --seed 20261105` 生成的 115 轨迹 + 6 PNG 查询 | ① 手绘轮廓抽象提取（矢量轨迹 / 单封闭轮廓 PNG，歧义即报错）；② 平滑三档消融（全库代价）；③ 镜像 / 走向在整条管线上的行为；④ 三 baseline（Hu / Fourier / Fourier+闭式对齐精排）+ Chamfer 复核；⑤ 三层评估 G1 合成扰动 / G2 不规则草图 / G3 类手绘；⑥ 失败四类归因（A 提取 / B 粗筛 / C 精排 / D 覆盖） | `results.csv`(241 行), `summary.json`, `figures.json`, `queries/`(115 轨迹 JSON + 6 PNG + manifest), `extraction_examples.png`, `topk_*.png`(10), `baselines_*.png`(9), `smoothing_ablation.png`, `failure_cases.png`, `query_drawn-*.json`(3), `notes.md` | **G1**（实现正确性，非手绘能力）：self/rot/scale/shift/reverse **Top-1 = 1.000**（6/12/6/6/6），稀疏 26 点 0.667，镜像（默认禁）0.167 且真值粗筛排名恒为 1 → **幅值镜像盲已被实测**，`allow_mirror=True` 时 6/6 真值回到第 1（D 由 0.10–0.52 塌到 0.004–0.25）；**G2**：`none/light/medium` 三档排序结果**逐族完全相同**（45 个 ok 行中 44 行 Top-1），仅对真值距离变化 → 选 `light` 的依据是抖动/凹口折中，不是"更好看"；**全库消融**：light 保留 k=9..16 谱能量 0.831（最差 0.760）/ medium 仅 0.337（最差 0.197），medium 最坏改动 51% 周长；**短名单扫描 100=200=300**（逐族逐位相同）→ 粗筛窗口不是瓶颈；**归因**：ok 180 / A 提取 22（10 输入）/ **B 0 / C 0** / D 覆盖或形变 30（22 行集中于 row 294 枝状水库，全库精排 23–502 名）/ G3 无真值 9；**G3**：月牙→pond `f774dda7…`（−89.89456, 44.39991，D=0.150）、心形→lake `d3a552b9…`（−89.15608, 44.33571，D=0.106）、S 形→pond `79949450…`（D=0.109）、星形 D≈0.21 并标注弱命中（库里无角状地物）；三 baseline 的 Top-1 在 9 个查询上**互不相同**且距离量纲不可比（Hu 0–1.1e-4 / Fourier 0.003–0.023 / 精排 0.052–0.213）→ 不宣称任何方法"更准"。**G3 的 `drawn-*` 是机器指针轨迹，不是人类手绘；P0 门禁仍未通过（需 P0-6 ≥10 真人查询）** |
+| 2026-11-06 | `p0_perceptual_probe` **A** | **数据构建（非检索）** | Phosphor MIT 25 SVG + Quick Draw CC BY 4.0 48 字节切片 + 本项目参数化 74 → 179 成员 / 18 查询 / 7 结构类 | 建立许可清晰、角色由实测几何裁决、划分与标签**先于任何算法**冻结的受控感知图库 | `gallery.jsonl`(179), `labels.json`, `queries/`(18), `rejections.csv`(75 968), `dataset_manifest.json`, `control_gallery.png`, `shapecomp_research.md` | 覆盖门槛实测达标（`shortfalls=[]`）；3 条角色降级 + 包络匹配 6/10 达标（残差公开）；9 对近重复在 T2 剔除；**一个检索方法都没跑** → 无命中率、无排名 |
+| 2026-11-06 | `p0_perceptual_probe` **B** | **算法实现 + 自测量探针（非检索评价）** | A 冻结图库（`gallery.jsonl` sha256 `15be97ae…`（`_bevel` 修复后重建）、`labels.json` `26e444ce…`）+ 生成器合成分布；`data/index` 本轮**未使用** | 实现 E1/E2/E3 与四臂评分契约，并把每臂的不变性、被否决公式的代价量化成可重跑的数字 | `perceptual_methods.py`(137), `perceptual_features.py`(1520), `salient_structure.py`(831), `shape_context_baseline.py`(717), `perceptual_e0.py`(88), `verify_policy_claims.py`, `tests/` 4 文件(105→106), 本文 §Checkpoint B | 四臂在同一 128 点全库上可打分（无粗筛窗口），E0 默认行为逐位未变；E1 无主轴形状丢旋转不变（star vs 自身 37° 副本 4.8047，E0/E2 0.0000、E3 0.1405）；E3 分数**不对称**（780 对 median 0.0061 / 45 对全等 / 735 对非零）；E2 0.2% 噪声 0 事件、0.5% 仅 1 事件（0.0805 = 结构的 2.81%）；**仍未验证任何命中率 / 排名 / "更符合肉眼"** → 属 Checkpoint C/D |
 
 ## p0_data_probe 复现命令
 
@@ -134,3 +136,52 @@ Git 检查点：`10c9e8fa`（已推送，`4c4bf66..10c9e8f main -> main`，
 > （仍 < 0.02，T2 剔除集合不变）。台账与 D47 已按实测数字更正；
 > 冻结产物绑定 **修复后** 的解码器。
 
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint B：E1/E2/E3 三臂 + 四臂评分契约）
+
+```bash
+# 重跑 POLICY 里每个数字（不是检索评价：没有 T1/T2/T3 指标，没有 Top-K 图，没有命中率）
+python experiments/p0_perceptual_probe/verify_policy_claims.py            # 约 4 分钟，逐条 [ok]，超容差即非零退出
+python experiments/p0_perceptual_probe/verify_policy_claims.py --pairs 8   # 抽样冒烟版：实测 4.3 s 就退出，但**必然非零**——容差检查的对象是默认 40 成员（780 对）那组被 POLICY 引用的数，抽样值本来就不同（本次 median 0.0041）
+python scripts/prepare_perceptual_dataset.py --offline --force             # 重建脚本要读的 gallery.jsonl（1.2 MB，不入库）
+pytest -q -o addopts=""      # 605 passed
+ruff check .                 # All checks passed
+mypy                         # Success: no issues found in 31 source files
+```
+
+- 随机性：只有 E2 噪声探针用 `np.random.default_rng(0)`（种子写在脚本源码里，不依赖环境变量），
+  其余测量全确定。**两次完整运行**的输出 `diff` **只差 1 行**（E3 的 sample 墙钟 7.18 / 6.95 s，
+  ±3%），所有实测数字逐字符相同；另一次运行在漂移变体处提前失败（见下方方法论记录），
+  其失败前打印的 sample 时间是 7.08 s。该比对不需要额外凭证：把上面的命令跑两遍再 `diff` 即可。
+- 内容：5 个新模块 = 四臂契约 `perceptual_methods.py`(137) + E1 `perceptual_features.py`(1520)
+  + E2 `salient_structure.py`(831) + E3 `shape_context_baseline.py`(717) + E0 适配器
+  `perceptual_e0.py`(88)；新单测 `test_salient_structure.py` 28 + `test_shape_context_baseline.py` 27
+  + `test_perceptual_features.py` 24 + `test_perceptual_contract.py` 27 = **106 项**（另 `5a9f1bc`
+  给 `test_perceptual_gallery.py` 加 1 项磨损星）；P0-4 产品链路（`alignment` / `search` / `coarse`
+  / `chamfer` / `hu_baseline`）**0 改动**，由契约测试钉住默认值。
+- 数据回归：`_bevel` 修复（`5a9f1bc`）后离线重建（`1b8461c`）→ `gallery.jsonl`
+  `3a764664…` → **`15be97ae…`**、`control_gallery.png` `8c07d12a…` → **`585ffb28…`**
+  （1 184 570 → 1 184 600 B）、**`labels.json` `26e444ce…` 不变** → Checkpoint A 冻结的角色 /
+  划分 / 近重复凭证仍然有效，C 继续用它；E3 的 780 对不对称普查在重建前后**逐位相同**。
+- Git 检查点：`5a9f1bc`（`fix:`）+ `1b8461c`（`data:`）+ `1696873`（`feat:`，9 文件全新增）
+  一并推送 `6535e98..1696873 main -> main`，`git ls-remote origin` =
+  `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`；
+  紧随的 `exp:`（重跑脚本 + POLICY `measurements` 键）与 `docs:`（本节）为同一小版本的收尾提交。
+
+**本轮不允许的主张**（写了就是伪造检索证据）：
+
+1. 任何**命中率 / mAP / Top-K 排名 / "哪个方法更符合肉眼"** —— B 一个检索评价都没跑，
+   只有对合成分布与图库成员的自测量探针。
+2. 不得把 POLICY 里的自测量数字称作"人眼匹配准确率"（无人工评分，评分属 D）。
+3. 不得把 E1 的 ShapeComp-inspired 近邻当人类相似度真值（D46：官方实现与权重本机不可达）。
+4. 不得跨库比较 E1 的距离数值（归一化常数自拟合于当前库：同一查询在 3 行库排第 2、5 行库排第 1）。
+5. 不得宣称 E1 全域旋转不变（λ2/λ1 ≥ 0.98 的形状走各向同性回退，42 列切向角块丢不变性；
+   star5 0.99869 就是这种形状，实测旋转残差 4.8047，而 E0/E2 为 0.0000）。
+6. 不得混用 E3 的 `d(a,b)` 与 `d(b,a)` 排序（实测 780 对中 735 对不对称，median 0.0061）。
+7. 不得据 B 宣称 P0 门禁通过（门禁要 ≥10 真人查询，属 P0-6）。
+
+**方法论记录（不删，因为它解释了脚本为什么存在）**：把开发期 `.scratch/` 探针转成入库脚本时，
+第一版把 E2 被否决的漂移公式误写成 `min(abs(left), right)`（少一个 `abs`），实测得到
+**−17.0258** 的负代价，而不是仓库公式的 3.9716。负数当场被容差检查拦下、**没有**进入任何
+POLICY 或文档；但它说明" prose 里的数字来自一次性脚本"是不可靠的，所以每个数字现在都有一个
+在仓库里、可重跑、超容差即失败的来源。

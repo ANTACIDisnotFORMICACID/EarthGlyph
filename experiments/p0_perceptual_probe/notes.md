@@ -190,10 +190,12 @@ mypy                         # Success: no issues found in 26 source files
 
 ```
 gallery.jsonl     identical: True   (sha256 3a7646646cd9d496c32a5e5fcec5d10538709972ddb9744222cda17bc3acc138)
+                  # Checkpoint B 的 _bevel 修复后重建 = 15be97ae5ae583ceacfbf5ea76a18911acd1004bb3dc2c17b7d552b189e77891（§11）
 labels.json       identical: True   (sha256 26e444ce2299c414c6deac7d8a260f4597360bcbe35d65dde2e66d2dbcb3b213)
 queries/*.json    identical: True   (18 files, 逐个 cmp)
 rejections.csv    identical: True
 control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1ecac0c9c5011b7381b633e19c983)
+                  # 同上重建后 = 585ffb283dc7460a8cbd66817cf217e883f12050af631552fec6bdd261be0211，1 184 570 → 1 184 600 B
 ```
 
 `diff -r` 下 **唯一** 不同的文件是 `dataset_manifest.json`，且只差两处自指字段：
@@ -212,7 +214,8 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
   URL + 字节区间 + sha256 重建）、`experiments/**/gallery.jsonl`（1.2 MB 生成几何）。
   入库的是 `labels.json`（118 796 B，冻结的角色/划分）、`dataset_manifest.json`
   （76 709 B，完整性记录）、`queries/`（18 个查询 JSON）、`rejections.csv`
-  （200 332 B）、`control_gallery.png`（1 184 570 B > 1 MiB，理由见提交信息）。
+  （200 332 B）、`control_gallery.png`（1 184 570 B > 1 MiB，理由见提交信息；
+  Checkpoint B 的 `_bevel` 修复后重建为 1 184 600 B，见 §11）。
 
 ## 9. 本轮修掉的真实缺陷（不是实验设计的一部分，但是图库正确性的前提）
 
@@ -267,8 +270,8 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 | 检查点 | 状态 | 证据 |
 |--------|------|------|
 | A 数据与实验设计 | **完成并推送**（`10c9e8fa`，`4c4bf66..10c9e8f main -> main`；`git ls-remote origin` = `git rev-parse HEAD`） | §2–§9；`control_gallery.png`；498 passed；ruff/mypy 干净；逐字节重复构建 |
-| B E1/E2/E3 实现 + 测试 | 未开始 | 计划：`salient_structure.py` / `shape_context_baseline.py` / `perceptual_features.py` / `perceptual_search.py` |
-| C 全方法运行 + 对比图 | 未开始 | 需 `perception_comparison_overview.png` + 5 张 `comparison_*.png` + 全量实际排名 |
+| B E1/E2/E3 实现 + 测试 | **完成并推送**（`5a9f1bc` fix + `1b8461c` data + `1696873` feat，`6535e98..1696873 main -> main`；`git ls-remote origin` = `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`） | E1 `perceptual_features.py` + E2 `salient_structure.py` + E3 `shape_context_baseline.py` + 四臂契约 `perceptual_methods.py` + E0 适配器 `perceptual_e0.py`（**产品链路 0 改动**）；605 passed、ruff/mypy 干净；POLICY 里每个数字由 `python experiments/p0_perceptual_probe/verify_policy_claims.py` 重跑并做容差检查。B **未做检索评价** → 命中率 / 排名 / 对比图属 C。**注意**：`5a9f1bc` 的 `_bevel` 修复改变了生成器 → 本目录的 `gallery.jsonl` 重建为 sha256 `15be97ae…`、`control_gallery.png` 为 `585ffb28…`（1 184 600 B），**§8 里那两个 A 期 sha 因此成为历史记录**；`labels.json` `26e444ce…` 与逐资产字节区间不变，故 §2–§7 的许可、角色与划分结论全部仍然成立 |
+| C 全方法运行 + 对比图 | 未开始 | 需 `perception_comparison_overview.png` + 5 张 `comparison_*.png` + 全量实际排名；E3 的 `sample` 模式约 7 s/查询 → 耗时必须随指标一起报告 |
 | D 指标 / 不变性 / 盲评 / 结论 | 未开始 | 需 T1/T2/T3 分开报告 + ≥3 人盲评（拿不到就如实标注未完成） |
 
 已知阻塞 / 待办：
@@ -276,3 +279,53 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 - 包络匹配在 crescent/heart/star 上只部分达标（§6），Checkpoint D 的 F3 需据此分析。
 - 人工盲评需要真人；若最终拿不到评分，`perception_blind_review.png` 与评分 CSV 仍要交付，
   并在报告里标注"未获评分"。
+- C 必须先固定三件事，否则数字没有可比性：① 库（E1 的归一化常数自拟合于当前库）；
+  ② E3 的 `d(query, candidate)` 参数方向（780 对实测 735 对不对称）；
+  ③ E1 的 `orientation` 模式（`canonical` 与 `raw` 在正多边形 / 星形上是两个不同的方法）。
+
+## 12. Checkpoint B 的落点（三臂实现后，本目录的哪些结论仍然成立）
+
+B 没有改动图库的任何设计结论，只改了 **生成器的一个缺陷** 和由此重放的几何：
+
+1. `_bevel` 之前只切角的一侧，圆角星变成尖刺（实测最坏顶点转角 176.8°，设计意图 48.0°；
+   周长 8.464 → 6.624，总转角 40.35 → 17.91，面积变化 <0.3%；数字记在
+   `earthglyph/data/perceptual_gallery.py` 的 `_bevel` 文档串里）。
+   → 受影响的全是 `syn-*` 生成成员，外部画作不经过 `_bevel`。
+2. **两份 manifest 的递归 diff 只差 3 个字段**（下面这条命令可直接复现该比对）：
+
+```bash
+mkdir -p .scratch && git show 10c9e8f:experiments/p0_perceptual_probe/dataset_manifest.json \
+    > .scratch/manifest_A.json
+python - <<'PY'
+import json
+def walk(x, y, path=""):
+    if isinstance(x, dict) and isinstance(y, dict):
+        for key in sorted(set(x) | set(y)):
+            walk(x.get(key), y.get(key), f"{path}/{key}")
+    elif isinstance(x, list) and isinstance(y, list):
+        assert len(x) == len(y), f"LEN {path} {len(x)} {len(y)}"
+        for index, (left, right) in enumerate(zip(x, y, strict=True)):
+            walk(left, right, f"{path}[{index}]")
+    elif x != y:
+        print("DIFF", path, repr(x)[:48], "->", repr(y)[:48])
+walk(json.load(open(".scratch/manifest_A.json", encoding="utf-8")),
+     json.load(open("experiments/p0_perceptual_probe/dataset_manifest.json", encoding="utf-8")))
+PY
+```
+
+```
+DIFF /built_at_utc '2026-11-05T21:02:38+00:00' -> '2026-11-05T23:15:53+00:00'
+DIFF /content_sha256/gallery.jsonl '3a7646646cd9d496c32a5e5fcec5d10538709972ddb9744 -> '15be97ae5ae583ceacfbf5ea76a18911acd1004bb3dc2c1
+DIFF /reproduce/git_commit '4c4bf66fe178fafee4b7ddc21349a2dd5476cc7b' -> '5a9f1bcc924c9554843e66d382ebd962b1ae3b52'
+```
+
+   即 §2 的逐资产哈希与许可、§5 的角色审计（含 3 条降级）、§6 的设计覆盖与包络匹配残差
+   （**6/10 达标、未达标 4 个 id 完全相同**：`syn-crescent-lobed` / `syn-heart-lobed-2` /
+   `syn-star-lobed-5` / `syn-star-lobed-5-cusp`，最大残差仍是 0.395）、
+   §6 的 9 对近重复、§7 的 75 968 次拒绝 **逐字段未变**；
+   `labels.json`（sha256 `26e444ce…`）也不变 → §2–§7 的结论不需要重写。
+3. 冻结标签先于任何算法这一条继续成立：B 只跑了自测量探针（同一对形状的距离、不变性残差），
+   **没有**按标签筛查询、调权重或改划分。
+4. 三臂的数字与"被否决公式"的代价现在都有仓库内重跑命令（§11 的
+   `verify_policy_claims.py`），不再依赖 `.scratch/` 里的一次性脚本。§9 最后一条对
+   `.scratch/` 的依赖仍然存在于 **解码器修复** 的对照产物上，那部分证据只在工作区，不在仓库。
