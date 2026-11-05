@@ -104,7 +104,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | Fourier 幅值镜像盲（实测） | ✅ 6 个镜像探针的真值**粗筛排名恒为 1**，`allow_mirror=False` 时 Top-1 仅 0.167 → 镜像策略必须由几何控制，不依赖幅值偶然数值（D26 修订 / D33） |
 | Task C 三个 baseline | ✅ `hu_baseline.py`（`cv2.matchShapes`，统一像素尺度）/ `coarse.py`（分组欧氏 + 稳定 argsort）/ `alignment.py`（闭式 `min_{s,θ}`：`C_s = IFFT(Â·conj(B̂))_s/N²`，θ = arg C_s，不遍历 360 角度）+ `chamfer.py` 复核（D34） |
 | Task C Chamfer 的角色 | ✅ 实测对刚性运动 / 循环起点 / 走向反转不变，对单向旋转或镜像**会变** → 只作窗口复核，不裁决镜像（D38；9 个查询中 6 个 Top-1 与精排一致） |
-| Task D `search_by_contour` / `search_by_image` | ✅ 签名 `(points, top_k=10, shortlist_size=200, method="fourier_align", allow_mirror=False, …)`；`Hit` 带 rank / candidate_id / source_id / subtype / 真实 lon/lat / coarse_distance / align_distance / θ / 镜像态 / chamfer；确定性排序（同距离按 `candidate_id`）；除 `timings` 外逐字节可复现 |
+| Task D `search_by_contour` / `search_by_image` | ✅ 签名 `(points, top_k=10, shortlist_size=200, method="fourier_align", allow_mirror=False, …)`；`Hit` 带 rank / candidate_id / source_id / subtype / 真实 lon/lat / coarse_distance / align_distance / θ / 镜像态 / chamfer；确定性排序（并列按索引行序，稳定 argsort）；除 `timings` 外逐字节可复现 |
 | Task D 结果可追溯 | ✅ 全部命中来自真实索引（commit `77b083c9`、839 候选）；无预设地点表、无虚构地物、无未校准"相似度百分比"；弱命中显式标注"只是当前库中最接近的候选"（阈值 0.12，D42） |
 | Task D 去重 | ✅ `max_per_source=1` 抑制同 `source_id` 刷屏，`pre_dedup` 保留原始顺序供审计；实测 9 个查询的去重前后 Top-1 与 10/10 独立来源均不变 |
 | Task E 最小调试工具 | ✅ `tools/sketch_pad.html`（独立本地 Canvas，画/清/导出 JSON，非产品界面）+ `scripts/query_sketch.py`（读 JSON/PNG → 打印 Top-10 + 出图） |
@@ -238,6 +238,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | 2026-11-05 | `737ea68` | `docs:` 写入仓库维护与小版本推送规则 + `.gitignore` 审查包 | ✅ `git ls-remote origin` = `737ea681fa02beb8c4865e8528b71dd5fe67c3b3` |
 | 2026-11-05 | `fc35ba9` | `docs:` 记录检查点 | ✅ `origin/main` |
 | 2026-11-05 | `77b083c` | **P0-3 检查点**：特征模块 + 保真度度量 + 采样消融 + 形状索引 + 144 项新单测 + 文档（39 文件） | ✅ `git ls-remote origin` = `77b083c931b72cf4fd153a9185254f5a9486aeab` = `git rev-parse HEAD`（`fc35ba9..77b083c main -> main`） |
+| 2026-11-05 | `8cec88b` | **P0-4 检查点**：手绘抽象提取 + 两级检索 + 三 baseline + 本项目第一个检索实验（176 文件 = `earthglyph/` 10 + `scripts/` 4 + `tests/` 5 + `tools/sketch_pad.html` + 文档 5 + 实验产物 151；新增 144 项单测 → 425 passed） | ✅ `git ls-remote origin` = `8cec88b9c9fe8ef31f84575a360f017c4861da75` = `git rev-parse HEAD`（`899101d..8cec88b main -> main`，7.37 MiB / 189 objects） |
 
 - 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
   `mypy` → no issues in 17 source files；
@@ -245,6 +246,16 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   **在 `77b083c` 提交后重建得到字节一致的文件**，其 `data_manifest.json` 的
   `git_commit` 已等于该检查点 sha（紧随的 `docs:` 提交只补记本行核验，
   因为提交无法把自己的 sha 写进自身，不另立检查点）。
+- 复现命令与证据（P0-4）：`pytest -o addopts="" -q` → **425 passed** ·
+  `ruff check .` → All checks passed · `mypy` → no issues in 24 source files；
+  查询生成 → 评估 → 可视化 → 调试 CLI 四条命令见
+  [`experiment_log.md`](../experiments/experiment_log.md) 的「p0_retrieval_baseline 复现命令」
+  与 [`notes.md`](../experiments/p0_retrieval_baseline/notes.md) §2（`--seed 20261105`、
+  `--index data/index`、`--smoothing light`）；检索绑定的是 **P0-3 索引**（commit `77b083c9`，
+  sha256 见 [`DATA_PIPELINE.md`](DATA_PIPELINE.md) §10.1，本轮**未重建、未扩容**）；
+  实验产物 151 个文件（8.7 MiB，单文件最大 950 KB < 1 MiB 门槛），
+  `results.csv` 241 行可由同一命令重建（该表不含计时列）；调试 CLI 的输出 JSON
+  除 `timings` 字段外逐字节一致（本轮实测三次相同）。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
