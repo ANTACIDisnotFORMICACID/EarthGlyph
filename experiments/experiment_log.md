@@ -93,3 +93,41 @@ Git 检查点与完整结论、失败案例、"本轮不允许的主张"见
 > 更正记录：本台账 2026-11-05 `p0_geometry_probe` 行的"最坏步长偏差 ~104%"
 > 在 P0-3 被重新归类为**弦长离散度**（`chord_dispersion`），不是重建误差；
 > 同一候选 N=128 的重建误差实测为 Hausdorff 归一 0.1483 / region IoU 0.8104（见 D30）。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint A：受控感知图库）
+
+```bash
+# 首次联网构建（抓 25 个 Phosphor SVG + 48 个 Quick Draw 字节切片，并把区间钉进 cache/quickdraw/spans.json）
+python scripts/prepare_perceptual_dataset.py --force
+# 之后离线重放同一批字节区间（期望产物逐字节一致）
+python scripts/prepare_perceptual_dataset.py --offline --force
+# 确定性核验：重建到临时目录，但复用同一 cache（--out-dir 必须已存在，脚本不替你创建）
+mkdir -p .scratch/determinism && python scripts/prepare_perceptual_dataset.py --offline --force \
+    --out-dir .scratch/determinism --cache-dir experiments/p0_perceptual_probe/cache
+diff -r --exclude=cache .scratch/determinism experiments/p0_perceptual_probe   # 只差 built_at_utc 与命令字符串
+pytest -q -o addopts=""     # 498 passed
+ruff check .                # All checks passed
+mypy                        # Success: no issues found in 26 source files
+```
+
+内容：179 成员 / 18 查询 / 7 结构类（band 3-13-11、blob 3-7-10、crescent 2-11-13、
+forked 3-14-10、heart 2-9-10、irregular 2-11-10、star 3-13-19），
+by_origin = phosphor 25 / quickdraw 80 / synthetic 74，拒绝计数 75 968 条（逐原因完整）。
+`gallery.jsonl` sha256 `3a7646646cd9d496c32a5e5fcec5d10538709972ddb9744222cda17bc3acc138`、
+`labels.json` sha256 `26e444ce2299c414c6deac7d8a260f4597360bcbe35d65dde2e66d2dbcb3b213`、
+`control_gallery.png` sha256 `8c07d12a8c24632be20bffecb4fd64fd16a1ecac0c9c5011b7381b633e19c983`
+（`gallery.jsonl` 与 `cache/` 不入库，可由上述命令重建）。
+**本轮一个检索方法都没跑** → 无命中率、无排名、无"更符合肉眼"的主张；
+数据源许可与哈希、角色审计（3 条降级）、包络匹配残差（6/10 达标）、
+拒绝普查与"本轮不允许的主张"见 [`notes.md`](p0_perceptual_probe/notes.md)，
+ShapeComp 官方可复现性逐问取证见 [`shapecomp_research.md`](p0_perceptual_probe/shapecomp_research.md)。
+Git 检查点：见 `docs/TASKS.md` 的仓库维护检查点表（提交信息含 1.18 MB 图的入库理由）。
+
+> 更正记录：本轮台账初稿写"`svg_path.py` 的闭合语义修复对图库 **0 处差异**"，
+> 该结论来自一份来源无法确认的旧快照。改用逐条回退解码器 + 离线重建比对后实测：
+> 修复前/后的标准化轮廓有 **14/25 个 Phosphor 成员** 发生变化（最大逐点位移 0.0879，
+> `ph-spiral-fill`；用本项目对齐复测最大 0.0525），角色与成员清单不变，
+> 仅 `ph-heart-fill ↔ ph-heart-half-fill` 的 `align_distance` 从 0.002278 变为 0.001748
+> （仍 < 0.02，T2 剔除集合不变）。台账与 D47 已按实测数字更正；
+> 冻结产物绑定 **修复后** 的解码器。
+

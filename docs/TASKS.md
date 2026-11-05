@@ -128,6 +128,38 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 > 固定查询集与人工肉眼判读（P0-6），仍需 P0-5 的 100–200 形状分级曲线。
 > **P0 未通过前不进行大规模 Web 开发。**
 
+## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint A（2026-11-06）
+
+任务边界：本次做到 **Checkpoint A（数据与实验设计 + 受控图库 + control_gallery + 固定划分）**
+即停止提交同步；B（E1/E2/E3 实现）、C（全方法运行 + 对比图）、D（指标 + 盲评 + 结论）为后续检查点。
+**未进入 P0-5 扰动分级曲线，未开发任何 Web 产品界面。**
+
+| 项 | 状态 |
+|----|------|
+| Task A ShapeComp（Morgenstern et al. 2021）原始来源审计 | ✅ 10 问逐条作答 + 可核验 URL / HTTP 码，见 [`shapecomp_research.md`](../experiments/p0_perceptual_probe/shapecomp_research.md)；**官方 MATLAB + 权重 + 商业剪影不可得**（代码只在 `sites.google.com`，本机超时；403 是 UA 反爬不是网络阻断；两个 Zenodo 记录仅论文复现数据）→ E1 只能是明确标注 **ShapeComp-inspired** 的自实现基线 |
+| Task B 受控感知图库（**独立于** 839 真实候选） | ✅ 179 成员 / 18 查询 / 7 结构类；每类查询 ≥2、变体 5–15、困难负例 10–20 **实测达标**（`check_design_coverage` 不达标即抛错，`shortfalls=[]`、`over_range=[]`） |
+| Task B 三类角色 | ✅ query / variant（**不是**同一张图的平移旋转缩放：来自 Phosphor、Quick Draw 真人画作与参数化生成器三条独立来源）/ hard_negative（含包络匹配负例） |
+| Task B 许可与再分发 | ✅ Phosphor MIT（25 文件 10 632 B）、Quick Draw CC BY 4.0（48 切片 24 576 000 B）、本项目合成 74；逐资产 `url + sha256 + 字节区间 + 变换`入库（`dataset_manifest.json → assets`）；无商业剪影、无新增依赖、无 GB 级下载 |
+| Task B 拒绝即计数（不静默丢弃） | ✅ 75 968 次拒绝逐原因计数（`open_stroke` 19 881 / `multi_stroke` 47 772 / `self_crossing` 7 744 / `too_few_points` 557 / `degenerate` 4 / `frame_silhouette` 4 / `multiple_pieces` 6）；**未闭合笔迹不封闭、多段图形不粘合、负空间底板不当母题** |
+| Task B 结构角色审计 | ✅ 指标 `concave_deficiency = 1 − area/convex_hull.area`，两阶段门槛；3 条降级公开记录（`qd-moon-query-01` 0.0010 → 硬负例：圆盘不能当新月真值），并否决了 3 种备选指标；反向暴露并修正 `syn-forked-sharp` 的生成器参数错误（D44） |
+| Task B 包络匹配控制 | ✅ 生成后 **重测** solidity：10 个中 6 个达标，未达标 4 个连残差公开（最大 `syn-crescent-lobed` 0.395）；带直切口圆盘的 solidity **非单调**（1.0 → 0.826@95° → 0.995@179°）→ 求根生成器已删除，不留死代码 |
+| Task B 近重复控制（数据卫生） | ✅ `align(allow_mirror=True)` ≤0.02 → 9 对近重复，**在 T2 中剔除**，任何方法无法靠返回查询的刚性副本得分；不影响 839 真实候选，不是地理去重规则 |
+| Task B 三种设置 | ✅ 定义与实现口径写入 manifest `settings`：T1 含目标（仅实现自测）、T2 去目标/刚性副本/近重复（判别性主设置）、T3 图库形状混入 839 真实候选同一检索空间（**逐候选 provenance；不合并进正式索引**，`data/index` 仍为 `77b083c9`） |
+| Task B 预处理一致性 | ✅ 图库成员与用户查询走 **同一条** `contour_from_points(closed=True)` → 128 点弧长重采样（`standardization` 记录），杜绝"两条管线比距离" |
+| Task D `control_gallery.png` | ✅ 22 行 × 14 列（1 184 570 B，入库理由：受控设计的人工复核物，可由命令重建，见提交信息）；标签 "Controlled Shape Retrieval — 非真实地理景观" |
+| Task E 标签冻结 | ✅ `labels.json`（118 796 B，sha256 `26e444ce…`）在 **任何算法看它之前** 生成；`queries/*.json` 18 个与 P0-4 查询加载器同格式；`near_duplicate_pairs` 一并冻结 |
+| 确定性 | ✅ 无随机数；Quick Draw 字节区间首次联网钉死、此后（含 `--offline`）只能重放；同一 cache 重建到临时目录 → `gallery.jsonl` / `labels.json` / `rejections.csv` / `queries/*.json`(18) / `control_gallery.png` **全部字节一致**，`diff -r` 仅差 `built_at_utc` 与命令字符串 |
+| 发现的实现缺陷（已修 + 已钉测试） | ✅ `svg_path.py`：`Z` 因 `and buffer` 守卫 **从未派发**（丢失全部闭合语义）+ 已在起点的路径被再补一次起点 + `<circle>` 误报 `ellipse`。**实测影响**：修复前后 14/25 个 Phosphor 成员的标准化轮廓变化（最大逐点位移 0.0879，对齐复测 0.0525），角色不变（D47）；构建器 `queries/` 只增不减导致的 **假查询** → 新增 `prune_stale_queries`（只删本构建器自己写的过期文件） |
+| 自动化测试 | ✅ **498 passed**（P0-4 基线 425 + 新增 `test_perceptual_gallery.py` 33 + `test_svg_path.py` 40）；`ruff check .` 全过；`mypy` strict 26 文件无问题 |
+
+**Checkpoint A 能主张的**：一个许可清晰、角色由实测几何裁决、划分与标签已冻结、
+可逐字节复现的受控感知图库已经就绪，足以承载 E0/E1/E2/E3 的同集对照。
+**Checkpoint A 不能主张的**：任何检索命中率 / 排名 / "更符合肉眼"（**一个方法都还没跑**）；
+不得把内部指标称"人眼匹配准确率"（无人工评分）；不得把 ShapeComp 的近邻关系当人类真值；
+未做查询挑选或权重调参（划分先于运行冻结，sha256 为凭证）。
+已知局限：包络匹配在 crescent/heart/star 仅部分达标；`concave_deficiency` 是面积型指标，
+分不清"深而窄"与"浅而宽"，Checkpoint B 的 E2 必须用带符号转角/曲率序列补足。
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**

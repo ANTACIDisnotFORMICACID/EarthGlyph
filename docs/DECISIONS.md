@@ -342,6 +342,60 @@ Fourier 粗筛欧氏距离 0.003–0.023，对齐精排 RMS 边界偏移 0.052�
 **不是**肉眼相似判据，人工标注留 P0-6）；③ `max_per_source=1` 只作用于返回列表，
 `SearchResult.pre_dedup` 保留去重前完整顺序供归因（D41 的 C 类判定依赖它）。
 
+## 受控感知图库与多方法对比（P0-4.5 Checkpoint A，2026-11-06 新增）
+
+**D43 受控图库与正式地理索引物理隔离** — 已定
+依据：任务禁止"将实验图库直接合并进正式 EarthGlyph 地理索引"，同时要求外部合法形状
+与 839 条真实候选处于 **同一检索空间**。
+影响：① `data/index`（`77b083c9`）本轮 **未重建、未扩容、未写入任何图库成员**；
+② T3 的实现方式是"把图库查询/候选混进同一次检索并逐候选标注 provenance"，
+图上受控形状标注 `Controlled Shape Retrieval — 非真实地理景观`、真实候选标注
+`Real Landform Retrieval — Overture Maps`；③ 图库产物在 `experiments/p0_perceptual_probe/`，
+其 `labels.json` 的角色/划分是 **设计意图**，不是人类真值。
+
+**D44 结构角色由实测几何裁决，设计意图可以被推翻** — 已定
+依据：真人画的 "moon" 常是近圆盘（`qd-moon-query-01` 凸包填充率 0.9990）。
+把它保留为新月查询 = 让圆盘充当新月的相关真值，而圆盘恰是新月最典型的困难负例。
+指标 `concave_deficiency = 1 - area/convex_hull.area`，两阶段门槛（查询 < 0.01 降级；
+变体须 ≥ 同族最弱存活查询的 0.25）。
+影响：3 条降级全部写入 `role_audit.revisions` 与成员自身的 `provenance.role_revised`；
+被否决的备选指标（最尖凹点转角、内向转角总量、以最强查询为门槛）连同否决理由一并记录，
+避免后续又走一遍。反向也成立：`syn-forked-sharp` 被降级暴露了生成器参数错误
+（`power_lobes` 谷地半径就是 `base`），修参数而不是放宽审计。
+
+**D45 不合格的外部形状 = 计数拒绝，不是静默丢弃** — 已定
+依据：任务明令"禁止把未闭合图形随意封闭后伪装成原始有效样本"。
+影响：三条硬规则各对应一个可审计计数 —— 不闭合笔迹不封闭（`open_stroke` 19 881）、
+多段图形不粘合（`multiple_pieces` 6）、负空间底板不充当母题（`frame_silhouette` 4，
+判据 `solidity > 0.995` 且 x 跨度 > viewBox 70%）；连同 Quick Draw 的
+`multi_stroke` 47 772 / `self_crossing` 7 744 / `too_few_points` 557 / `degenerate` 4，
+总计 75 968 次拒绝，逐原因计数完整保存在 manifest，样本行封顶在 `rejections.csv`。
+孔洞在 exterior-only（D21）下不入轮廓，但 **逐文件** 记录于 `assets.phosphor_files[].holes`。
+
+**D46 ShapeComp 只能"受其启发"，不能"复现"** — 已定（外部约束，非选择）
+依据：论文代码只发布于 `sites.google.com`，本机连接超时；此前的 403 是 User-Agent 反爬
+而非网络阻断（Zenodo 用 `curl`/无 UA 正常）；两个 Zenodo 记录（CC BY 4.0）仅含论文复现数据，
+不含 109 维描述子引擎、22 维 MDS 投影、MatNet/KerNet 权重与商业剪影。
+逐问取证见 [`shapecomp_research.md`](../experiments/p0_perceptual_probe/shapecomp_research.md)。
+影响：① E1 = 纯 Python/NumPy/Shapely 的 **ShapeComp-inspired** 基线，产物与文字 **必须**
+带 inspired 标签并列出与原方案的差异，不得称"原始 ShapeComp"；
+② 逐描述子的尺度/归一化处理必须显式写明（原方案用 per-descriptor 0–1 归一化）；
+③ 由它得到的"近邻"只能表述为 **ShapeComp 自己的定义**，不得等同人类相似度；
+④ 不下载 GB 级数据、不训练 CNN、不引入新依赖、不使用商业剪影素材。
+
+**D47 冻结产物绑定"修复后的解码器"：闭合语义修复会改变测量结果** — 已定
+依据：`svg_path.py` 两处真 bug —— `Z`（无参数指令）因 `and buffer` 守卫从未派发；
+已在起点的路径被再补一次起点。逐条回退后离线重建比对：回退 ① 影响 2/42 个 SVG、
+回退 ② 影响 35/42，两者都回退（=修复前）**改变 14/25 个 Phosphor 成员的标准化轮廓**
+（最大逐点位移 0.0879，`ph-spiral-fill`；用本项目对齐复测最大 0.0525），
+角色/族/成员清单不受影响，仅 `ph-heart-fill ↔ ph-heart-half-fill` 的
+`align_distance` 由 0.002278 → 0.001748（仍 < 0.02，T2 剔除集合不变）。
+影响：① 冻结的 `gallery.jsonl`（sha256 `3a764664…`）只在当前解码器下可复现，
+复现必须用仓库内 `earthglyph/data/svg_path.py`，`tests/test_svg_path.py` 不得跳过；
+② 这 **不是** 无害清理，任何"改解码器不影响结果"的说法都必须先做同样的重建比对；
+③ 顺带修掉构建器只增不减导致的 **假查询**（降级后的 `qd-moon-query-01.json` 仍留在
+`queries/`）：`prune_stale_queries` 只删除带本构建器 `tool` 标记且不在本轮查询集内的文件。
+
 ## 待验证假设清单（P0 跟踪）
 
 
@@ -359,3 +413,14 @@ Fourier 粗筛欧氏距离 0.003–0.023，对齐精排 RMS 边界偏移 0.052�
   → **P0-4 给出方向性证据但不是结论**：角状 / 星形类查询在全库找不到对应地物
   （星形 D≈0.21 且带弱命中告警），说明覆盖确实受限；"是否有惊喜感"只能由 P0-6 人工判读。
 - Qoder Sites 对 React/Vite 静态项目的实际发布流程（P0 需验证，见 ROADMAP P0-7）。
+- **P0-4.5：四种方法（E0/E1/E2/E3）谁更符合肉眼** — 图库、划分、标签已冻结（D43–D45），
+  但 **一个方法都还没跑过** → 无任何命中率/排名结论；"更符合肉眼"只能由 ≥3 人盲评裁决
+  （评分表模板 + 打乱列在 Checkpoint C 交付，拿不到评分就如实标注未完成），
+  在拿到评分前任何内部指标都 **不得** 称"人眼匹配准确率"。
+- **P0-4.5：受控图库的困难负例是否真的"困难"** — 包络匹配负例 10 个中 6 个达到目标
+  solidity（残差公开，未达标的 4 个含 `syn-crescent-lobed` 0.395），
+  且带直切口的圆盘 **非单调**（1.0 → 95° 时 0.826 → 179° 回升 0.995）而无法求根补足（D44/D45）
+  → 这是图库自身的已知局限，留给 Checkpoint D 的 F3 覆盖分析定量化。
+- **P0-4.5：ShapeComp-inspired 基线能否在无 MATLAB / 无商业剪影 / 无新依赖下成立** —
+  官方代码不可达已成事实（D46），但"自实现的描述子组是否足以复现其判别力"仍是
+  **假设**，必须与 E0/E2/E3 在同一图库、同一预处理、同一排序规则下对照才能谈。

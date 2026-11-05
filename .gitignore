@@ -50,3 +50,16 @@ Thumbs.db
 # Review / packaging artifacts (rebuildable from source + scripts; not source of truth)
 EarthGlyph_*_review_*.zip
 *.rar
+
+# Local scratch probes (not deliverables, rebuilt by hand)
+.scratch/
+
+# Third-party download cache for the P0-4.5 gallery: rebuildable from the URLs +
+# byte ranges + sha256 recorded in dataset_manifest.json, and 38 MB of raw NDJSON
+# is not the experiment's source of truth.
+experiments/**/cache/
+
+# Built gallery contours (1.2 MB of generated geometry). The frozen role labels and
+# splits live in labels.json, the integrity record in dataset_manifest.json, and the
+# contours regenerate from the committed builder.
+experiments/**/gallery.jsonl
