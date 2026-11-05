@@ -698,6 +698,11 @@ POLICY: dict[str, Any] = {
     "library's descriptors are built once per gallery and the query's rotated variants "
     "once per query. Measured here at the defaults, 179 candidates per query: about 7 s "
     "sample mode, about 0.4 s canonical.",
+    "measurements": "the asymmetry census and the two timings quoted above are re-derived by "
+    "`python experiments/p0_perceptual_probe/verify_policy_claims.py` (it reads the "
+    "gitignored `gallery.jsonl`, which `scripts/prepare_perceptual_dataset.py --offline` "
+    "rebuilds; `--pairs` sets how many members the census uses), so a change that moves a "
+    "quoted digit fails that run instead of leaving the sentence behind",
     "new_code_in_this_checkpoint": True,
 }
 

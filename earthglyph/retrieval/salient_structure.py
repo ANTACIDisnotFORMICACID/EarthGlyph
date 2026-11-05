@@ -786,6 +786,10 @@ POLICY = {
     "scales": [round(value, 6) for value in DEFAULT_SCALES],
     "cost": "two signature extractions (O(n * scales)) plus O(max_offset_trials * n_events^2) "
     "per pair; the DP is the slow part and runs on tens of events, not on 128 vertices",
+    "measurements": "every digit quoted above came from a measurement, and `python "
+    "experiments/p0_perceptual_probe/verify_policy_claims.py` re-derives each one against a "
+    "stated tolerance — so a parameter change that invalidates this prose fails that run "
+    "instead of leaving the sentence behind",
     "new_code_in_this_checkpoint": True,
 }
 

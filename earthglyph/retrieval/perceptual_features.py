@@ -1512,6 +1512,10 @@ POLICY = {
     "cost": "library features O(m * n log n) (convex hull per row), cached by content "
     "hash so the queries of one grid share a single extraction per candidate; the "
     "distance itself is O(d) per pair",
+    "measurements": "the orientation census is a call, not a sentence: `orientation_statuses()` "
+    "returns lambda2/lambda1 and the status for every row. The rotation residuals and the "
+    "self-fitted-scale reorder quoted under invariance/known_limitations are re-derived "
+    "against a tolerance by `python experiments/p0_perceptual_probe/verify_policy_claims.py`",
     "new_code_in_this_checkpoint": True,
 }
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -314,3 +315,29 @@ def test_a_policy_statement_covers_every_invariance_the_runner_might_assume() ->
                 method_id,
                 key,
             )
+
+
+def test_a_policy_that_quotes_a_digit_names_the_run_that_measured_it() -> None:
+    """E1/E2/E3 each say where their numbers came from, and that file still measures them.
+
+    Prose with digits in it rots the moment a constant moves.  The three new arms carry
+    a ``measurements`` entry pointing at ``verify_policy_claims.py``, which re-derives
+    every quoted value against a tolerance and exits non-zero on drift, so this test
+    checks the two halves of that promise: the pointer exists, and the script it points
+    at still imports the arm it claims to measure.
+    """
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "experiments"
+        / "p0_perceptual_probe"
+        / "verify_policy_claims.py"
+    )
+    assert script.is_file(), f"{script} is referenced by POLICY but missing"
+    source = script.read_text(encoding="utf-8")
+    for method_id, dotted in contract.METHOD_MODULES.items():
+        if method_id == "E0":
+            continue  # the incumbent quotes no new measurement
+        module: Any = importlib.import_module(dotted)
+        assert "measurements" in module.POLICY, method_id
+        assert "verify_policy_claims.py" in str(module.POLICY["measurements"]), method_id
+        assert f"import {dotted.rsplit('.', 1)[1]} as" in source, method_id
