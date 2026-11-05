@@ -121,7 +121,10 @@ by_origin = phosphor 25 / quickdraw 80 / synthetic 74，拒绝计数 75 968 条�
 数据源许可与哈希、角色审计（3 条降级）、包络匹配残差（6/10 达标）、
 拒绝普查与"本轮不允许的主张"见 [`notes.md`](p0_perceptual_probe/notes.md)，
 ShapeComp 官方可复现性逐问取证见 [`shapecomp_research.md`](p0_perceptual_probe/shapecomp_research.md)。
-Git 检查点：见 `docs/TASKS.md` 的仓库维护检查点表（提交信息含 1.18 MB 图的入库理由）。
+Git 检查点：`10c9e8fa`（已推送，`4c4bf66..10c9e8f main -> main`，
+`git ls-remote origin` = `git rev-parse HEAD` = `10c9e8fab8ca39401b6f2e1336780bbb90f54718`）；
+**提交后**在工作区干净状态下离线重建，三个入库产物 sha256 不变
+（`dataset_manifest.json` 的 `git_commit` 因此变为该检查点 sha，见 `docs/TASKS.md` 检查点表）。
 
 > 更正记录：本轮台账初稿写"`svg_path.py` 的闭合语义修复对图库 **0 处差异**"，
 > 该结论来自一份来源无法确认的旧快照。改用逐条回退解码器 + 离线重建比对后实测：

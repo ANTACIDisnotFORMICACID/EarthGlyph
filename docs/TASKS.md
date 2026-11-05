@@ -271,6 +271,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | 2026-11-05 | `fc35ba9` | `docs:` 记录检查点 | ✅ `origin/main` |
 | 2026-11-05 | `77b083c` | **P0-3 检查点**：特征模块 + 保真度度量 + 采样消融 + 形状索引 + 144 项新单测 + 文档（39 文件） | ✅ `git ls-remote origin` = `77b083c931b72cf4fd153a9185254f5a9486aeab` = `git rev-parse HEAD`（`fc35ba9..77b083c main -> main`） |
 | 2026-11-05 | `8cec88b` | **P0-4 检查点**：手绘抽象提取 + 两级检索 + 三 baseline + 本项目第一个检索实验（176 文件 = `earthglyph/` 10 + `scripts/` 4 + `tests/` 5 + `tools/sketch_pad.html` + 文档 5 + 实验产物 151；新增 144 项单测 → 425 passed） | ✅ `git ls-remote origin` = `8cec88b9c9fe8ef31f84575a360f017c4861da75` = `git rev-parse HEAD`（`899101d..8cec88b main -> main`，7.37 MiB / 189 objects） |
+| 2026-11-06 | `10c9e8f` | **P0-4.5 Checkpoint A**：受控感知图库（179 成员 / 18 查询 / 7 类 / 三来源许可与逐资产哈希 / 75 968 次拒绝计数）+ SVG 解码器闭合语义修复 + 结构角色审计 + 标签冻结 + `control_gallery.png` + 研究台账（34 文件 = `earthglyph/data/` 2 + `scripts/` 2 + `tests/` 2 + 实验产物 24 + 文档 4，含 `.gitignore`）；新增 73 项单测 → **498 passed** | ✅ `git ls-remote origin` = `10c9e8fab8ca39401b6f2e1336780bbb90f54718` = `git rev-parse HEAD`（`4c4bf66..10c9e8f main -> main`）；**提交后离线重建**：`gallery.jsonl` `3a764664…` / `labels.json` `26e444ce…` / `control_gallery.png` `8c07d12a…` 三个 sha256 **与提交内一致**，只有 `dataset_manifest.json` 的 `built_at_utc` 与 `git_commit`（现等于 `10c9e8fa…`）按预期变化 |
 
 - 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
   `mypy` → no issues in 17 source files；
@@ -298,6 +299,12 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 - **无阻塞。** P0-0 / P0-1 / P0-2 / P0-3 / P0-4 已完成：标准轮廓库、特征索引与
   真实索引上的两级检索链路均可用（`search_by_contour` / `search_by_image`）。
+- **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`）已完成并推送
+  （`10c9e8fa`）；**Checkpoint B（E1/E2/E3 实现）→ C（全方法同集运行 + 对比图）→
+  D（T1/T2/T3 指标 + 不变性探针 + 人工盲评 + 结论）尚未开始**。
+  已知的真实外部约束（不是代码缺陷）：ShapeComp **官方** MATLAB 实现、权重与商业剪影
+  在本机不可达 → E1 只能是明确标注 **ShapeComp-inspired** 的自实现基线（D46）；
+  人工盲评需要真人，若最终拿不到评分则交付盲评图 + 评分表并 **如实标注"未获评分"**。
 - 按任务边界，**P0-5 / P0-6 未启动**（等待授权）：P0-4 交付的是 6 候选 × 受控扰动族 +
   机器指针轨迹，**不含 100–200 形状分级曲线，也不含任何真人手绘查询** →
   **P0 门禁（≥10 真人查询）仍未通过**，不启动大规模 Web 开发。
@@ -313,6 +320,12 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   跨区域 / 极区无效几何覆盖度未测（`make_valid` 路径仅由合成单测覆盖）。
 
 ## 下一步：P0-5 合成扰动分级曲线 与 P0-6 真人手绘（未启动，等待授权）
+
+> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint B**：在当前授权范围内继续
+> E2（`salient_structure.py`）/ E3（`shape_context_baseline.py`）/ E1
+> （`perceptual_features.py`，ShapeComp-inspired）的实现与测试，复用 A 已冻结的
+> 18 查询 / 179 成员 / `labels.json`（sha256 `26e444ce…`）与 `data/index`（`77b083c9`），
+> E0 的默认行为保持不变。下列 P0-5 / P0-6 条目仍是**未启动、等待授权**。
 
 P0-4 已给出明确的输入、判据与"本轮不能宣称"的清单（`experiments/p0_retrieval_baseline/notes.md` §12）：
 

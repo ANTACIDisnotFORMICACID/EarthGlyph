@@ -200,6 +200,14 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 `built_at_utc` 与 `reproduce.command` 里的 `--out-dir` 字符串（临时目录名）。
 几何、计数、哈希、许可、字节区间全部一致。
 
+- 提交 **之后** 在工作区干净状态下重跑离线构建：`gallery.jsonl` / `labels.json` /
+  `control_gallery.png` 三个 sha256 与入库版本 **一致**，
+  只有 `dataset_manifest.json` 的 `built_at_utc` 与 `git_commit` 变化
+  （现等于检查点 sha `10c9e8fab8ca39401b6f2e1336780bbb90f54718`）。
+  该 manifest 的更新随核验提交入库，因此 **入库 manifest 记录的 `git_commit` 是构建时的
+  父提交 `4c4bf66`，而工作区 manifest 记录 `10c9e8fa`** —— 提交无法写入自身 sha，
+  两者都保留在上面的哈希链里，不是不一致。
+
 - 不入库（`.gitignore`）：`experiments/**/cache/`（42 MB，可由 manifest 里的
   URL + 字节区间 + sha256 重建）、`experiments/**/gallery.jsonl`（1.2 MB 生成几何）。
   入库的是 `labels.json`（118 796 B，冻结的角色/划分）、`dataset_manifest.json`
@@ -239,8 +247,8 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 - `tests/test_svg_path.py` 40 项，其中 8 项失败经核查是 **4 项测试自身假设写错**
   （绝对/相对 `H` 语义、S/T 采样索引、混用 `segments`、原始元素的命令普查）
   + **2 项揭示了上述真 bug**，两边都已改对，不是放宽断言。
-- 核查脚本与两份重建产物留在 `.scratch/`（已 gitignore，非交付物）：
-  `old_decoder_build/gallery.jsonl` 是"修复前"对照。
+- 核查脚本与两份重建产物留在 `.scratch/`（已 gitignore，非交付物，可能随工作区清理而消失）：
+  `old_decoder_build/gallery.jsonl` 是"修复前"对照；上述数值来自本会话实测。
 
 ## 10. 本轮 **不允许** 的主张（写在前面，防止后续误引）
 
@@ -258,7 +266,7 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 
 | 检查点 | 状态 | 证据 |
 |--------|------|------|
-| A 数据与实验设计 | **完成**（本提交） | §2–§9；`control_gallery.png`；498 passed；ruff/mypy 干净；逐字节重复构建 |
+| A 数据与实验设计 | **完成并推送**（`10c9e8fa`，`4c4bf66..10c9e8f main -> main`；`git ls-remote origin` = `git rev-parse HEAD`） | §2–§9；`control_gallery.png`；498 passed；ruff/mypy 干净；逐字节重复构建 |
 | B E1/E2/E3 实现 + 测试 | 未开始 | 计划：`salient_structure.py` / `shape_context_baseline.py` / `perceptual_features.py` / `perceptual_search.py` |
 | C 全方法运行 + 对比图 | 未开始 | 需 `perception_comparison_overview.png` + 5 张 `comparison_*.png` + 全量实际排名 |
 | D 指标 / 不变性 / 盲评 / 结论 | 未开始 | 需 T1/T2/T3 分开报告 + ≥3 人盲评（拿不到就如实标注未完成） |

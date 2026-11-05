@@ -1,6 +1,6 @@
 {
  "gallery_version": "1.0",
- "built_at_utc": "2026-11-05T21:02:38+00:00",
+ "built_at_utc": "2026-11-05T21:17:30+00:00",
  "purpose": "controlled shape-retrieval gallery for P0-4.5: targets, independent variants and hard negatives in seven structure families. Not geographic data; must never be merged into data/index/.",
  "label": "Controlled Shape Retrieval — 非真实地理景观",
  "families": [
@@ -2818,7 +2818,7 @@
  "reproduce": {
   "command": "python scripts/prepare_perceptual_dataset.py --offline --force --out-dir 'experiments\\p0_perceptual_probe'",
   "cache_dir": "experiments/p0_perceptual_probe/cache",
-  "git_commit": "4c4bf66fe178fafee4b7ddc21349a2dd5476cc7b",
+  "git_commit": "10c9e8fab8ca39401b6f2e1336780bbb90f54718",
   "determinism": "synthetic generators are seeded through their parameters; external drawings are chosen even-spaced out of a record list whose byte ranges are pinned to cache/quickdraw/spans.json on the first live build and replayed by every later build, --offline included, so no run can silently scan a different set of drawings. The pinned ranges and each slice's sha256 are recorded under assets and quickdraw_census; the byte-identical live/offline check is logged in experiments/experiment_log.md"
  }
 }
