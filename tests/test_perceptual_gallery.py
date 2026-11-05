@@ -11,6 +11,7 @@ counted record rather than a silent drop.
 from __future__ import annotations
 
 import hashlib
+import math
 from pathlib import Path
 from typing import Any
 
@@ -487,6 +488,43 @@ def test_plan_covers_every_family_with_two_independent_queries():
     for family in pg.FAMILIES:
         origins = {source.split(":", 1)[0] for source in planned.get(family, set())}
         assert len(origins & {"phosphor", "quickdraw", "synthetic"}) >= 2, family
+
+
+def test_a_rounded_star_is_worn_and_not_spiked():
+    """The bevel must cut either side of the corner, never overshoot past it.
+
+    ``_bevel`` walks one cut point back along the incoming edge and the other forward
+    along the outgoing one.  When the first was walked forward too, the curve jumped
+    beyond the tip and doubled back, and ``densify`` filled the overshoot with near
+    reversals: measured on ``star(5, 0.42, tip_round=valley_round=0.12)`` the worst
+    vertex turn was 176.8 degrees (171.5 after standardization) and the boundary grew
+    to 8.464 against the sharp star's 7.049 — so the gallery's "worn star" was a spiked
+    one.  Rounding a corner can only take perimeter away, and a worn star still has to
+    turn like a star.
+    """
+
+    def closed(points: np.ndarray) -> np.ndarray:
+        return np.vstack([points, points[:1]])
+
+    def perimeter(points: np.ndarray) -> float:
+        return float(np.linalg.norm(np.diff(closed(points), axis=0), axis=1).sum())
+
+    def area(points: np.ndarray) -> float:
+        ring = closed(points)
+        return float(abs(np.sum(ring[:-1, 0] * ring[1:, 1] - ring[:-1, 1] * ring[1:, 0])) / 2.0)
+
+    def worst_turn(points: np.ndarray) -> float:
+        step = np.diff(closed(points), axis=0)
+        cross = step[:-1, 0] * step[1:, 1] - step[:-1, 1] * step[1:, 0]
+        dot = np.sum(step[:-1] * step[1:], axis=1)
+        return float(np.abs(np.arctan2(cross, dot)).max())
+
+    sharp = star(5, 0.42)
+    worn = star(5, 0.42, tip_round=0.12, valley_round=0.12)
+    assert worst_turn(worn) < math.radians(90.0)
+    assert worst_turn(standardize(worn)) < math.radians(120.0)
+    assert perimeter(worn) < perimeter(sharp)
+    assert abs(area(worn) - area(sharp)) / area(sharp) < 0.01
 
 
 def test_build_synthetic_is_deterministic_and_refuses_nothing():
