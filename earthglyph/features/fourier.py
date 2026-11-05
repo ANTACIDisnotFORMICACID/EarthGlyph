@@ -21,33 +21,38 @@ What this representation is invariant to (and what it is not) is stated in
 * rotation — amplitudes only, because rotating multiplies every ``Z_k`` by the
   same phase factor ``exp(i*theta)``;
 * cyclic start point — amplitudes only, a shift adds a ``k``-dependent phase;
-* traversal direction / mirroring — **not** invariant when only positive
-  harmonics are used (see below).
+* traversal direction and mirroring — **invariant**, once the contour has been
+  canonicalized the way preprocessing does it (corrected in P0-4, D26).
 
-Direction and mirror are different operations but the spectrum reacts to both in
-the same way: reversing the point order maps ``Z_k -> Z_-k`` and reflecting the
-plane (``z -> conj(z)``, D9) maps ``Z_k -> conj(Z_-k)``, so in both cases the
-amplitude at harmonic ``k`` becomes the amplitude at harmonic ``-k``. That is
-why this module offers two modes:
+The last bullet is the one P0-3 got backwards, so the algebra is spelled out.
+On a *raw* array, reversing the point order maps ``Z_k -> Z_-k`` and reflecting
+the plane (``z -> conj(z)``, D9) maps ``Z_k -> conj(Z_-k)``: in both cases the
+amplitude at harmonic ``k`` becomes the amplitude at harmonic ``-k``. Both
+operations become no-ops for the amplitudes after canonicalization, because
+``ensure_ccw`` undoes the reversal and the canonical mirror
+``b^m_k = conj(b_{-k})`` then gives ``Z^m_k = conj(Z_k)``:
 
-``"positive"``
-    uses ``|Z_k|`` for ``k >= 1`` only. Combined with the CCW canonical winding
-    that preprocessing already guarantees (D23), mirror pairs of the same shape
-    get different descriptors — useful for the coarse filter, but it must never
-    be described as "mirror detection" independent of direction.
-``"symmetric"``
-    folds the two sides, ``( |Z_k| + |Z_-k| ) / 2``, giving a descriptor that is
-    invariant under *both* direction reversal and mirroring.
+* reversal -> CCW -> resample -> amplitudes: **identical** (same walk);
+* mirror -> CCW -> resample -> amplitudes: **identical** to round-off.
 
-Amplitude FDs discard phase and therefore structure: two different shapes can
-share a low-harmonic spectrum. Per docs/DECISIONS.md D10 these descriptors are
-**coarse-filter only**; mirror handling and structural matching belong to the
-re-ranking stage.
+Measured end-to-end on an asymmetric outline (``tests/test_alignment.py``):
+reversal gap 0.0, rotation gap 2e-15, mirror gap 4.1e-8, while the geometric
+re-rank separates the mirror pair at ``D = 0.06``–``0.07``. Consequently the
+positive-harmonic descriptor is **mirror-blind** — it neither detects nor
+forbids a mirror — and ``"symmetric"`` folding is redundant for canonicalized
+contours. That is why the mirror policy is implemented in geometry
+(:mod:`earthglyph.retrieval.alignment`, ``allow_mirror``) and never through a
+lucky numerical difference in feature amplitudes.
+
+Amplitude FDs also discard phase and therefore structure: two different shapes
+can share a low-harmonic spectrum. Per docs/DECISIONS.md D10 these descriptors
+are **coarse-filter only**; mirror handling and structural matching belong to
+the re-ranking stage.
 """
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 
@@ -115,10 +120,11 @@ def check_harmonics(n_points: int, n_harmonics: int) -> None:
         )
 
 
-def check_fold(fold: str) -> str:
+def check_fold(fold: str) -> Fold:
+    """Validate a fold name, returning it narrowed to the ``Fold`` literal."""
     if fold not in _FOLDS:
         raise FeatureError(f"fold must be one of {_FOLDS}, got {fold!r}")
-    return fold
+    return cast("Fold", fold)
 
 
 def fourier_coefficients(points: Any, *, normalize: bool = True) -> np.ndarray:
@@ -258,13 +264,28 @@ def feature_definition(
         "uniform scale (RMS-radius normalization)",
         "rotation (amplitudes discard the common phase factor)",
         "cyclic start index (amplitudes discard the k-dependent phase)",
+        "point-order reversal (after the CCW canonicalization that preprocessing "
+        "applies, D23/D26: it is the same walk, so the descriptor is identical)",
+        "mirroring (the canonical mirror maps Z_k -> conj(Z_k), so the amplitudes "
+        "are identical; measured pipeline gap 4.1e-8, D26)",
+    ]
+    denied = [
+        "mirror detection: mirror-blindness and mirror-invariance are the same "
+        "statement here, so a mirror policy cannot be expressed through amplitudes. "
+        "It is enforced in geometry - earthglyph/retrieval/alignment.py allow_mirror",
+        "structural discrimination: phase is discarded, so different shapes can "
+        "share low-harmonic amplitudes (D10)",
+        "absolute size (deliberate: the coarse filter compares shapes, not areas)",
     ]
     if fold == "symmetric":
-        invariant += ["point-order reversal", "mirroring (folded +/-k amplitudes)"]
+        fold_note = (
+            "each entry is (|Z_k| + |Z_-k|)/2, which is also invariant on arrays "
+            "that have NOT been winding-canonicalized; redundant for this pipeline"
+        )
     else:
-        invariant.append(
-            "NOT invariant to point-order reversal or mirroring: both map |Z_k| -> "
-            "|Z_-k|; usable because preprocessing fixes CCW winding (D23)"
+        fold_note = (
+            "positive harmonics only; on a non-canonicalized array reversal and "
+            "reflection map |Z_k| -> |Z_-k|"
         )
     return {
         "schema_version": FOURIER_SCHEMA_VERSION,
@@ -276,15 +297,20 @@ def feature_definition(
             + (" ; each entry is (|Z_k| + |Z_-k|)/2" if fold == "symmetric" else "")
             + " ; Z_0 (DC) is dropped"
         ),
+        "fold_note": fold_note,
         "normalized_by_sample_count": per_sample,
         "n_harmonics": n_harmonics,
         "fold": fold,
         "columns": descriptor_columns(n_harmonics, fold),
         "invariances": invariant,
+        "denied_capabilities": denied,
         "known_losses": [
             "phase information: structurally different shapes can share low-harmonic amplitudes",
             "high-frequency detail beyond harmonic n_harmonics",
             "size information (deliberate: coarse filtering compares shapes, not areas)",
         ],
-        "usage": "coarse filtering only (docs/DECISIONS.md D10); not a mirror test",
+        "usage": (
+            "coarse filtering only (docs/DECISIONS.md D10); not a mirror test - "
+            "it is provably mirror-blind after canonicalization (D26)"
+        ),
     }

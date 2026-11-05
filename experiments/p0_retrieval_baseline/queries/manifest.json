@@ -1,0 +1,1423 @@
+{
+ "generated_by": "scripts/make_retrieval_queries.py",
+ "command": "python scripts/make_retrieval_queries.py --index data\\index --out experiments\\p0_retrieval_baseline\\queries --seed 20261105",
+ "seed": 20261105,
+ "pen_step_noise": 0.55,
+ "trace_points": 90,
+ "n_points": 128,
+ "index": {
+  "index_dir": "data/index",
+  "index_built_at_utc": "2026-11-04T21:27:55+00:00",
+  "index_git_commit": "77b083c931b72cf4fd153a9185254f5a9486aeab",
+  "source_name": "Overture Maps (Base theme), https://docs.overturemaps.org/",
+  "source_release": "2026-10-21.0",
+  "source_bbox": {
+   "min_lon": -90.0,
+   "min_lat": 44.0,
+   "max_lon": -89.0,
+   "max_lat": 45.0,
+   "order": "min_lon,min_lat,max_lon,max_lat"
+  },
+  "n_candidates": 839,
+  "n_points": 128,
+  "n_harmonics": 16,
+  "fourier_fold": "positive",
+  "feature_dim": 20,
+  "output_sha256": {
+   "features": "b7255ede076922e9bf26877a1535840a4efc239e31a0fe55f79f1fbf5562e063",
+   "shapes": "fbaf4933e1e1585bf21878f4cdfe0a4355ffed6565494123ed06e142520a2776",
+   "metadata": "e18c3f95039f3f8d8283f0fe87eb05f31574902731163d08e0e117548859a211"
+  }
+ },
+ "families": {
+  "probe": "real library contour or a deliberate distortion of one — synthetic perturbation, NOT a hand drawing",
+  "sketch": "machine-drawn pointer trace of a parametric archetype — NOT an independent human hand drawing; real drawings exported from tools/sketch_pad.html belong in this directory and read the same way",
+  "image": "rasterized sketch, plus the two cases that must be refused (ambiguous-two-shapes.png, open-arc.png)"
+ },
+ "queries": [
+  {
+   "name": "self-r7",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "self-r7.json"
+  },
+  {
+   "name": "rot-r7-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "rot-r7-37deg.json"
+  },
+  {
+   "name": "rot-r7-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "rot-r7-191deg.json"
+  },
+  {
+   "name": "scale-r7-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "scale-r7-3.7x.json"
+  },
+  {
+   "name": "shift-r7",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "shift-r7.json"
+  },
+  {
+   "name": "mirror-r7",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "mirror-r7.json"
+  },
+  {
+   "name": "reverse-r7",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "reverse-r7.json"
+  },
+  {
+   "name": "sparse-r7-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "sparse-r7-26pts.json"
+  },
+  {
+   "name": "jag-r7-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "jag-r7-0.02.json"
+  },
+  {
+   "name": "jag-r7-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "jag-r7-0.05.json"
+  },
+  {
+   "name": "jag-r7-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "jag-r7-0.1.json"
+  },
+  {
+   "name": "island-r7",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "island-r7.json"
+  },
+  {
+   "name": "bay-r7",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "bay-r7.json"
+  },
+  {
+   "name": "aspect-r7",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "aspect-r7.json"
+  },
+  {
+   "name": "gap-r7-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "gap-r7-0.06.json"
+  },
+  {
+   "name": "gap-r7-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "gap-r7-0.06-tail.json"
+  },
+  {
+   "name": "gap-r7-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "gap-r7-0.35.json"
+  },
+  {
+   "name": "gap-r7-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 7,
+   "source_candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+   "closed": true,
+   "file": "gap-r7-0.35-tail.json"
+  },
+  {
+   "name": "self-r61",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "self-r61.json"
+  },
+  {
+   "name": "rot-r61-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "rot-r61-37deg.json"
+  },
+  {
+   "name": "rot-r61-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "rot-r61-191deg.json"
+  },
+  {
+   "name": "scale-r61-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "scale-r61-3.7x.json"
+  },
+  {
+   "name": "shift-r61",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "shift-r61.json"
+  },
+  {
+   "name": "mirror-r61",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "mirror-r61.json"
+  },
+  {
+   "name": "reverse-r61",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "reverse-r61.json"
+  },
+  {
+   "name": "sparse-r61-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "sparse-r61-26pts.json"
+  },
+  {
+   "name": "jag-r61-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "jag-r61-0.02.json"
+  },
+  {
+   "name": "jag-r61-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "jag-r61-0.05.json"
+  },
+  {
+   "name": "jag-r61-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "jag-r61-0.1.json"
+  },
+  {
+   "name": "island-r61",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "island-r61.json"
+  },
+  {
+   "name": "bay-r61",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "bay-r61.json"
+  },
+  {
+   "name": "aspect-r61",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "aspect-r61.json"
+  },
+  {
+   "name": "gap-r61-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "gap-r61-0.06.json"
+  },
+  {
+   "name": "gap-r61-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "gap-r61-0.06-tail.json"
+  },
+  {
+   "name": "gap-r61-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "gap-r61-0.35.json"
+  },
+  {
+   "name": "gap-r61-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 61,
+   "source_candidate_id": "e83c6192-81a3-347e-809d-67b7d8e34d14",
+   "closed": true,
+   "file": "gap-r61-0.35-tail.json"
+  },
+  {
+   "name": "self-r100",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "self-r100.json"
+  },
+  {
+   "name": "rot-r100-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "rot-r100-37deg.json"
+  },
+  {
+   "name": "rot-r100-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "rot-r100-191deg.json"
+  },
+  {
+   "name": "scale-r100-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "scale-r100-3.7x.json"
+  },
+  {
+   "name": "shift-r100",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "shift-r100.json"
+  },
+  {
+   "name": "mirror-r100",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "mirror-r100.json"
+  },
+  {
+   "name": "reverse-r100",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "reverse-r100.json"
+  },
+  {
+   "name": "sparse-r100-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "sparse-r100-26pts.json"
+  },
+  {
+   "name": "jag-r100-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "jag-r100-0.02.json"
+  },
+  {
+   "name": "jag-r100-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "jag-r100-0.05.json"
+  },
+  {
+   "name": "jag-r100-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "jag-r100-0.1.json"
+  },
+  {
+   "name": "island-r100",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "island-r100.json"
+  },
+  {
+   "name": "bay-r100",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "bay-r100.json"
+  },
+  {
+   "name": "aspect-r100",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "aspect-r100.json"
+  },
+  {
+   "name": "gap-r100-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "gap-r100-0.06.json"
+  },
+  {
+   "name": "gap-r100-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "gap-r100-0.06-tail.json"
+  },
+  {
+   "name": "gap-r100-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "gap-r100-0.35.json"
+  },
+  {
+   "name": "gap-r100-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 100,
+   "source_candidate_id": "5a2a8f36-16d6-35f8-b874-941844a94d83",
+   "closed": true,
+   "file": "gap-r100-0.35-tail.json"
+  },
+  {
+   "name": "self-r294",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "self-r294.json"
+  },
+  {
+   "name": "rot-r294-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "rot-r294-37deg.json"
+  },
+  {
+   "name": "rot-r294-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "rot-r294-191deg.json"
+  },
+  {
+   "name": "scale-r294-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "scale-r294-3.7x.json"
+  },
+  {
+   "name": "shift-r294",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "shift-r294.json"
+  },
+  {
+   "name": "mirror-r294",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "mirror-r294.json"
+  },
+  {
+   "name": "reverse-r294",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "reverse-r294.json"
+  },
+  {
+   "name": "sparse-r294-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "sparse-r294-26pts.json"
+  },
+  {
+   "name": "jag-r294-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "jag-r294-0.02.json"
+  },
+  {
+   "name": "jag-r294-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "jag-r294-0.05.json"
+  },
+  {
+   "name": "jag-r294-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "jag-r294-0.1.json"
+  },
+  {
+   "name": "island-r294",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "island-r294.json"
+  },
+  {
+   "name": "bay-r294",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "bay-r294.json"
+  },
+  {
+   "name": "aspect-r294",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "aspect-r294.json"
+  },
+  {
+   "name": "gap-r294-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "gap-r294-0.06.json"
+  },
+  {
+   "name": "gap-r294-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "gap-r294-0.06-tail.json"
+  },
+  {
+   "name": "gap-r294-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "gap-r294-0.35.json"
+  },
+  {
+   "name": "gap-r294-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 294,
+   "source_candidate_id": "4b2c4aea-4e72-3a7c-9377-b1e862f43e6b-part1",
+   "closed": true,
+   "file": "gap-r294-0.35-tail.json"
+  },
+  {
+   "name": "self-r365",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "self-r365.json"
+  },
+  {
+   "name": "rot-r365-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "rot-r365-37deg.json"
+  },
+  {
+   "name": "rot-r365-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "rot-r365-191deg.json"
+  },
+  {
+   "name": "scale-r365-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "scale-r365-3.7x.json"
+  },
+  {
+   "name": "shift-r365",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "shift-r365.json"
+  },
+  {
+   "name": "mirror-r365",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "mirror-r365.json"
+  },
+  {
+   "name": "reverse-r365",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "reverse-r365.json"
+  },
+  {
+   "name": "sparse-r365-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "sparse-r365-26pts.json"
+  },
+  {
+   "name": "jag-r365-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "jag-r365-0.02.json"
+  },
+  {
+   "name": "jag-r365-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "jag-r365-0.05.json"
+  },
+  {
+   "name": "jag-r365-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "jag-r365-0.1.json"
+  },
+  {
+   "name": "island-r365",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "island-r365.json"
+  },
+  {
+   "name": "bay-r365",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "bay-r365.json"
+  },
+  {
+   "name": "aspect-r365",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "aspect-r365.json"
+  },
+  {
+   "name": "gap-r365-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "gap-r365-0.06.json"
+  },
+  {
+   "name": "gap-r365-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "gap-r365-0.06-tail.json"
+  },
+  {
+   "name": "gap-r365-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "gap-r365-0.35.json"
+  },
+  {
+   "name": "gap-r365-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 365,
+   "source_candidate_id": "258eddd3-ade1-3faa-895f-bb1fd4b60cc5",
+   "closed": true,
+   "file": "gap-r365-0.35-tail.json"
+  },
+  {
+   "name": "self-r745",
+   "family": "probe",
+   "perturbation": "self",
+   "params": {},
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "self-r745.json"
+  },
+  {
+   "name": "rot-r745-37deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 37.0
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "rot-r745-37deg.json"
+  },
+  {
+   "name": "rot-r745-191deg",
+   "family": "probe",
+   "perturbation": "rot",
+   "params": {
+    "theta_deg": 191.0
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "rot-r745-191deg.json"
+  },
+  {
+   "name": "scale-r745-3.7x",
+   "family": "probe",
+   "perturbation": "scale",
+   "params": {
+    "factor": 3.7
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "scale-r745-3.7x.json"
+  },
+  {
+   "name": "shift-r745",
+   "family": "probe",
+   "perturbation": "shift",
+   "params": {
+    "dx": 40.0,
+    "dy": -25.0
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "shift-r745.json"
+  },
+  {
+   "name": "mirror-r745",
+   "family": "probe",
+   "perturbation": "mirror",
+   "params": {},
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "mirror-r745.json"
+  },
+  {
+   "name": "reverse-r745",
+   "family": "probe",
+   "perturbation": "reverse",
+   "params": {},
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "reverse-r745.json"
+  },
+  {
+   "name": "sparse-r745-26pts",
+   "family": "probe",
+   "perturbation": "sparse",
+   "params": {
+    "n": 26
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "sparse-r745-26pts.json"
+  },
+  {
+   "name": "jag-r745-0.02",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.02
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "jag-r745-0.02.json"
+  },
+  {
+   "name": "jag-r745-0.05",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.05
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "jag-r745-0.05.json"
+  },
+  {
+   "name": "jag-r745-0.1",
+   "family": "probe",
+   "perturbation": "jag",
+   "params": {
+    "level": 0.1
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "jag-r745-0.1.json"
+  },
+  {
+   "name": "island-r745",
+   "family": "probe",
+   "perturbation": "island",
+   "params": {
+    "height": 0.18
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "island-r745.json"
+  },
+  {
+   "name": "bay-r745",
+   "family": "probe",
+   "perturbation": "bay",
+   "params": {
+    "height": -0.18
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "bay-r745.json"
+  },
+  {
+   "name": "aspect-r745",
+   "family": "probe",
+   "perturbation": "aspect",
+   "params": {
+    "factor": 1.25
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "aspect-r745.json"
+  },
+  {
+   "name": "gap-r745-0.06",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "gap-r745-0.06.json"
+  },
+  {
+   "name": "gap-r745-0.06-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.06,
+    "ramp": 0.15
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "gap-r745-0.06-tail.json"
+  },
+  {
+   "name": "gap-r745-0.35",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "gap-r745-0.35.json"
+  },
+  {
+   "name": "gap-r745-0.35-tail",
+   "family": "probe",
+   "perturbation": "gap",
+   "params": {
+    "share": 0.35,
+    "ramp": 0.15
+   },
+   "source_row": 745,
+   "source_candidate_id": "048b7831-297f-3f18-8b72-2053ed223892-part1",
+   "closed": true,
+   "file": "gap-r745-0.35-tail.json"
+  },
+  {
+   "name": "drawn-crescent",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "crescent",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-crescent.json"
+  },
+  {
+   "name": "drawn-heart",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "heart",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-heart.json"
+  },
+  {
+   "name": "drawn-s-shape",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "s-shape",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-s-shape.json"
+  },
+  {
+   "name": "drawn-star10",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "star10",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-star10.json"
+  },
+  {
+   "name": "drawn-pentagram",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "pentagram",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-pentagram.json"
+  },
+  {
+   "name": "drawn-forked",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "forked",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-forked.json"
+  },
+  {
+   "name": "drawn-irregular",
+   "family": "sketch",
+   "perturbation": "machine-drawn pointer trace",
+   "params": {
+    "archetype": "irregular",
+    "wobble": 0.035,
+    "uneven_steps": true
+   },
+   "source_row": null,
+   "source_candidate_id": null,
+   "closed": true,
+   "file": "drawn-irregular.json"
+  }
+ ],
+ "png_queries": [
+  "drawn-crescent.png",
+  "drawn-heart.png",
+  "drawn-star10.png",
+  "drawn-irregular.png",
+  "ambiguous-two-shapes.png",
+  "open-arc.png"
+ ]
+}

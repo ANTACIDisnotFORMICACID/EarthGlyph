@@ -1,0 +1,601 @@
+{
+ "params": {
+  "top_k": 10,
+  "shortlist_size": 200,
+  "smoothing_for_g1_g3": "light",
+  "query_manifest_seed": 20261105,
+  "n_queries": 115,
+  "index": {
+   "index_dir": "data/index",
+   "index_built_at_utc": "2026-11-04T21:27:55+00:00",
+   "index_git_commit": "77b083c931b72cf4fd153a9185254f5a9486aeab",
+   "source_name": "Overture Maps (Base theme), https://docs.overturemaps.org/",
+   "source_release": "2026-10-21.0",
+   "source_bbox": {
+    "min_lon": -90.0,
+    "min_lat": 44.0,
+    "max_lon": -89.0,
+    "max_lat": 45.0,
+    "order": "min_lon,min_lat,max_lon,max_lat"
+   },
+   "n_candidates": 839,
+   "n_points": 128,
+   "n_harmonics": 16,
+   "fourier_fold": "positive",
+   "feature_dim": 20,
+   "output_sha256": {
+    "features": "b7255ede076922e9bf26877a1535840a4efc239e31a0fe55f79f1fbf5562e063",
+    "shapes": "fbaf4933e1e1585bf21878f4cdfe0a4355ffed6565494123ed06e142520a2776",
+    "metadata": "e18c3f95039f3f8d8283f0fe87eb05f31574902731163d08e0e117548859a211"
+   }
+  },
+  "weak_distance": 0.12
+ },
+ "layers": {
+  "G1_correctness": {
+   "self": {
+    "n": 6,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.01286,
+    "labels": {
+     "ok": 6
+    }
+   },
+   "rot": {
+    "n": 12,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.01275,
+    "labels": {
+     "ok": 12
+    }
+   },
+   "scale": {
+    "n": 6,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.01273,
+    "labels": {
+     "ok": 6
+    }
+   },
+   "shift": {
+    "n": 6,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.01286,
+    "labels": {
+     "ok": 6
+    }
+   },
+   "reverse": {
+    "n": 6,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.01287,
+    "labels": {
+     "ok": 6
+    }
+   },
+   "sparse": {
+    "n": 6,
+    "top1_rate": 0.6667,
+    "topk_rate": 0.8333,
+    "median_rank": 1.0,
+    "max_rank": 2,
+    "median_align_of_truth": 0.06398,
+    "labels": {
+     "ok": 5,
+     "D_coverage_or_deformation": 1
+    }
+   },
+   "mirror": {
+    "n": 6,
+    "top1_rate": 0.1667,
+    "topk_rate": 0.6667,
+    "median_rank": 5.5,
+    "max_rank": 10,
+    "median_align_of_truth": 0.33359,
+    "labels": {
+     "ok": 4,
+     "D_coverage_or_deformation": 2
+    }
+   }
+  },
+  "G2_robustness": {
+   "jag": {
+    "n": 54,
+    "top1_rate": 0.8333,
+    "topk_rate": 0.8333,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.03565,
+    "labels": {
+     "ok": 45,
+     "D_coverage_or_deformation": 9
+    }
+   },
+   "island": {
+    "n": 18,
+    "top1_rate": 1.0,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.07955,
+    "labels": {
+     "ok": 18
+    }
+   },
+   "bay": {
+    "n": 18,
+    "top1_rate": 0.8333,
+    "topk_rate": 1.0,
+    "median_rank": 1.0,
+    "max_rank": 8,
+    "median_align_of_truth": 0.07489,
+    "labels": {
+     "ok": 18
+    }
+   },
+   "aspect": {
+    "n": 18,
+    "top1_rate": 0.6667,
+    "topk_rate": 0.6667,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.19764,
+    "labels": {
+     "ok": 12,
+     "D_coverage_or_deformation": 6
+    }
+   },
+   "gap": {
+    "n": 72,
+    "top1_rate": 0.5833,
+    "topk_rate": 0.5833,
+    "median_rank": 1.0,
+    "max_rank": 1,
+    "median_align_of_truth": 0.07865,
+    "labels": {
+     "ok": 42,
+     "A_extraction": 18,
+     "D_coverage_or_deformation": 12
+    }
+   }
+  }
+ },
+ "labels_overall": {
+  "A_extraction": 22,
+  "D_coverage_or_deformation": 30,
+  "G3_no_ground_truth": 9,
+  "ok": 180
+ },
+ "smoothing_ablation": [
+  {
+   "smoothing": "none",
+   "sigma": 0.0,
+   "n_candidates": 839,
+   "n_harmonics": 16,
+   "detail_band": "k=9..16",
+   "base_mean_detail_share": 0.000402,
+   "mean_detail_share": 0.000402,
+   "mean_detail_share_ratio": 1.0,
+   "min_detail_share_ratio": 1.0,
+   "mean_compactness_change": 0.0,
+   "max_compactness_change": 0.0,
+   "mean_perimeter_change": 0.0,
+   "max_perimeter_change": 0.0
+  },
+  {
+   "smoothing": "light",
+   "sigma": 0.8,
+   "n_candidates": 839,
+   "n_harmonics": 16,
+   "detail_band": "k=9..16",
+   "base_mean_detail_share": 0.000402,
+   "mean_detail_share": 0.000334,
+   "mean_detail_share_ratio": 0.830551,
+   "min_detail_share_ratio": 0.759849,
+   "mean_compactness_change": 0.014836,
+   "max_compactness_change": 0.094041,
+   "mean_perimeter_change": 0.020587,
+   "max_perimeter_change": 0.276077
+  },
+  {
+   "smoothing": "medium",
+   "sigma": 2.0,
+   "n_candidates": 839,
+   "n_harmonics": 16,
+   "detail_band": "k=9..16",
+   "base_mean_detail_share": 0.000402,
+   "mean_detail_share": 0.000135,
+   "mean_detail_share_ratio": 0.336527,
+   "min_detail_share_ratio": 0.197122,
+   "mean_compactness_change": 0.043914,
+   "max_compactness_change": 0.235634,
+   "mean_perimeter_change": 0.056679,
+   "max_perimeter_change": 0.512821
+  }
+ ],
+ "hand_like": [
+  {
+   "query": "drawn-crescent.json",
+   "smoothing": "light",
+   "top1_row": 64,
+   "top1_align": 0.15668,
+   "weak_note": true,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-crescent.png",
+   "smoothing": "light",
+   "top1_row": 64,
+   "top1_align": 0.14994,
+   "weak_note": true,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-heart.json",
+   "smoothing": "light",
+   "top1_row": 716,
+   "top1_align": 0.1058,
+   "weak_note": false,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-heart.png",
+   "smoothing": "light",
+   "top1_row": 716,
+   "top1_align": 0.10611,
+   "weak_note": false,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-s-shape.json",
+   "smoothing": "light",
+   "top1_row": 269,
+   "top1_align": 0.10856,
+   "weak_note": false,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-star10.json",
+   "smoothing": "light",
+   "top1_row": 111,
+   "top1_align": 0.21272,
+   "weak_note": true,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-star10.png",
+   "smoothing": "light",
+   "top1_row": 111,
+   "top1_align": 0.21714,
+   "weak_note": true,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-pentagram.json",
+   "smoothing": "light",
+   "top1_row": null,
+   "top1_align": null,
+   "weak_note": null,
+   "label": "A_extraction",
+   "refusal": "self-intersecting stroke (1 crossing, Self-intersection[-0.115744521312207 0.370032314215577]): the crossing moves 30.7% of the hull in or out of the enclosed region, so this is not a polygon outline yet and treating it as one would change what you drew. Redraw it, or pass allow_self_intersection / --allow-self-intersection to match it as a closed curve (area-based statistics then describe the curve, not a region)"
+  },
+  {
+   "query": "drawn-forked.json",
+   "smoothing": "light",
+   "top1_row": 389,
+   "top1_align": 0.16188,
+   "weak_note": true,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "drawn-irregular.json",
+   "smoothing": "light",
+   "top1_row": null,
+   "top1_align": null,
+   "weak_note": null,
+   "label": "A_extraction",
+   "refusal": "open stroke: start/end gap is 0.15 of the shape scale (limit 0.15); redraw the outline closed"
+  },
+  {
+   "query": "drawn-irregular.png",
+   "smoothing": "light",
+   "top1_row": 53,
+   "top1_align": 0.05206,
+   "weak_note": false,
+   "label": "G3_no_ground_truth",
+   "refusal": null
+  },
+  {
+   "query": "ambiguous-two-shapes.png",
+   "smoothing": "light",
+   "top1_row": null,
+   "top1_align": null,
+   "weak_note": null,
+   "label": "A_extraction",
+   "refusal": "image contains 2 separate shapes (areas [2174, 1728], boxes [[25, 46, 144, 140], [168, 153, 115, 114]]); V1 extracts a single closed outline — send one shape per query (lettering and separate marks are not guessed at)"
+  },
+  {
+   "query": "open-arc.png",
+   "smoothing": "light",
+   "top1_row": null,
+   "top1_align": null,
+   "weak_note": null,
+   "label": "A_extraction",
+   "refusal": "the ink is a 3.8-pixel band (width 0.034 of the shape scale) that fills only 5.7% of its own convex hull: that is a stroke which does not close, not an outline. Join the two ends and redraw, or submit a vector trace — the open curve is not guessed shut into a shape"
+  }
+ ],
+ "shortlist_sweep": {
+  "smoothing": "light",
+  "top_k": 10,
+  "by_shortlist": {
+   "100": {
+    "G1/mirror": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/reverse": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/rot": {
+     "n": 12,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/scale": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/self": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/shift": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/sparse": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.6667
+    },
+    "G2/aspect": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.8333
+    },
+    "G2/bay": {
+     "n": 6,
+     "top1_rate": 0.8333,
+     "top10_rate": 1.0
+    },
+    "G2/gap": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 1.0
+    },
+    "G2/island": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G2/jag": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 0.9444
+    }
+   },
+   "200": {
+    "G1/mirror": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/reverse": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/rot": {
+     "n": 12,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/scale": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/self": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/shift": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/sparse": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.6667
+    },
+    "G2/aspect": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.8333
+    },
+    "G2/bay": {
+     "n": 6,
+     "top1_rate": 0.8333,
+     "top10_rate": 1.0
+    },
+    "G2/gap": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 1.0
+    },
+    "G2/island": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G2/jag": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 0.9444
+    }
+   },
+   "300": {
+    "G1/mirror": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/reverse": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/rot": {
+     "n": 12,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/scale": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/self": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/shift": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G1/sparse": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.6667
+    },
+    "G2/aspect": {
+     "n": 6,
+     "top1_rate": 0.5,
+     "top10_rate": 0.8333
+    },
+    "G2/bay": {
+     "n": 6,
+     "top1_rate": 0.8333,
+     "top10_rate": 1.0
+    },
+    "G2/gap": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 1.0
+    },
+    "G2/island": {
+     "n": 6,
+     "top1_rate": 1.0,
+     "top10_rate": 1.0
+    },
+    "G2/jag": {
+     "n": 18,
+     "top1_rate": 0.7778,
+     "top10_rate": 0.9444
+    }
+   }
+  }
+ },
+ "failure_figure": {
+  "figure": "failure_cases.png",
+  "n_shown": 12,
+  "n_non_ok_rows": 52,
+  "labels": [
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "D_coverage_or_deformation",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "D_coverage_or_deformation",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction",
+   "A_extraction"
+  ]
+ }
+}

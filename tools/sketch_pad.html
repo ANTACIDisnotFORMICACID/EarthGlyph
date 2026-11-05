@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>EarthGlyph — 手绘查询板 (P0-4 算法调试工具)</title>
+<style>
+  :root { color-scheme: light; }
+  body { font: 14px/1.5 system-ui, "Segoe UI", sans-serif; margin: 0; padding: 16px;
+         background: #f4f5f7; color: #1c2024; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .note { color: #5a636d; margin: 0 0 12px; max-width: 70ch; }
+  .wrap { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .pad { background: #fff; border: 1px solid #d5d9de; border-radius: 6px; padding: 8px; }
+  canvas { display: block; touch-action: none; cursor: crosshair;
+           background: repeating-linear-gradient(0deg, #fff, #fff 39px, #eef0f2 40px),
+                      repeating-linear-gradient(90deg, #fff, #fff 39px, #eef0f2 40px); }
+  .side { display: flex; flex-direction: column; gap: 10px; width: 330px; }
+  .box { background: #fff; border: 1px solid #d5d9de; border-radius: 6px; padding: 10px; }
+  button { font: inherit; padding: 6px 10px; border: 1px solid #b9c0c8; border-radius: 5px;
+           background: #fff; cursor: pointer; }
+  button:hover { background: #eef2f7; }
+  button.primary { background: #1c6b4f; border-color: #1c6b4f; color: #fff; }
+  button.primary:hover { background: #175a42; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  td { padding: 2px 0; vertical-align: top; }
+  td.k { color: #5a636d; width: 118px; }
+  .ok { color: #1c6b4f; }
+  .warn { color: #9a6b00; }
+  .bad { color: #a4262c; }
+  input[type=text] { font: inherit; padding: 4px 6px; border: 1px solid #b9c0c8;
+                     border-radius: 4px; width: 210px; }
+  textarea { width: 100%; height: 110px; font: 12px/1.35 ui-monospace, Consolas, monospace;
+             border: 1px solid #b9c0c8; border-radius: 4px; padding: 6px; box-sizing: border-box; }
+  label { display: block; color: #5a636d; margin-bottom: 4px; }
+  code { background: #eef0f2; padding: 1px 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>手绘查询板 — 把真实的一笔一画交给检索</h1>
+<p class="note">
+  这是 P0-4 的<b>算法调试工具</b>，不是产品界面：它只负责采集指针轨迹并导出 JSON，
+  轮廓抽取、标准化、检索都在 Python 端。导出的点是画板坐标，但已在导出时把画板向下的
+  y 轴翻成数学坐标系（y 向上）——否则交出去的就是一个垂直镜像的形状，而镜像默认不参与匹配。
+  轨迹不做任何平滑、补点或模板化：工具的职责是保留你真正画出的形状。
+</p>
+
+<div class="wrap">
+  <div class="pad">
+    <canvas id="canvas" width="520" height="520"></canvas>
+    <div class="row" style="margin-top:8px">
+      <button id="undo">撤销最后一笔</button>
+      <button id="clear">清板</button>
+      <button id="download" class="primary">导出 JSON 文件</button>
+      <button id="copy">复制 JSON</button>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="box">
+      <label for="name">导出文件名</label>
+      <input id="name" type="text" value="sketch-01.json">
+      <table style="margin-top:8px">
+        <tr><td class="k">笔画数</td><td id="strokes">0（V1 只接受 1 条封闭轮廓）</td></tr>
+        <tr><td class="k">采样点数</td><td id="points">0</td></tr>
+        <tr><td class="k">首尾间距</td><td id="gap">—</td></tr>
+        <tr><td class="k">判定</td><td id="verdict">先画一条封闭轮廓</td></tr>
+      </table>
+      <p class="note" style="margin:8px 0 0">
+        “首尾间距”按形状的均方根半径归一。Python 端只有两个数量级会拒绝：
+        多于 8 笔会报歧义；间距超过 0.15 且不是采样接缝时报 <code>open stroke</code>，
+        要求重画——这里提前显示，是为了让你当场重画，而不是让程序替你封口。
+      </p>
+    </div>
+
+    <div class="box">
+      <label>待导出 JSON</label>
+      <textarea id="json" spellcheck="false" placeholder='{"points": [[x, y], ...], "closed": true}'></textarea>
+    </div>
+
+    <div class="box">
+      <label>命令行（在项目根目录、已激活虚拟环境）</label>
+      <textarea id="cli" spellcheck="false" readonly></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const MAX_STROKES = 8;
+  const SAMPLE_MIN_PX = 1.5;
+
+  // strokes[i] = {points: [{x, y}, ...]}，一条笔画 = 一次按下到抬起
+  let strokes = [];
+  let current = null;
+
+  function rmsRadius(points) {
+    if (points.length < 2) return 0;
+    let mx = 0, my = 0;
+    for (const p of points) { mx += p.x; my += p.y; }
+    mx /= points.length; my /= points.length;
+    let acc = 0;
+    for (const p of points) { const dx = p.x - mx, dy = p.y - my; acc += dx * dx + dy * dy; }
+    return Math.sqrt(acc / points.length);
+  }
+
+  function endpointGap(points) {
+    if (points.length < 2) return 0;
+    const a = points[0], b = points[points.length - 1];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function position(event) {
+    const box = canvas.getBoundingClientRect();
+    // 指针事件给的是画布显示坐标；导出的是画布像素坐标，两者按比例换算
+    const sx = canvas.width / box.width, sy = canvas.height / box.height;
+    return {
+      x: Math.round((event.clientX - box.left) * sx * 100) / 100,
+      y: Math.round((event.clientY - box.top) * sy * 100) / 100
+    };
+  }
+
+  function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#1c2024";
+    ctx.lineJoin = ctx.lineCap = "round";
+    for (const stroke of strokes) path(stroke.points);
+    if (current) path(current.points);
+  }
+
+  function path(points) {
+    if (points.length === 0) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i].x, points[i].y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(points[0].x, points[0].y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#a4262c";
+    ctx.fill();
+    ctx.fillStyle = "#1c6b4f";
+    ctx.beginPath();
+    ctx.arc(points[points.length - 1].x, points[points.length - 1].y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function summary() {
+    const name = document.getElementById("name");
+    const strokesCell = document.getElementById("strokes");
+    const pointsCell = document.getElementById("points");
+    const gapCell = document.getElementById("gap");
+    const verdictCell = document.getElementById("verdict");
+    const jsonBox = document.getElementById("json");
+    const cliBox = document.getElementById("cli");
+
+    strokesCell.textContent = String(strokes.length) +
+      (strokes.length === 1 ? "" : "（V1 只接受 1 条封闭轮廓）");
+
+    if (strokes.length === 0 || strokes.length > 1) {
+      pointsCell.textContent = String(strokes.reduce((n, s) => n + s.points.length, 0));
+      gapCell.textContent = "—";
+      verdictCell.className = strokes.length > 1 ? "bad" : "";
+      verdictCell.textContent = strokes.length > 1
+        ? "多笔：Python 端会以“一条轮廓”为由拒绝，不会替你挑一条"
+        : "先画一条封闭轮廓";
+      jsonBox.value = "";
+      cliBox.value = "";
+      return;
+    }
+
+    const points = strokes[0].points;
+    const scale = rmsRadius(points);
+    const gap = endpointGap(points);
+    const rel = scale > 0 ? gap / scale : 0;
+    pointsCell.textContent = String(points.length);
+    gapCell.textContent = points.length < 2
+      ? "—"
+      : gap.toFixed(1) + " px = " + rel.toFixed(3) + " × 形状尺度";
+    verdictCell.className = rel <= 0.03 ? "ok" : (rel <= 0.15 ? "warn" : "bad");
+    verdictCell.textContent = points.length < 8
+      ? "点数不足 8，Python 端会拒绝"
+      : (rel <= 0.03
+        ? "端点接近，可直接检索"
+        : rel <= 0.15
+          ? (rel > 0.03 ? "将由直线封口 —— 这条弦是假设，会被记录并提示"
+                        : "首尾接近，检索前只补一条短弦")
+          : "开口过大：除非它是采样接缝（约一个采样步长），否则 Python 端会要求重画");
+
+    const payload = {
+      // 画布的 y 轴向下；导出时翻成数学坐标系（y 向上），否则交给检索的就是一个
+      // 垂直镜像的形状，而镜像默认是不允许的。
+      points: points.map(p => [p.x, canvas.height - p.y]),
+      closed: true,
+      unit: "canvas",
+      y_axis: "up (flipped from the canvas' downward axis at export)",
+      canvas: { width: canvas.width, height: canvas.height },
+      tool: "tools/sketch_pad.html",
+      note: "raw pointer samples, nothing smoothed or snapped"
+    };
+    jsonBox.value = JSON.stringify(payload);
+    cliBox.value = "python scripts/search_sketch.py experiments/queries/" +
+      name.value.replace(/\.json$/i, "") +
+      ".json --index data/index --out-dir experiments/p0_retrieval_baseline";
+  }
+
+  function exportPayload() {
+    if (strokes.length !== 1 || strokes[0].points.length < 8) {
+      alert("需要恰好一条、至少 8 个点的轮廓才能导出。");
+      return null;
+    }
+    return JSON.parse(document.getElementById("json").value);
+  }
+
+  canvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    // 指针捕获只是让笔画离开画布后继续跟手，不是必需条件
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch { /* keep drawing; the window-level pointerup below still ends the stroke */ }
+    current = { points: [position(event)] };
+    redraw();
+    summary();
+  });
+
+  canvas.addEventListener("pointermove", (event) => {
+    if (!current) return;
+    const last = current.points[current.points.length - 1];
+    const p = position(event);
+    if (Math.hypot(p.x - last.x, p.y - last.y) < SAMPLE_MIN_PX) return;  // 去重抖动点
+    current.points.push(p);
+    redraw();
+    if (current.points.length % 12 === 0) summary();
+  });
+
+  function endStroke(event) {
+    if (!current) return;
+    if (current.points.length >= 2 && strokes.length < MAX_STROKES) strokes.push(current);
+    current = null;
+    redraw();
+    summary();
+  }
+  canvas.addEventListener("pointerup", endStroke);
+  canvas.addEventListener("pointercancel", endStroke);
+  // 在画布外松手时也要收笔，否则 current 会一直留着，下一次按下变成续画
+  window.addEventListener("pointerup", endStroke);
+
+  document.getElementById("clear").addEventListener("click", () => {
+    strokes = []; current = null; redraw(); summary();
+  });
+  document.getElementById("undo").addEventListener("click", () => {
+    strokes.pop(); redraw(); summary();
+  });
+  document.getElementById("copy").addEventListener("click", () => {
+    const payload = exportPayload();
+    if (!payload) return;
+    const box = document.getElementById("json");
+    box.select();
+    navigator.clipboard.writeText(box.value).catch(() => document.execCommand("copy"));
+  });
+  document.getElementById("download").addEventListener("click", () => {
+    const payload = exportPayload();
+    if (!payload) return;
+    const file = document.getElementById("name").value.replace(/\.json$/i, "") + ".json";
+    const blob = new Blob([JSON.stringify(payload, null, 1)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file;
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("name").addEventListener("input", summary);
+
+  redraw();
+  summary();
+})();
+</script>
+</body>
+</html>

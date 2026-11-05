@@ -1,11 +1,12 @@
 """Tests for the Fourier shape descriptor (P0-3, Task A + Task G).
 
 Every invariance claimed in ``earthglyph/features/fourier.py`` is asserted here,
-and so is every invariance the module *denies*: amplitude descriptors cannot
-tell a reversed traversal from a mirrored shape, and they cannot pin a curve
-down because phase is discarded. Those negative results are tests too — a
-future change that quietly claims more invariance than the math supports will
-fail here.
+and so is every capability the module denies: the amplitudes carry no phase, so
+they cannot pin a curve's structure, and they cannot see a mirror at all once
+preprocessing has canonicalized the walk (corrected in P0-4, D26 — the mirror
+policy is geometric, see ``tests/test_alignment.py``). Those negative results are
+tests too — a future change that quietly claims more invariance than the math
+supports will fail here.
 
 All fixtures are synthetic shapes used only as mathematical inputs; no
 retrieval claim is made from them.
@@ -31,7 +32,7 @@ from earthglyph.features.fourier import (
     harmonic_energy_fractions,
     harmonic_limit,
 )
-from earthglyph.geometry import arc_length_resample, normalize_contour, open_ring
+from earthglyph.geometry import arc_length_resample, ensure_ccw, normalize_contour, open_ring
 
 N_POINTS = 128
 
@@ -158,31 +159,61 @@ def test_rotation_does_not_make_every_shape_identical() -> None:
 # --- denials: what the descriptor is NOT invariant to ------------------------
 
 
-def test_positive_fold_is_direction_sensitive() -> None:
-    contour = arrow()
-    assert not np.allclose(
-        harmonic_amplitudes(contour[::-1], 16, fold="positive"),
-        harmonic_amplitudes(contour, 16, fold="positive"),
-        atol=1e-9,
-    )
+def _recanonicalized(points: np.ndarray) -> np.ndarray:
+    """The preprocessing chain: CCW unification -> arc-length resample -> scale."""
+    return normalize_contour(arc_length_resample(ensure_ccw(open_ring(points)), N_POINTS))
 
 
-def test_positive_fold_is_mirror_sensitive() -> None:
+def test_positive_fold_is_sensitive_only_before_winding_is_canonicalized() -> None:
+    """Raw-array algebra: reversal and mirror both map ``|Z_k| -> |Z_-k|``.
+
+    This is a property of the arrays handed to the DFT, not of the pipeline:
+    preprocessing canonicalizes the walk, and the sensitivity then disappears
+    (next test). Kept as the guard for what the module may claim.
+    """
     contour = arrow()
-    mirrored = contour * np.array([1.0, -1.0])
-    assert not np.allclose(
-        harmonic_amplitudes(mirrored, 16, fold="positive"),
-        harmonic_amplitudes(contour, 16, fold="positive"),
-        atol=1e-9,
-    )
+    base = harmonic_amplitudes(contour, 16, fold="positive")
+    reversed_raw = harmonic_amplitudes(contour[::-1], 16, fold="positive")
+    mirrored_raw = harmonic_amplitudes(contour * np.array([1.0, -1.0]), 16, fold="positive")
+    assert np.max(np.abs(reversed_raw - base)) > 0.5
+    assert np.max(np.abs(mirrored_raw - base)) > 0.5
+    # the two deviations are the same deviation: amplitudes cannot say which
+    # operation produced them
+    assert np.allclose(reversed_raw, mirrored_raw, atol=1e-12)
+
+
+def test_after_canonicalization_amplitudes_cannot_see_a_mirror() -> None:
+    """P0-4 correction of D26: a mirror policy cannot live in the descriptor.
+
+    ``mirror -> CCW -> resample`` reflects the shape; ``reverse -> CCW ->
+    resample`` leaves it unchanged; ``rotate -> CCW -> resample`` rotates it. The
+    first two descriptors agree to 7.1e-6 and the third agrees with them to the
+    same order, so the residual is the arc-length grid sliding by a fraction of a
+    segment when a 128-point polygon is resampled -- not mirror information.
+    Measured against the 0.68 raw sensitivity, and against the geometric
+    re-rank's 0.173 for the same mirror pair (``tests/test_alignment.py`` runs
+    the variants through the production chain on a dense ring, where the
+    canonical mirror gap is 4.1e-8 and the reversal gap is exactly 0).
+    """
+    contour = arrow()
+    base = harmonic_amplitudes(contour, 16, fold="positive")
+    mirrored = harmonic_amplitudes(_recanonicalized(contour * np.array([1.0, -1.0])), 16)
+    reversed_walk = harmonic_amplitudes(_recanonicalized(contour[::-1]), 16)
+    rotated = harmonic_amplitudes(_recanonicalized(rotate(contour, 0.9)), 16)
+    residual = float(np.max(np.abs(mirrored - base)))
+    assert residual < 1e-2
+    assert np.max(np.abs(mirrored - reversed_walk)) < 1e-5
+    assert np.max(np.abs(rotated - reversed_walk)) < 1e-5
 
 
 @pytest.mark.parametrize("fold", ["positive", "symmetric"])
 def test_reversal_and_mirror_are_the_same_operation_on_amplitudes(fold: str) -> None:
     """The k -> -k mapping is shared, so amplitudes cannot separate the two.
 
-    This is the guard against the D9/D10 confusion: a "mirror-invariant" claim
-    about an amplitude descriptor is really a direction-and-mirror statement.
+    Guard against the D9/D10 confusion: "direction" and "mirror" are different
+    geometric operations, and any statement the descriptor makes about one is
+    identically a statement about the other. After winding canonicalization both
+    become no-ops, which is the stronger form of the same denial.
     """
     contour = arrow()
     reversed_amplitudes = harmonic_amplitudes(contour[::-1], 16, fold=fold)
@@ -381,13 +412,17 @@ def test_descriptor_columns_and_definition() -> None:
     assert "coarse" in definition["usage"]
 
 
-def test_definition_states_the_denied_invariances() -> None:
+def test_definition_states_the_denied_capabilities() -> None:
     """The spec must say what the descriptor cannot do, in the manifest itself."""
-    positive = feature_definition(16, "positive")
-    denial = [entry for entry in positive["invariances"] if entry.startswith("NOT invariant")]
-    assert len(denial) == 1
-    assert "reversal" in denial[0] and "mirroring" in denial[0]
-    symmetric = feature_definition(16, "symmetric")
-    assert "point-order reversal" in symmetric["invariances"]
-    assert not any(entry.startswith("NOT invariant") for entry in symmetric["invariances"])
-    assert "not a mirror test" in positive["usage"]
+    for fold in ("positive", "symmetric"):
+        definition = feature_definition(16, fold)
+        text = " ".join(definition["denied_capabilities"])
+        assert "mirror detection" in text
+        assert "allow_mirror" in text, "the mirror policy belongs to alignment.py"
+        assert "phase" in text or "structural" in text
+        assert "not a mirror test" in definition["usage"]
+        listed = " ".join(definition["invariances"])
+        assert "point-order reversal" in listed and "mirroring" in listed
+    assert "NOT invariant" not in " ".join(feature_definition(16, "positive")["invariances"])
+    assert "redundant" in feature_definition(16, "symmetric")["fold_note"]
+    assert "non-canonicalized array" in feature_definition(16, "positive")["fold_note"]
