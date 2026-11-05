@@ -1,6 +1,6 @@
 {
  "gallery_version": "1.0",
- "built_at_utc": "2026-11-05T21:17:30+00:00",
+ "built_at_utc": "2026-11-05T23:15:53+00:00",
  "purpose": "controlled shape-retrieval gallery for P0-4.5: targets, independent variants and hard negatives in seven structure families. Not geographic data; must never be merged into data/index/.",
  "label": "Controlled Shape Retrieval — 非真实地理景观",
  "families": [
@@ -64,7 +64,7 @@
   }
  },
  "content_sha256": {
-  "gallery.jsonl": "3a7646646cd9d496c32a5e5fcec5d10538709972ddb9744222cda17bc3acc138",
+  "gallery.jsonl": "15be97ae5ae583ceacfbf5ea76a18911acd1004bb3dc2c17b7d552b189e77891",
   "labels.json": "26e444ce2299c414c6deac7d8a260f4597360bcbe35d65dde2e66d2dbcb3b213"
  },
  "standardization": {
@@ -2818,7 +2818,7 @@
  "reproduce": {
   "command": "python scripts/prepare_perceptual_dataset.py --offline --force --out-dir 'experiments\\p0_perceptual_probe'",
   "cache_dir": "experiments/p0_perceptual_probe/cache",
-  "git_commit": "10c9e8fab8ca39401b6f2e1336780bbb90f54718",
+  "git_commit": "5a9f1bcc924c9554843e66d382ebd962b1ae3b52",
   "determinism": "synthetic generators are seeded through their parameters; external drawings are chosen even-spaced out of a record list whose byte ranges are pinned to cache/quickdraw/spans.json on the first live build and replayed by every later build, --offline included, so no run can silently scan a different set of drawings. The pinned ranges and each slice's sha256 are recorded under assets and quickdraw_census; the byte-identical live/offline check is logged in experiments/experiment_log.md"
  }
 }
