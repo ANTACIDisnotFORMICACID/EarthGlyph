@@ -166,7 +166,14 @@ mypy                         # Success: no issues found in 31 source files
 - Git 检查点：`5a9f1bc`（`fix:`）+ `1b8461c`（`data:`）+ `1696873`（`feat:`，9 文件全新增）
   一并推送 `6535e98..1696873 main -> main`，`git ls-remote origin` =
   `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`；
-  紧随的 `exp:`（重跑脚本 + POLICY `measurements` 键）与 `docs:`（本节）为同一小版本的收尾提交。
+  紧随的 `exp:`（重跑脚本 + POLICY `measurements` 键）与 `docs:`（本节）为同一小版本的收尾提交：
+  `3ababaf`（`exp:`，5 文件 +362 行，含新增 `verify_policy_claims.py`）+ `78915ba`（`docs:`，
+  4 文件 +203/−17），一并推送 `1696873..78915ba main -> main`，推送后核验
+  `git ls-remote origin` = `78915bafe632a3056e6186c021a4dc858a7babd2` = `git rev-parse HEAD`、
+  `git status --short` 无输出；提交前 gate 为 `pytest -o addopts="" -q` **605 passed** ·
+  `ruff check .` All checks passed · `mypy` no issues in 31 source files ·
+  `mypy --strict` 对新脚本 clean · `verify_policy_claims.py` 退出码 0（"every quoted number
+  reproduced"）。
 
 **本轮不允许的主张**（写了就是伪造检索证据）：
 

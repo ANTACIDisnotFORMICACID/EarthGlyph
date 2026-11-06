@@ -313,6 +313,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 | 2026-11-06 | `5a9f1bc` | Checkpoint B 第 1 步（`fix:`）：`_bevel` 只切角的一侧 → 圆角星变成尖刺（实测最坏顶点转角 176.8°，应为 48.0°）；两侧各切 + 钉测试 `test_a_rounded_star_is_worn_and_not_spiked` | ✅ 随 `6535e98..1696873` 一并推送（见下行核验）；本行是 Checkpoint B 这一**完整小版本**内的第 1 个 commit，不是独立小版本，故不单独核验远程 |
 | 2026-11-06 | `1b8461c` | Checkpoint B 第 2 步（`data:`）：用修复后的生成器离线重建图库 → `gallery.jsonl` `3a764664…`→**`15be97ae…`**、`control_gallery.png` `8c07d12a…`→**`585ffb28…`**（1 184 570→1 184 600 B）、`labels.json` **不变**，manifest `git_commit` = `5a9f1bcc…`（构建时 sha，早于本 data commit，符合"提交无法写入自身"） | ✅ 同上（`6535e98..1696873`）；重建命令 `python scripts/prepare_perceptual_dataset.py --offline --force --out-dir 'experiments\p0_perceptual_probe'` |
 | 2026-11-06 | `1696873` | **P0-4.5 Checkpoint B**：E1（`perceptual_features.py` 1520 行）+ E2（`salient_structure.py` 831 行）+ E3（`shape_context_baseline.py` 717 行）+ 四臂契约 `perceptual_methods.py`（137 行）+ E0 适配器 `perceptual_e0.py`（88 行，**产品代码 0 改动**）+ 4 个测试文件 105 项 → **604 passed** | ✅ `git ls-remote origin` = `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`（`6535e98..1696873 main -> main`，9 文件全为新增）；提交前 `pytest -o addopts="" -q` 604 passed · `ruff check .` All checks passed · `mypy` no issues in 31 source files |
+| 2026-11-06 | `3ababaf` + `78915ba` | Checkpoint B 收尾两步：`exp:`（新增 `verify_policy_claims.py` + 三臂 POLICY `measurements` 键 + 契约测试钉住指针，5 文件 +362 行）与 `docs:`（TASKS / DECISIONS D48 / experiment_log / notes §12，4 文件 +203 −17）。同 `1696873` 一样是**完整小版本内部**的 commit，不单独核验远程 | ✅ 一并推送 `1696873..78915ba main -> main`，推送后 `git ls-remote origin` = `78915bafe632a3056e6186c021a4dc858a7babd2` = `git rev-parse HEAD`、`git status --short` 无输出；提交前 gate：`pytest -o addopts="" -q` **605 passed** · `ruff check .` All checks passed · `mypy` no issues in 31 source files · `mypy --strict` 对新脚本 clean · `python experiments/p0_perceptual_probe/verify_policy_claims.py` 退出码 0 |
 
 - 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
   `mypy` → no issues in 17 source files；
@@ -350,7 +351,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   真实索引上的两级检索链路均可用（`search_by_contour` / `search_by_image`）。
 - **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`，`10c9e8fa`）
   与 **Checkpoint B（E1/E2/E3 三臂 + 四臂评分契约 + POLICY 数字重跑脚本，`5a9f1bc` / `1b8461c` /
-  `1696873`，已推送 `6535e98..1696873`）** 均已完成；
+  `1696873` / `3ababaf` / `78915ba`，远程 tip = `78915ba`）** 均已完成；
   **Checkpoint C（E0–E3 同集运行 T1/T2/T3 + 逐查询 Top-K 对比图 + 失败案例）→
   D（指标表 + 不变性探针 + 人工盲评 + 结论）尚未开始**。
   B 遗留的**测量学**约束（不是代码缺陷，但决定 C 怎么跑）：E1 的归一化常数自拟合于当前库 →
@@ -378,7 +379,8 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 > **最近一步不是 P0-5，而是 P0-4.5 Checkpoint C**：B 已把 E1（`perceptual_features.py`，
 > ShapeComp-inspired）/ E2（`salient_structure.py`）/ E3（`shape_context_baseline.py`）
-> 与四臂契约 `perceptual_methods.py` 实现并测试完毕（`1696873`，605 passed），
+> 与四臂契约 `perceptual_methods.py` 实现并测试完毕（三臂 + 契约 = `1696873`，604 passed；
+> POLICY 数字重跑脚本与 `measurements` 指针 = `3ababaf`，605 passed），
 > E0 默认行为经契约测试证明未变。C 做的是**第一次真正的检索评价**：
 > 同一冻结划分（18 查询 / 179 成员 / `labels.json` sha256 `26e444ce…`）上跑 T1/T2/T3，
 > 出逐查询 Top-K 对比图与失败案例，合成扰动族与"真人画作来源"族**分开**记录。
