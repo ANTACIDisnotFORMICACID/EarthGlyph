@@ -335,3 +335,72 @@ mypy                         # Success: no issues found in 32 source files
   所以"窗口 20/50/100/200 的 Top-10 覆盖率"和"E0+E3 是否够快"目前**没有任何实测数字**；
   真人盲评仍未做（P0-6 需要 ≥10 真人查询）；`unaligned` 视图的评分；E1 归一化在真实地貌上的
   重拟合（本轮只测量越界比例，没有重训）。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint D · D3：E0 粗筛 + E3 精排两级实验）
+
+任务书 §6：E3 单查询全库 7.96 s（T2）/ 41.7 s（T3），E0 只要 0.016 s / 0.089 s。
+D3 要回答的是"**让 E0 只负责筛人、E3 只负责排序**，能省多少时间、丢多少答案"，
+并且要**把预计算成本算进去**——不许悄悄省掉重建再宣称更快。
+
+```bash
+python scripts/hybrid_e0_e3_retrieval.py            # 本机墙钟 2297.6 s（T2 到 521.3 s，T3 到 2297.6 s）
+python scripts/hybrid_e0_e3_retrieval.py --redraw-from-json \
+    experiments/p0_perceptual_probe/checkpoint_d/hybrid_retrieval_metrics.json   # 只重画窗口对比图，不重算分
+pytest -o addopts="" -q                              # 726 passed（+25：test_hybrid_retrieval.py）
+ruff check .                                        # All checks passed
+mypy                                                # no issues in 32 source files
+```
+
+产物：`checkpoint_d/hybrid_retrieval_metrics.json`、`hybrid_retrieval_results.csv`（2160 行 =
+2 设置 × 18 查询 × 6 臂 × Top-10）、`hybrid_window_comparison.png`（4 面板）。
+**C 的 `metrics.json` / `results.csv` / 24 张图与 D1/D2 的产物本轮只读，未覆盖。**
+
+- **口径先固定**（`payload.contract`，不是注释）：① E0 不贡献分数——窗口内只按 E3 距离排序，
+  平手按库行号（D42 那条），把 E0 距离全部打乱 Top-10 一个字节都不变（测试钉住）；
+  ② E3 参数逐臂相同（`orientation="sample"`、24 步、5×15 格，原文进 contract）；
+  ③ 每查询计时 = 缓存重建 + 精排，**缓存构建时间不从主张里减掉**；
+  ④ 生产默认未动：`search_by_contour` 仍是 `method="fourier_align"` / `shortlist_size=200`，
+  入口文件里没有 hybrid 与缓存 API 的引用（测试钉住）。
+- **T2（库 177/178 行）**：Full-E3 NDCG@10 0.7329 / 7.2538 s；@20 0.6897 / 0.8817 s（**8.2×**）、
+  @50 0.7147 / 2.0823 s、@100 0.7263 / 4.1063 s、@200 0.7329 / 7.2468 s。
+  hit@1 六臂全同（0.667），所以 T2 上"筛人"没有改变谁排第一。@200 与 Full-E3 到小数点后 4 位相同
+  是**自检行**（库只有 177 行，200 窗口 = 全库），不是成果。
+- **T3（库 1016/1017 行，含 839 真实地貌）**：Full-E3 0.6358 / 41.7052 s；@20 0.5679 / 1.2064 s
+  （**34.6×**）、@50 0.5750 / 2.4046 s、@100 0.6041 / 4.4182 s（9.4×）、@200 0.6066 / 8.4394 s。
+  **没有任何窗口追平 Full-E3 的 NDCG@10**（最好的 @200 仍差 0.029）；真实地貌把粗筛的代价放大了。
+- **两条不能写成"混合更好"的数**：① T3@100 hit@1 0.722 > Full-E3 0.667 —— 只有
+  `ph-tree-structure-fill` 一个查询从 2 变 1，而两个名次**都是相关项**：Full-E3 的第 1 名
+  `syn-forked-sharp` 在 E0 里排 377，任何 ≤200 的窗口都看不见它，于是 Top-1 换成了同样相关的
+  `qd-tree-02`；18 查询里 1 个翻转不是结论。② `first_relevant_rank` 均值 T3@100 = 20.17，
+  18 查询合计 363 里 **333 来自两个查询**（254 + 79），中位数仍是 1 —— 均值被长尾拖住，不许拿它主张整体质量。
+- **被粗筛排除的候选台账**（`excluded_ledger`，一行当且仅当 `e0_rank > window`，所以同一候选会在
+  更小窗口各记一次；列和 = 台账行数）：T2 54 行（33/14/7/0）、T3 96 行（40/26/19/11）。
+  **去重后**被排除的相关项 T2 15 对（forked 11 / band 3 / star 1）、T3 12 对（forked 8 / star 2 /
+  heart 1 / blob 1）——枝状占 73 % / 67 %，与 D2.6 的 E0 失效模式（"不改变外包络的内部改造"）同源，
+  新信息是：**E0 不只是排不对，它会把 E3 的正确答案筛到看不见的位置**。
+  连 W=200 都救不回来的只有 T3 的 2 对（E3 第 2 名 ↔ E0 第 377；E3 第 7 名 ↔ E0 第 629）。
+- **台账的覆盖范围必须一起读**：它只跟 Full-E3 的 Top-10。`ph-lightning-fill` 在 T3 上第一个相关项
+  `qd-lightning-05` 是 E3 的**第 35 名**（本来就在 Top-10 外）、E0 的第 **254** 名，
+  所以四个窗口的 first_relevant_rank 全是 254 而 Full-E3 是 35 —— 这条是单独复查出来的，
+  台账里**没有**。任何"排除项总数"的说法都低估了损失。
+- **描述子缓存：正确但没用**（新 API `build_library_descriptors` / `score_library_from_descriptors`，
+  生产路径未改）。逐位等价核验 `cache_equivalence`：T2 177 行、T3 1016 行
+  `max_abs_difference = 0.0`、`identical = true`、`rankings_identical = true`。
+  但实测只省 **0.94 %**（T2：0.0689 s / 7.3435 s）与 **1.12 %**（T3：0.0893 s / 7.9514 s），
+  因为 `score_library` 本来就把库侧描述子每次调用只建一次；内存 6 796 800 B（177 行）/
+  39 014 400 B（1016 行）= 每行 38 400 B（64 点 × 75 格 × 8 B）。
+  **两级结构的加速全部来自"少打分多少候选"**（每候选 ~0.040 s，与 D2.9 的 0.045 s 同量级），
+  与缓存无关，写报告时不得用缓存主张提速。
+- **本轮两次自我纠正（过程记录）**：① `shape_context_baseline.py` 的越界检查在实验**运行期间**被
+  mypy 逼着改了一次（`selection.min()` → Python `min(rows)`）；用改后代码重跑 `ph-heart-fill` 的
+  T2 @20/@50 与入库 CSV 逐行比，**40 个距离最大绝对差 0.000e+00**、id 与两个 rank 列全同，
+  所以入库数字与提交代码一致——这条是测出来的，不是假设。② 窗口图第 3 面板的对数轴把小刻度印成
+  "3 × 10¹" 压在 50 上，只改绘图并加 `--redraw-from-json`；数据文件 mtime 未变
+  （JSON `a1eeb812…` / CSV `8a86510b…` 仍是 16:46，PNG 16:53）。
+- Git 检查点：`exp:`（hybrid runner + 缓存 API + 25 项测试）→ `data:`（3 个产物）→
+  本行所在的 `docs:` 提交（`checkpoint_d/notes.md` D3 段 + TASKS + 本日志）。
+- **未完成项（交给 D4，不在本轮假装做完）**：真人盲评仍没有（`AI_visual_review` 不是真人）；
+  混合结构**没有**在真人手绘查询、也没有在只含真实地貌的库上评价过；
+  E0 粗筛在枝状族上的失效**没有**修复（D3 只是量出了它的代价）；
+  窗口 20/50/100/200 之外没有扫描更小的窗口（10 以下），因为 18 查询的样本量不足以分辨；
+  `unaligned` 视图的视觉评分仍空。
