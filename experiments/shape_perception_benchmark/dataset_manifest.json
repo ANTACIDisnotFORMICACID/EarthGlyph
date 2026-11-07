@@ -1,0 +1,152 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark.sources/1",
+  "h1_h2": {
+    "record": "4730985",
+    "doi": "10.5281/zenodo.4730985",
+    "url": "https://zenodo.org/api/records/4730985/files/shapecomp%20datashare.zip/content",
+    "archive_bytes": 307965089,
+    "archive_md5_published": "c084b94e6ac2defe74542b36c7aae5fe",
+    "license": "CC-BY-4.0",
+    "transfer": {
+      "url": "https://zenodo.org/api/records/4730985/files/shapecomp%20datashare.zip/content",
+      "archive_size": 307965089,
+      "bytes_fetched": 8072354,
+      "request_count": 9,
+      "member_count": 2010
+    },
+    "members": {
+      "shapecomp datashare/Figure 5 and 11A/rating_expt/stim/Fig5B_shapeStim4RatingExpt.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 5 and 11A\\rating_expt\\stim\\Fig5B_shapeStim4RatingExpt.mat",
+        "bytes": 1766943,
+        "sha256": "4f41bc7faa428dd5ef41d1a8581b664ec4ff223acbcb96049faf64f80f90d075"
+      },
+      "shapecomp datashare/Figure 5 and 11A/rating_expt/results/ShapeSimRatings.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 5 and 11A\\rating_expt\\results\\ShapeSimRatings.mat",
+        "bytes": 9651,
+        "sha256": "e5316ba6924cf5b0a50c03a749e7b0037504894160c826745add360dc6ec475f"
+      },
+      "shapecomp datashare/Figure 5 and 11A/view_rating_expt_stim_and_resp.m": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 5 and 11A\\view_rating_expt_stim_and_resp.m",
+        "bytes": 1480,
+        "sha256": "ae7f7c46a88e145d707a0bcdc2288692d13eb2123cc61cff0ed571772c5ca88a"
+      },
+      "shapecomp datashare/Figure 9/data/lietal_ShapeCompSolution_keras_mds_image.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 9\\data\\lietal_ShapeCompSolution_keras_mds_image.mat",
+        "bytes": 85871,
+        "sha256": "7e509d4293044732c8bf39b754c26b5ae5b47164181a9518c0d5efaa55921fe5"
+      },
+      "shapecomp datashare/Figure 9/data/fig7D_lietal_points_2.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 9\\data\\fig7D_lietal_points_2.mat",
+        "bytes": 83976,
+        "sha256": "81e70fc6ea301bffd978eaf9ce66bdf88c3ebd2d75713854f87bb26c2096a1e0"
+      },
+      "shapecomp datashare/Figure 9/Figure9.m": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 9\\Figure9.m",
+        "bytes": 1895,
+        "sha256": "d71385056fc30bb7ce1041250fbc364041a34a087f7fff4af76fcc40bab9bbad"
+      },
+      "shapecomp datashare/Figure 3/data/GAN/GANratings.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 3\\data\\GAN\\GANratings.mat",
+        "bytes": 2111,
+        "sha256": "f0920312fcbd791e16d3e05ae1078a7970991e42e8c18bd65862425684e38e42"
+      },
+      "shapecomp datashare/Figure 3/data/GAN/GANlabels.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 3\\data\\GAN\\GANlabels.mat",
+        "bytes": 16699,
+        "sha256": "0ef24f95dc1051f16aa722823328ffce28f5fb87841a7b5f7944f3cd3d01e3d7"
+      },
+      "shapecomp datashare/README.txt": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\README.txt",
+        "bytes": 1678,
+        "sha256": "d3e32e2a0a4989f88eba16683ae7dd4f5774a61b946ba5ac0f1c206ece28ee68"
+      }
+    }
+  },
+  "mpeg7": {
+    "url": "https://dabi.temple.edu/external/shape/MPEG7/MPEG7dataset.zip",
+    "local_path": "experiments\\shape_perception_benchmark\\cache\\MPEG7dataset.zip",
+    "bytes": 3380427,
+    "sha256": "ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d",
+    "stimulus_count": 1400,
+    "class_count": 70,
+    "per_class_counts": [
+      20
+    ],
+    "classes": {
+      "Bone": 20,
+      "Comma": 20,
+      "Glas": 20,
+      "HCircle": 20,
+      "Heart": 20,
+      "Misk": 20,
+      "apple": 20,
+      "bat": 20,
+      "beetle": 20,
+      "bell": 20,
+      "bird": 20,
+      "bottle": 20,
+      "brick": 20,
+      "butterfly": 20,
+      "camel": 20,
+      "car": 20,
+      "carriage": 20,
+      "cattle": 20,
+      "cellular_phone": 20,
+      "chicken": 20,
+      "children": 20,
+      "chopper": 20,
+      "classic": 20,
+      "crown": 20,
+      "cup": 20,
+      "deer": 20,
+      "device0": 20,
+      "device1": 20,
+      "device2": 20,
+      "device3": 20,
+      "device4": 20,
+      "device5": 20,
+      "device6": 20,
+      "device7": 20,
+      "device8": 20,
+      "device9": 20,
+      "dog": 20,
+      "elephant": 20,
+      "face": 20,
+      "fish": 20,
+      "flatfish": 20,
+      "fly": 20,
+      "fork": 20,
+      "fountain": 20,
+      "frog": 20,
+      "guitar": 20,
+      "hammer": 20,
+      "hat": 20,
+      "horse": 20,
+      "horseshoe": 20,
+      "jar": 20,
+      "key": 20,
+      "lizzard": 20,
+      "lmfish": 20,
+      "octopus": 20,
+      "pencil": 20,
+      "personal_car": 20,
+      "pocket": 20,
+      "rat": 20,
+      "ray": 20,
+      "sea_snake": 20,
+      "shoe": 20,
+      "spoon": 20,
+      "spring": 20,
+      "stef": 20,
+      "teddy": 20,
+      "tree": 20,
+      "truck": 20,
+      "turtle": 20,
+      "watch": 20
+    },
+    "excluded_non_stimuli": [
+      "original/confusions.gif",
+      "original/shapedata.gif"
+    ]
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark.official_shapecomp_status/1",
+  "audit_date": "2026-11-07",
+  "overall": "OFFICIAL CODE NOT RUNNABLE HERE; OFFICIAL MODEL OUTPUTS ARE AVAILABLE AND USED",
+  "distinction_required_by_brief": {
+    "official_descriptor_mds": "109 descriptors -> per-descriptor max-range scaling -> 109-D Euclidean -> classical MDS on 25,712 animal silhouettes -> first 22 dims (95.05% variance). New shapes enter via MDS re-fit + Procrustes.",
+    "official_neural_approximation": "MatNet (MATLAB, 384x2 contour), KerNet1 (Keras, 384x2 contour), KerNet2 (Keras, 40x40 binary image). Trained on 800,000 GAN shapes to emit the 22 coordinates directly.",
+    "earthglyph_inspired": "E1 in earthglyph/retrieval/perceptual_features.py: 91 descriptors in 5 groups (global 10, moments 6, curvature 18, fourier 15, histogram 42). Written by this project. NOT official ShapeComp and never reported as such."
+  },
+  "A1_resource_probes": [
+    {
+      "resource": "2021 original MATLAB code (Dropbox)",
+      "url": "https://www.dropbox.com/scl/fi/gdqt4i1ugsj0qs8i1gzix/shapeComp_31_05_2021.zip?rlkey=239gmqds2kjgaynoe0ibbw8ew&dl=1",
+      "result": "blocked",
+      "evidence": "curl: (7) Failed to connect to www.dropbox.com:443 after 13 ms: Could not connect to server",
+      "bytes_obtained": 0
+    },
+    {
+      "resource": "2025 updated version (Google Drive)",
+      "url": "https://drive.google.com/file/d/1CfIo-uzqz1RRk6zEibVEDN4_Vu9liQz8/view",
+      "result": "blocked",
+      "evidence": [
+        "https://drive.google.com/uc?export=download&id=1CfIo-uzqz1RRk6zEibVEDN4_Vu9liQz8 -> curl: (28) Failed to connect to drive.google.com:443 after 21066 ms",
+        "https://drive.usercontent.google.com/download?id=1CfIo-uzqz1RRk6zEibVEDN4_Vu9liQz8&export=download -> curl: (28) Connection timed out after 30015 ms"
+      ],
+      "bytes_obtained": 0
+    },
+    {
+      "resource": "author's official tools page",
+      "url": "https://sites.google.com/view/yanivmorgenstern/home/tools/shapecomp",
+      "result": "blocked",
+      "evidence": "curl: (28) Failed to connect to sites.google.com:443 after 21075 ms: Could not connect to server",
+      "note": "Same block reproduced in the earlier P0-4 audit (experiments/p0_perceptual_probe/shapecomp_research.md section H). Confirmed still blocked on 2026-11-07."
+    },
+    {
+      "resource": "Zenodo 4730985 (308 MB)",
+      "result": "reached_and_enumerated",
+      "evidence": "Full ZIP central directory read over HTTP Range: 2010 members, 895 real files. Extensions: 701 .mat, 120 .png, 37 .m, 2 .xlsx, 1 .txt, 32 .DS_Store. ZERO .py, ZERO .h5/.onnx/.pb/.pth weights.",
+      "contains_descriptor_engine": false,
+      "contains_demo": false,
+      "contains_network_weights": false,
+      "contains_official_model_outputs": true
+    },
+    {
+      "resource": "Zenodo 4892335 (2.23 GB, larger sibling revision)",
+      "result": "reached_and_enumerated",
+      "evidence": "Full ZIP central directory read over HTTP Range: 989 real files. Extensions: 701 .mat, 132 .m, 120 .png, 10 .c, 10 .h, 3 .txt, 2 .xlsx, 1 .md, 1 .html, 1 .dll, 4 .mex*. ZERO .py, ZERO weights.",
+      "note": "The extra .m/.c/.h/.mex files versus record 4730985 are the vendored psignifit (GPLv3) and Psychtoolbox dependencies, NOT the ShapeComp model. Top-level directories are identical (Figure 1..9 + misc). No Demo 1 / Demo 2 entry point exists in either record.",
+      "contains_descriptor_engine": false,
+      "contains_demo": false,
+      "contains_network_weights": false
+    },
+    {
+      "resource": "GitHub mirror search",
+      "result": "not_found",
+      "evidence": "api.github.com/search/repositories?q=shapecomp -> 27 hits, all unrelated (ShapeCompletion3DTracking, ShapeCompiler, geodesic shapecomp, ShapeComparator, ...). No author-owned repository. Code search requires auth: HTTP 401."
+    }
+  ],
+  "A2_source_review": {
+    "performed_on": "the reachable Zenodo deposits only; the official MATLAB toolbox itself was never obtained, so its internals could NOT be reviewed first-hand",
+    "matlab_main_entry": "not_found in any reachable source",
+    "demo1_demo2": "not_found in any reachable source",
+    "descriptor_implementation_109": "not present as code. The authoritative list is S1 Table of the paper (pcbi.1008981.s004.docx), audited in the earlier P0-4 research log.",
+    "mds_22d": "not present as code, but the RESULTING 22-D coordinates are published for the H1 and H2 stimuli",
+    "new_shape_projection": "not present as code (needs the 109-descriptor engine + the 25,712-shape reference corpus + Procrustes)",
+    "precomputed_assets_found": {
+      "H1": "shape1SC / shape2SC (22-D) for all 500 stimuli, plus dist for all 250 pairs",
+      "H2": "sc (15,22) produced by the KerNet2 image route, plus dist_vect (105,)",
+      "Figure8NetComparison.mat": "SC / matnet / kernet1 / kernet2 coordinate matrices exist (4 MB) but the corresponding stimuli are not in that member, so they cannot be used for retrieval here"
+    },
+    "matnet_kernet_weights": "not_found - no weight files in either Zenodo record; the distribution point (Google Sites / Drive) is network-blocked",
+    "input_contract_from_paper": {
+      "contour": "384x2 (x,y), min-max normalised per coordinate: subtract absolute minimum then divide by resulting absolute maximum",
+      "starting_point": "leftmost (minimum-x) contour point first; ties resolved randomly (~3.5% neighbouring, ~0.3% further along)",
+      "image_route": "KerNet2 takes a 40x40 binary image, avoiding the start-point problem",
+      "rotation": "NOT globally invariant. Per-descriptor: Solidity is rotation-invariant, Major Axis Orientation is not. The paper reports per-descriptor sensitivity, not an aggregate accuracy drop.",
+      "mirror": "never tested in the paper ('mirror' occurs 0 times)",
+      "traversal_direction": "not discussed in the paper"
+    },
+    "license": {
+      "paper": "CC-BY-4.0",
+      "zenodo_deposits": "CC-BY-4.0",
+      "bundled_psignifit": "GPLv3 (not used by this project)",
+      "official_matlab_toolbox_license": "UNVERIFIED - the only distribution page is unreachable, so no license text could be read. Nothing from it has been vendored."
+    }
+  },
+  "A3_execution": {
+    "matlab_installed": false,
+    "matlab_evidence": "`which matlab` -> not found; C:/Program Files/MATLAB and C:/Program Files/Polyspace do not exist",
+    "octave_installed": false,
+    "octave_evidence": "`which octave` and `which octave-cli` -> not found",
+    "octave_policy": "Not installed. GNU Octave is not assumed MATLAB-compatible, and the official code was never obtained anyway, so compatibility is moot.",
+    "commercial_software_installed": false,
+    "license_purchased": false,
+    "tensorflow_available": false,
+    "tensorflow_evidence": "import tensorflow -> ModuleNotFoundError in .venv; no weights exist to load even if it were installed",
+    "official_demo_run": false,
+    "official_demo_run_reason": "The demo code could not be obtained from any reachable host, and no MATLAB runtime exists on this machine.",
+    "python_reimplementation_written": false,
+    "python_reimplementation_policy": "Deliberately NOT written. The brief forbids passing a self-written 91/109-D descriptor version off as a ShapeComp reproduction. E1 remains labelled 'EarthGlyph ShapeComp-inspired'."
+  },
+  "arms_actually_available": {
+    "S0-MDS-precomputed": {
+      "available": true,
+      "scope": "ONLY the 500 H1 stimuli and the 15 H2 stimuli whose official 22-D coordinates are published",
+      "what_it_is": "Euclidean distance between the authors' own published official ShapeComp coordinates. Verified identical to the authors' published `dist` field (4.44e-16).",
+      "what_it_is_not": "NOT a local execution of ShapeComp. Cannot score any new shape, because projecting a new shape requires the unobtainable descriptor engine or network weights.",
+      "consequence_for_retrieval": "S0 can participate in the H1/H2 pairwise human-prediction experiment, but CANNOT participate in MPEG-7 Top-K retrieval, where no official coordinates exist."
+    },
+    "S0-descriptor": {"available": false, "reason": "109-descriptor engine not obtainable"},
+    "S0-MatNet": {"available": false, "reason": "MATLAB weights + runtime not obtainable"},
+    "S0-KerNet1": {"available": false, "reason": "Keras weights not obtainable"},
+    "S0-KerNet2": {
+      "available": "outputs_only",
+      "reason": "No weights, but the official KerNet2-produced 22-D coordinates for the 15 H2 shapes ARE published (lietal_ShapeCompSolution_keras_mds_image.mat). Usable as precomputed outputs on H2 only."
+    }
+  },
+  "reproduction_commands": [
+    ".venv/Scripts/python.exe scripts/fetch_shape_benchmark_sources.py",
+    "curl -sS -m 25 -o /dev/null -w '%{http_code}' https://sites.google.com/view/yanivmorgenstern/home/tools/shapecomp",
+    "curl -sSL -m 45 -o /dev/null -w '%{http_code}' 'https://www.dropbox.com/scl/fi/gdqt4i1ugsj0qs8i1gzix/shapeComp_31_05_2021.zip?rlkey=239gmqds2kjgaynoe0ibbw8ew&dl=1'"
+  ]
+}

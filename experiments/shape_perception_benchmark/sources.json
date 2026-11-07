@@ -1,0 +1,134 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark.source_audit/1",
+  "audit_date": "2026-11-07",
+  "host": "win32 / Git Bash / Python 3.12.10 / curl 8.23.0",
+  "legend": {
+    "verified": "read directly from a primary source this session",
+    "blocked": "source exists but is unreachable from this machine; evidence given",
+    "not_found": "absent from every primary source reachable this session"
+  },
+  "sources": [
+    {
+      "id": "S1",
+      "role": "primary human similarity validation (Dataset H1)",
+      "title": "Data and Stimuli for \"An image-computable model of human visual shape similarity\"",
+      "paper_doi": "10.1371/journal.pcbi.1008981",
+      "data_doi": "10.5281/zenodo.4730985",
+      "url": "https://zenodo.org/records/4730985",
+      "download_url": "https://zenodo.org/api/records/4730985/files/shapecomp%20datashare.zip/content",
+      "license": "CC-BY-4.0",
+      "status": "verified",
+      "acquisition": "HTTP Range reads of the ZIP central directory + 9 selected members; 8,072,354 B transferred of a 307,965,089 B archive",
+      "archive_bytes": 307965089,
+      "archive_md5_published": "c084b94e6ac2defe74542b36c7aae5fe",
+      "members_used": {
+        "Fig5B_shapeStim4RatingExpt.mat": "rate_stim[250] struct: shape1 (384,2), shape2 (384,2), shape1SC (22,), shape2SC (22,), dist (float)",
+        "ShapeSimRatings.mat": "sim_ratings (250,14) float64, range 0..100, zero NaN",
+        "view_rating_expt_stim_and_resp.m": "authoritative code documenting the rating task and the 250x14 layout"
+      },
+      "human_data_semantics": "Continuous similarity ratings. 250 shape pairs rated by 14 observers; higher = more similar. Per-observer columns are preserved, so participant-level resampling is possible.",
+      "stimulus_count": 500,
+      "unique_stimuli": 500,
+      "duplicate_stimuli": 0,
+      "pair_count": 250,
+      "observer_count": 14,
+      "official_model_outputs_present": true,
+      "official_output_check": "max|rate_stim[n].dist - ||shape1SC - shape2SC||| = 4.44e-16 over all 250 pairs; the published 22-D coordinates are exactly the official ShapeComp space and `dist` is its Euclidean metric",
+      "paper_headline_reproduced": {
+        "reported_in_paper": "r = 0.91 (ShapeComp 22-D vs mean dissimilarity, 250 GAN pairs, 14 observers)",
+        "computed_here_from_raw": {
+          "pearson_distance_vs_mean_rating": -0.9040136504339792,
+          "spearman_distance_vs_mean_rating": -0.9107797690856035
+        },
+        "note": "sign is negative because distance is the inverse of similarity; magnitude matches the published 0.91"
+      },
+      "training_overlap": "The 22-D space is classical MDS over 109 descriptor distances on 25,712 animal silhouettes; NO parameters were fitted to human data. These 250 GAN pairs are the paper's own held-out human validation set, so they are independent of the space's construction but ARE the set the published r=0.91 was measured on.",
+      "redistribution": "Deposit is CC-BY-4.0. The underlying 25,712 Shutterstock/Evermotion animal silhouettes are NOT in the deposit and must not be redistributed."
+    },
+    {
+      "id": "S2",
+      "role": "auxiliary human validation (Dataset H2), circular shape space generalisation",
+      "title": "Figure 9 members of the same Zenodo deposit",
+      "data_doi": "10.5281/zenodo.4730985",
+      "underlying_stimulus_paper": {
+        "citation": "Li AY, Liang JC, Lee ACH, Barense MD (2020). The validated circular shape space: Quantifying the visual similarity of shape. Journal of Experimental Psychology: General 149(5):949.",
+        "doi": "10.1037/xge0000693",
+        "pmid": "31580102",
+        "verified_via": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:31580102"
+      },
+      "license": "CC-BY-4.0 for the ShapeComp deposit contents; Li et al. stimulus license not independently verified this session",
+      "status": "verified_with_caveat",
+      "members_used": {
+        "fig7D_lietal_points_2.mat": "x (15,), y (15,), stim[15] struct with c (384,2) and n (shape id)",
+        "lietal_ShapeCompSolution_keras_mds_image.mat": "sc (15,22) float32 official KerNet2->ShapeComp coordinates, dist_vect (105,), stim[15]",
+        "Figure9.m": "authoritative code for the comparison"
+      },
+      "human_data_semantics": "NOT raw per-trial ratings. x,y are the published human similarity MDS arrangement of Li et al., digitised by the ShapeComp authors from Li et al. Figure 7D using MATLAB getpts (stated verbatim in Figure9.m). Pairwise human distance is therefore a reconstructed arrangement distance carrying digitisation error.",
+      "caveat": "Used only as a source-attributed AUXILIARY target, never as raw human ratings. Only 15 of the 360 validated shapes are present (ids 1,25,49,...,337 - every 24th).",
+      "shape_count": 15,
+      "pair_count": 105,
+      "shape_ids": [1, 25, 49, 73, 97, 121, 145, 169, 193, 217, 241, 265, 289, 313, 337],
+      "official_output_check": "max|pdist(sc) - dist_vect| = 2.56e-07 (float32 storage)",
+      "stimulus_consistency_check": "The `stim` contours differ between the two .mat files. Verified same shapes: after centre+unit-RMS normalisation, the best cyclic-start + rotation alignment leaves a worst mean absolute residual of 0.0082 (0.8% of unit RMS) across all 15. Pairing is by the shared `n` id, not by array identity.",
+      "paper_headline_reproduced": {
+        "reported_in_paper": "r = 0.78 (circular-shape-set generalisation, 105 pairs)",
+        "computed_here_from_raw": {
+          "pearson": 0.778210312504643,
+          "spearman": 0.765643790172092
+        }
+      }
+    },
+    {
+      "id": "S3",
+      "role": "retrieval gallery with class labels (NOT human similarity)",
+      "title": "MPEG-7 Core Experiment CE-Shape-1 Part B",
+      "url": "https://dabi.temple.edu/external/shape/MPEG7/dataset.html",
+      "download_url": "https://dabi.temple.edu/external/shape/MPEG7/MPEG7dataset.zip",
+      "results_reference_url": "https://dabi.temple.edu/external/shape/MPEG7/results.html",
+      "curator": "Longin Jan Latecki (Temple University)",
+      "license": "No explicit license file in the archive; widely used as a public research benchmark. Provenance recorded, images not relicensed by this project.",
+      "status": "verified",
+      "archive_bytes": 3380427,
+      "sha256": "ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d",
+      "format": "GIF, mode L, variable size (e.g. 256x256, 384x464, 650x297), binary {0,255}; WHITE silhouette on BLACK background",
+      "stimulus_count": 1400,
+      "class_count": 70,
+      "per_class_count": 20,
+      "excluded_non_stimuli": ["original/confusions.gif", "original/shapedata.gif"],
+      "label_semantics": "Object CATEGORY labels only (apple, bat, Heart, fork, ...). A category label is NOT a human pairwise similarity judgement and is used only for class-recall retrieval metrics.",
+      "naming_caveat": "Class names in the archive are case-inconsistent (Bone/Comma/Glas/HCircle/Heart/Misk vs lowercase elsewhere); the loader keys on the literal archive filename stem.",
+      "training_overlap": "No overlap with the ShapeComp animal corpus is asserted or checked; MPEG-7 is used only as a retrieval gallery, never as human truth."
+    },
+    {
+      "id": "S4",
+      "role": "rejected as human similarity truth",
+      "title": "Figure 3 GAN naming task (same Zenodo deposit)",
+      "members": ["GANratings.mat (rate 100x20, contains NaN)", "GANlabels.mat (labeldata 100x20 strings)"],
+      "status": "verified_and_excluded",
+      "reason": "Inspected labeldata: entries are free-text object NAMES ('cow udder', 'monkey', 'hammer', 'elephant', 'italy', 'x'). This is a naming/identifiability task, not a similarity task. Per the task brief, category/naming labels must not be promoted to human similarity scores.",
+      "used_as_similarity_truth": false
+    },
+    {
+      "id": "S5",
+      "role": "optional structure benchmark",
+      "title": "2D Shape Structure Dataset",
+      "url": "https://data.mendeley.com/datasets/74w9c6h2np/1",
+      "status": "blocked",
+      "evidence": [
+        "https://data.mendeley.com/datasets/74w9c6h2np/1 -> HTTP 200 but the returned document <title> is 'FAQ' and contains zero download/s3/zip URLs (JS-rendered shell)",
+        "https://data.mendeley.com/public-files/datasets/74w9c6h2np/files -> HTTP 404",
+        "https://api.datasearch.elsevier.com/api/v2/dataset/74w9c6h2np -> curl(6) could not resolve host",
+        "https://prod-dcd-datasets-cache-zips.s3.eu-west-1.amazonaws.com/74w9c6h2np-1.zip -> HTTP 404"
+      ],
+      "acquired": false,
+      "consequence": "Part-part structure annotations are unavailable this round. Structure stress tests (Part D3) use MPEG-7 real shapes plus explicitly-labelled synthetic primitives instead, and are NOT claimed as human-validated."
+    }
+  ],
+  "not_acquired": [
+    {
+      "title": "Validated Circular Shape Space original 360-shape stimulus set + raw human judgments",
+      "reason": "Only the 15-shape subset re-distributed inside the ShapeComp Figure 9 deposit was reachable. The original Li et al. (2020) full stimulus set and raw trial-level judgments were not located on a reachable host this session; APA PsycInfo content is behind a cookie/consent wall and PubMed returned a consent page instead of the article.",
+      "consequence": "H2 is limited to 105 pairs over 15 shapes with a digitised arrangement target."
+    }
+  ]
+}
