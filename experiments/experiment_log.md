@@ -398,9 +398,163 @@ mypy                                                # no issues in 32 source fil
   "3 × 10¹" 压在 50 上，只改绘图并加 `--redraw-from-json`；数据文件 mtime 未变
   （JSON `a1eeb812…` / CSV `8a86510b…` 仍是 16:46，PNG 16:53）。
 - Git 检查点：`exp:`（hybrid runner + 缓存 API + 25 项测试）→ `data:`（3 个产物）→
-  本行所在的 `docs:` 提交（`checkpoint_d/notes.md` D3 段 + TASKS + 本日志）。
+  本行所在的 `docs:` 提交（`checkpoint_d` D3 段 + `diagnose_perceptual_arms.py` 的越界检查
+  改动 + TASKS + 本日志），随后推送 `origin main`。
 - **未完成项（交给 D4，不在本轮假装做完）**：真人盲评仍没有（`AI_visual_review` 不是真人）；
-  混合结构**没有**在真人手绘查询、也没有在只含真实地貌的库上评价过；
+  混合结构**没有**在只含真实地貌的库上评价过（T3 库始终是 1016/1017 行混合，839 行地貌只是其中一部分）；
+  18 个查询里 **5 个是 QuickDraw 真人手绘**，两级每一档都跑了它们——
+  上一版此处写"没有在真人手绘查询上评价过"是**数量口径错误**，已在 D4 订正（见 D4 段第 ④ 条）。
   E0 粗筛在枝状族上的失效**没有**修复（D3 只是量出了它的代价）；
   窗口 20/50/100/200 之外没有扫描更小的窗口（10 以下），因为 18 查询的样本量不足以分辨；
   `unaligned` 视图的视觉评分仍空。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint D · D4：五个问题的汇总与文档）
+
+任务书 §7 要五个**有证据**的结论。D4 的边界是：**不重打分、不重算距离、不重画任何图**——
+它只读 C 与 D1–D3 已经入库的产物，把它们拼成"哪个算法更像 / E3 的优势是否普遍 /
+E2 为什么失败 / 两级值不值得 / 下一轮投什么"。唯一的新计算是**对已入库分数 CSV 按查询来源
+重新切片**（D4.2b），因为发现上一版把"18 个查询里有 5 个真人手绘"错写成了"真人查询为 0"，
+而一数清楚，分组排序就变了。D4 里出现的每个数都必须能在下面的命令里打印出来；
+打印不出来就等于没写过。
+
+```bash
+# 只读核对：不重算、不重画、不改任何产物（改 mtime 的脚本本轮一条都没跑）
+python - <<'PY'
+import json
+D = "experiments/p0_perceptual_probe/"
+c = json.load(open(D + "metrics.json", encoding="utf-8"))
+h = json.load(open(D + "checkpoint_d/hybrid_retrieval_metrics.json", encoding="utf-8"))
+v = json.load(open(D + "checkpoint_d/visual_review_summary.json", encoding="utf-8"))
+print("--- C vs D3 (must agree) ---")                  # 两条独立路径给同一答案
+for st in ("T2", "T3"):
+    for arm, src in (("E0_only", "E0"), ("Full-E3", "E3")):
+        a = h["settings"][st]["summary"][arm]["labels"]
+        b = c["results"][st][src]["aggregate"]
+        keys = ("ndcg@10", "mrr", "hit@1")
+        ok = all(abs(a[k] - b[k]) < 1e-4 for k in keys)
+        print(f" {st} {arm:8s} vs C/{src}: {[round(a[k], 4) for k in keys]} == {[round(b[k], 4) for k in keys]} {ok}")
+print("--- windows: d_ndcg, sec/query, speedup, top10 agreement ---")
+for st in ("T2", "T3"):
+    full = h["settings"][st]["summary"]["Full-E3"]
+    for w in (20, 50, 100, 200):
+        x = h["settings"][st]["summary"][f"E0->E3@{w}"]
+        print(f" {st} @{w:<3} {x['labels']['ndcg@10'] - full['labels']['ndcg@10']:+.4f} "
+              f"{x['seconds']['mean_query']:7.4f}s {full['seconds']['mean_query'] / x['seconds']['mean_query']:5.1f}x "
+              f"{x['agreement_with_full_e3']['top10']:.3f}")
+print("--- visual (combined 25) + C per-query timing ladder ---")
+for arm in ("E0", "E1", "E2", "E3"):
+    p = v["combined"]["per_arm"][arm]
+    print(f" {arm} top1 {p['mean_top1_visual']:.3f} err {p['obvious_error_share']:.1%} "
+          f"T2 sec/query {c['results']['T2'][arm]['timing']['seconds_mean_per_query']:.4f}")
+PY
+
+# D4 唯一的新计算：按查询来源切片（读已入库的分数 CSV，一格分数都没改）
+python - <<'PY'
+import csv, json
+from statistics import mean
+rows = [r for r in csv.DictReader(open(
+    "experiments/p0_perceptual_probe/checkpoint_d/visual_review_scores.csv", encoding="utf-8"))
+    if r["setting"] == "T2"]
+human = {r["query_id"] for r in rows if r["query_id"].startswith("qd-")}
+print("human-drawn queries:", sorted(human))           # 必须是 5 个，不是 0
+for tag, sel in (("human  ", [r for r in rows if r["query_id"] in human]),
+                 ("non-human", [r for r in rows if r["query_id"] not in human])):
+    print(tag, {a: f"{mean([int(r['score_0_3']) for r in sel if r['arm'] == a]):.3f}"
+                f"({len([r for r in sel if r['arm'] == a])})"
+                for a in ("E0", "E1", "E2", "E3")})
+PY
+
+# 第三条独立读法：数 key_id（图库缺陷的性质 + 真人查询到底是不是"不同用户"）
+python - <<'PY'
+import json, collections, hashlib
+rows = [json.loads(l) for l in open("experiments/p0_perceptual_probe/gallery.jsonl", encoding="utf-8")]
+qd = [r for r in rows if r["origin"] == "quickdraw"]
+kids = collections.Counter(r["provenance"]["key_id"] for r in qd)
+print(f"quickdraw items {len(qd)} / distinct key_id {len(kids)} / reused {sum(1 for v in kids.values() if v > 1)}")
+q = [r for r in qd if r["role"] == "query"]
+print("query key_ids:", len({r['provenance']['key_id'] for r in q}), "of", len(q),
+      "| countries:", sorted(r["provenance"]["countrycode"] for r in q))
+grp = collections.defaultdict(list)
+for r in qd:
+    grp[r["provenance"]["key_id"]].append(r)
+bad = {k: v for k, v in grp.items() if len(v) > 1}
+ident = sum(1 for v in bad.values() if len({json.dumps(r["contour"]) for r in v}) == 1)
+print(f"reused-key_id groups {len(bad)}, of which bit-identical contours: {ident}")
+allg = collections.defaultdict(list)
+for r in rows:
+    allg[hashlib.sha256(json.dumps(r["contour"]).encode()).hexdigest()].append(r["item_id"])
+big = [v for v in allg.values() if len(v) > 1]
+print("identical-contour groups over all 179:", len(big), "members:", sum(len(v) for v in big),
+      "| quickdraw members:", sum(1 for v in big for i in v if i.startswith("qd-")))
+PY
+pytest -o addopts="" -q          # 726 passed（D4 未新增测试：没有新代码，也就没有新断言）
+ruff check .                     # All checks passed
+mypy                             # Success: no issues found in 32 source files
+```
+
+- **核对读的是哪四份**（md5，用于确认文档抄的是入库字节）：C `metrics.json`
+  `9731ac73…`、C `results.csv` `b74f9ac3…`、D1/D2 `arm_diagnostics.json` `1754675a…`、
+  D2 `visual_review_summary.json` `dfaf28c3…`、D3 `hybrid_retrieval_metrics.json` `a1eeb812…`。
+  `visual_review_report.py` **本轮没有运行**——它会重写 `visual_review_summary.json` 与示例图，
+  而 D4 只需要读；"能重算"与"已重算"是两件事，混淆它就等于把复现命令写成了幻觉。
+- **五个问题的一句话答案**（详细表在 `checkpoint_d/notes.md` D4.2–D4.6）：
+  ① 没有全面胜出的臂，而且**"第一是谁"取决于查询来源**——合并 25 组 Top-1 E3 2.640 / E1 2.560 /
+  E0 2.520 / E2 2.040，T2 全 18 查询单看是 **E1 2.778** 第一、T3 代表组是 **E3 2.429** 第一，
+  **只看 5 个真人手绘查询**则是 **E1 2.360 > E3 2.160 > E2 2.080 > E0 1.840**；
+  最大领先 0.120 个名次分（n=25），真人子集差距更大但 n=5；
+  ② E3 的优势**不普遍**：逐查询第一相关名次 4 赢 / 1 输 / 13 平，赢在 E0 无解的查询，
+  heart / crescent / star 三族**一个赢例都没有**；
+  ③ E2 最差是**标定与尺度**问题（丢一个凸角的价格 0.0477 = 阈值的 2.4 倍、凹事件只活在 1/64
+  窗口、删角在 7 个可比查询里只赢 2 次），T1 的 rank-4 是 `stable` 排序平手，**不是 bug**；
+  ④ 两级**值得做实验但不值得当默认**：可用折中是 T2@50（2.082 s，−0.018）与 T3@100
+  （4.418 s，−0.032），T3 上**没有任何窗口追平 Full-E3**，而 E0 会把 E3 的正确答案筛到
+  第 377 / 第 629 名——W=200 也救不回来；
+  ⑤ 下一轮顺序 = **修图库同形缺陷 → 把真人手绘查询从 5 个补到 ≥10 个不同用户 + ≥3 人盲评
+  → 攻枝状覆盖与保真**，之后才轮到粗筛替换与 E1 重拟合；**不建议现在做**：修 E2、扩真实地貌库。
+- **为什么"扩库"排在最后**（这条容易被读反，写成数字）：C 的 T2→T3 对照里四个臂的 NDCG@10
+  **全部下降**——E0 0.6653→0.5466、E1 0.7210→0.5520、E2 0.6619→0.5539、E3 0.7329→0.6358；
+  视觉复核同样 T3 < T2（E3 2.429 vs 2.722）。839 条地貌已经把每个臂压低 0.10–0.17，
+  在真人手绘查询仍只有 5 个之前继续扩库只增加**不可解释**的行。
+- **D4 唯一的独立新事实是那条交叉核对**：D3 重算的 `E0_only` / `Full-E3` 与 C 冻结的
+  `E0` / `E3` 四项聚合到小数点后 4 位相同（核对命令第一块打印 8 行 `True`）。
+  它不证明算法好坏，只证明**排名与距离没有在这轮工程里漂移**——把"新实验"与"重抄旧表"
+  区分开的正是这一条，而不是脚本文字。
+- **三条换算禁令（D4 全程遵守）**：几何距离**不**换算成视觉分，`labels.json` 的相关性**不**
+  换算成视觉分，视觉分**不**换算成名次。实测过它们确实不等价：四臂 Pearson(距离, Top-1 视觉分)
+  = E0 −0.747 / E1 −0.625 / E2 −0.303 / E3 −0.560（n=18，D2.5）——方向对、强度不足以互替。
+- **本轮撤回/降级的表述**：① 上一版"哪个算法更符合肉眼"的**任何**排序说法都降级为
+  "`AI_visual_review` 在受控图案上的排序"，**人工判读人数 = 0**；② E1/E3 的领先不足以支撑换算法，
+  只支撑"继续投入"；③ "E0+E3 够快"必须带窗口与库规模一起说（T2 的 8.2× 不可外推到生产，
+  因为 T2 库只有 177 行，@200 就是全库）；
+  ④ **数量口径订正（本轮新发现，D1–D3 的文档都中了这一条）**：D1–D4 上一版把"真人手绘查询"
+  写成 **0 个**，实际是 **5 个**——`gallery.jsonl` 里 `role = "query"` 且 `origin = "quickdraw"`
+  的有 `qd-circle-query-01`（blob）、`qd-cloud-query-01`（irregular）、`qd-lightning-query-01`（band）、
+  `qd-star-query-01`（star）、`qd-tree-query-01`（forked）；其余 13 个是 6 条 Phosphor 图标 +
+  7 条合成原型。**分数与名次一个都没变**，但这条错话遮蔽了两件要事：按来源切片后第一名从 E3
+  变成 E1，且 E0 在真人子集上掉到 1.840（非真人子集 2.446，落差 0.606 是四臂最大）。
+  错的成因值得记下来："真人查询"在本项目里长期特指 **P0-6 待采集的那个固定集**，
+  于是"尚未按门禁口径采集"被顺手写成了"数量为零"——词汇绑定掩盖了清点，这是 §4 新增
+  "混合样本必须按来源切片报告"那条规范的直接来由。
+  ⑤ 顺着这条订正再查 `key_id`，**又错了一层**：起初想写"5 个不同 `key_id` = 5 个不同的人"，
+  查官方 README 后不成立——`key_id` 定义是 "A unique identifier across all **drawings**"，
+  元数据只到 `countrycode`（这 5 条是 BE / FI / GE / US / US），**没有玩家身份**。
+  所以门禁"≥10 个**不同用户**"这一维用公共数据集**不可核验**，只能本项目自己采集。
+  同一趟复查给图库缺陷加了第三条独立证据：**80 条 QuickDraw 成员只有 66 个不同 `key_id`**
+  （10 个 key_id 复用成 14 条额外行，且这 10 组点列**逐位相同**），
+  31 个同形成员里 24 个是"同一幅真人画被登记到不同 role/family 槽位" →
+  缺陷是**插入未去重**，不是几何生成逻辑错，因此修它最便宜。
+  同时把 D2 的"两个查询受影响"**限定住**：只有 `qd-circle-query-01`（T2 库 2 行同形）与
+  `qd-cloud-query-01`（1 行）漏了，另 3 个真人查询的同幅画已被
+  `excluded_as_query_or_near_duplicate` 显式剔除——**不能**扩大成"5 个真人查询全被污染"。
+- Git 检查点：本行所在的 `docs:` 提交（`checkpoint_d/notes.md` 的 D4 段 + `docs/TASKS.md` +
+  `docs/EXPERIMENTS.md` §4/§6 + `docs/DECISIONS.md` D50–D53 + 本日志），随后推送 `origin main`。
+  **代码、产物与测试在 D1–D3 已各自提交并推送，D4 不新增也不改动它们**；
+  C 的 `results.csv` / `metrics.json` / 24 张图与 D1–D3 的产物在本轮**只读**，md5 未变。
+- **未完成项（D4 收尾时仍然未完成，如实列出）**：真人手绘查询 **5 个**（门禁要 ≥10 个不同用户）、
+  ≥3 人盲评 **0 份**
+  （材料 `blind_review_t2.png` / `blind_review_t3.png` / `blind_mapping.json` /
+  `visual_review_template.csv` 已交付可填）；`unaligned` 视图未评分；图库 11 组 / 31 成员逐位
+  同形的缺陷**未修**；E0 粗筛的枝状盲区**未修**；E2 未重标定；E1 归一化未在真实地貌上重拟合；
+  两级结构未在浏览器 Worker / 1–10 万候选上测过延迟。**P0 门禁仍未通过 → 不进入 P1 Web 开发。**
+  正式检索默认算法**未改**（仍是 `method="fourier_align"`、`shortlist_size=200`）；
+  是否改用 E3 精排或两级结构，留给用户审查 D4 的表之后决定。
