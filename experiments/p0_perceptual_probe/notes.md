@@ -569,9 +569,80 @@ python experiments/p0_perceptual_probe/report_checkpoint_c.py --files
 | `metrics.json` | 冻结输入哈希、`protocol`、三条固定口径（`e1_normalizer` / `e3_direction_probe` / `e3_orientation_cost`）、`results[setting][arm]`（`aggregate` / `top_slots` / `label_pressure` / `per_query` / `timing` / `exact_target_self_rank` / `top1`）、`claim_limits` | 一切汇总数字的唯一来源。口径细节：`ap` 是 **全 ranking** 的平均精度（无截断），`ndcg@10` 截到 10，`hit@k` 只问前 k 里有没有；`per_query[q].top1_is_label_lookalike` 是 §13.4 的 `x`；`n_scored` 才是该次评分真正打过多少行 | 不含任何人类评分；`hit@k` 不是准确率；`aggregate` 是 18 个查询的算术平均，不是加权按族 |
 | `method_status.json` | 四臂的模块、参数、`contract`、每臂 POLICY（含 `invariance` / `cost` / `known_limitations` / `measurements`） | 回答"这一臂到底是怎么算的、它自己声明的局限是什么" | 不是实验结果，改代码前不必读，读它不能得到任何命中率 |
 | `figures_manifest.json` | `checkpoint` / `built_at_utc` / `reproduce.git_commit` + 3 条命令 / `inputs`（gallery、labels、manifest、results.csv、metrics.json 的 sha256+字节） / `outputs`（24 张 PNG 的 sha256+字节） | 图与数据的绑定凭证：图上的每个数字都能回溯到 `inputs` 里那两个哈希 | 不是指标表；`outputs` 的哈希只对 **当前** 磁盘文件有效，重跑即变 |
-| `comparison_<family>_<setting>.png`（7 族 × 3 设置） | 一个结构族的全部查询：一行 = (查询, 臂)，最左 `QUERY` 格，右侧 5 格是 **该臂自己的 Top-5** | 每格三行：`#名次 id`、`V/N/Q 族名`（或 `landform (unlabelled)`）、`d=… [REL]`；E0 格另有 `th±° s起点头`，E2 格另有 `查询事件数/候选事件数 ev`。**绿实心环 = E0 实际拟合到的姿态**；**红虚线环 = 标准器坐标里的查询本身，没做任何变换**（E1/E2/E3 不返回逐候选姿态，画成"已对齐"就是造假） | 不是"匹配成功"的清单；是这一库里最接近的候选。REL 只表示标签认为相关。无人核验过任何一格（盲评在 D） |
+| `comparison_<family>_<setting>.png`（7 族 × 3 设置） | 一个结构族的全部查询：一行 = (查询, 臂)，最左 `QUERY` 格，右侧 5 格是 **该臂自己的 Top-5** | 每格三行：`#名次 id`、`V/N/Q 族名`（或 `landform (unlabelled)`）、`d=… [REL]`；E0 格另有 `th±° s起点头`，E2 格另有 `查询事件数/候选事件数 ev`。**绿实心环 = E0 实际拟合到的姿态**；**红虚线环 = 标准器坐标里的查询本身，没做任何变换**（E1/E2/E3 不返回逐候选姿态，画成"已对齐"就是造假） | 不是"匹配成功"的清单；是这一库里最接近的候选。REL 只表示标签认为相关。无人核验过任何一格（盲评在 D）。**逐条语义与检查顺序见 §13.5.1** |
 | `perception_comparison_overview_<setting>.png`（3 张） | 顶部一张由 `metrics.json` **打印** 的汇总表（hit@1/3/5、mrr、ap、ndcg@10、sec/query + 槽位构成 + Top1-lookalike），下面每个查询 × 每臂的 **Top-1** 叠加图 | 先看表再看图；表里的数字与 notes.md 必须一字不差，因为两者都由脚本打印 | 表是标签口径；图上的 Top-1 可能正是 §13.4 的 `x` |
 | `control_gallery.png` | 数据集构建器的 22×14 全测试集一览（"非真实地理景观"标注） | 确认查询/变体/负例长什么样 | **不属于 C**：C 只读它，不重画（见 §13.7） |
+
+### 13.5.1 结果图像怎么读（行 / 列 / 颜色 / 叠加环 / 人工检查清单）
+
+图只读 `results.csv`：`load_results` 按 `(setting, arm, query_id)` 取行并按 `rank` 升序排，
+轮廓取自 `gallery.jsonl` 与真实索引文件，**可视化脚本不重新打分、不手工挑图**——所以图上的
+排序与旁边的表不可能各说一套（[`scripts/visualize_perceptual.py:254`](../../scripts/visualize_perceptual.py)）。
+下面每个十六进制值都是脚本里的常量，核对以命令为准，不要信本节的转述：
+
+```bash
+grep -nE '"#[0-9a-f]{6}"' scripts/visualize_perceptual.py scripts/visualize_retrieval.py
+```
+
+**A. `comparison_<族>_<设置>.png`（21 张 = 7 结构族 × T1/T2/T3，发布产物用 `--top 5`）**
+
+| 轴 | 是什么 |
+|----|--------|
+| **行** | **(查询 × 臂)**：同一个查询连续占 **4 行**，顺序固定 `E0 → E1 → E2 → E3`（`METHOD_COLUMNS`），行左缘的小字 `E0/E1/E2/E3` 标明"这一行由哪个臂打分"。行数 = 该族查询数 × 4：`band` / `blob` / `forked` / `star` 各 3 查询 → 12 行，`crescent` / `heart` / `irregular` 各 2 查询 → 8 行（18 查询来自 `labels.json → queries`） |
+| **列** | **1 + Top-5 = 6 列**：第 1 列是查询本身（标题 `QUERY <id>`，id 截 22 字符），第 2–6 列是 **该行那个臂自己的 Top-1…Top-5**，按 **该臂自己的名次** 排，绝不跨臂按分数重排 |
+| 空格 | `ax.axis("off")`：该臂在那个名次没有返回可画的候选（或 id 不在已加载的轮廓里）。**不会**用更好看的形状补位 |
+| 标题 | `Controlled Shape Retrieval — 非真实地理景观`（T1/T2）或 `Real Landform Retrieval — Overture Maps`（T3），第二行 `family '<族>' · setting <?> · Top-5 of E0 E1 E2 E3 against the same query contour` |
+
+每个查询的那四行（overview 图里是四列）就是四个方案：**E0 = 产品基线**（默认检索链路，本轮行为未变）、
+**E1 = ShapeComp-inspired 特征**、**E2 = 显著结构匹配**、**E3 = Shape Context**；四臂在同一冻结
+图库、同一 128 点弧长重采样环上打分，全库、无粗筛窗口。
+
+| 图上元素 | 值 | 含义（以及它不代表什么） |
+|----|----|----|
+| 候选 **绿** 描边 / 填充 | `#12623c` / `#d8ecdd` | 该候选在 **冻结标签** 的 relevant 集合里（`results.csv` 的 `relevant=1`） |
+| 候选 **蓝** 描边 / 填充 | `#28556e` / `#7fb2d9` | 标签判 **不相关**：同族困难负例、别族、或无标签的真实地貌 |
+| 查询格 红 / 浅粉 | `#a4231d` / `#f6e2e0` | 第 1 列的查询本身。注意 `control_gallery.png` 的查询用另一个红 `#a4262c`（`QUERY_LINE`），两处不是同一常量 |
+| **绿色实环** | `#1b7f4b` | **只在 E0 格**：候选先按该行的 `theta_deg` / `shift` / `mirrored` 经 `apply_alignment` 真实变换，再叠加查询 → 环与形状贴住说明 E0 的对齐确实收上了 |
+| **红色虚环** | `#a4231d` | **E1/E2/E3 格**（以及 E0 没给姿态时）：查询按标准器坐标原样叠加（质心在原点、单位 RMS 半径）。这三个臂 **不返回逐候选姿态**，把它们画成"已对齐"就是造假 |
+| 格标题第 1 行 | `#名次 id`（id 截 20 字符） | 名次是该臂内的名次；id 可回 `results.csv` 精确定位同一行 |
+| 第 2 行 | `V <族>` / `N <族>` / `Q <族>` / `landform (unlabelled)` | 候选在标签里的角色（variant / hard_negative / query）；最后一种只出现在 T3 |
+| 第 3 行 | `d=0.1234 [REL]`，E0 追加 `th+12 s7`，E2 追加 `5/6ev` | `d` 是 **该臂内部无量纲代价**，不能跨臂比较，也不是相似度百分比；`REL` = 标签认为相关；`th/s` = E0 拟合到的角度与起点；`ev` = E2 的查询/候选事件数 |
+| 格标题文字颜色 | 与该行边色一致 | 绿字 = 标签 REL，蓝字 = 标签非 REL，扫一眼就能分流 |
+| 页脚固定三行（图上就是这段英文） | `solid green ring = the pose E0 fitted; dashed red ring = the query as standardized, no transform applied (E1/E2/E3 return no per-candidate pose).` / `V=variant N=hard negative Q=query role; REL = the frozen label's relevant set. d is a dimensionless internal distance, never a similarity percentage.` / `these are the closest candidates in this library, not verified matches; no human judged any panel here (blind review is Checkpoint D).` | 三行分别是：环的口径、字母与 `d` 的口径、"最接近 ≠ 已验证匹配 + 无人核验" |
+| 页脚第四行（有则显） | `{N} non-relevant candidate(s) in these libraries are align-indistinguishable from the query, so a cell can look right and still count as a miss.` | N 来自 `metrics.json` 里 **E0** 的 `align_indistinguishable_non_relevant` 按该族查询求和，**不是**画出来的格子数 → 它提醒"可能看着对、计分是 miss"，不指认哪一格 |
+
+```bash
+grep -nA3 "solid green ring" scripts/visualize_perceptual.py     # 页脚原文
+```
+
+图里 **没有** `x` 符号：`x`（标签 lookalike）只出现在 §13.2 由脚本打印的 Top-1 表里。
+
+**B. `perception_comparison_overview_<设置>.png`（3 张）**
+
+- 上半部是一张 **从 `metrics.json` 打印** 的表（不是重算也不是手抄）：每臂
+  `hit@1 hit@3 hit@5 mrr ap ndcg@10 sec/query`，再加每臂 Top-k 槽位构成
+  `hard-neg / other-fam / landform / Top1-lookalike`。**表里没有 `hit@10` 和"首个 REL 名次"**，
+  那两项只在 §13.2 的打印表里。
+- 下半部：18 个查询 × 四臂的 **Top-1**，为了可读性拆成 2 块（每块 9 行 × 5 格 = 查询 + 4 臂），
+  合计 90 格；每格与 A 的候选格同一套颜色和环语义，标题多前缀 `E? ·`。
+
+**C. `control_gallery.png`（数据集构建器产物，不属于 C）**
+
+按 **角色** 上色，不是按 relevant：`variant` 蓝、`hard_negative` 琥珀 `#8a5a00` / `#f7e3bd`、
+`query` 红。它回答"这些形状长什么样"，不回答任何检索质量。
+
+**D. 拿这些图做人工检查的顺序（本轮交付的目的）**
+
+1. E0 行：绿实环与候选轮廓是否贴合 —— 分离说明对齐没收上，不是距离算错。
+2. 每行 Top-1（第 2 列）：绿 or 蓝。蓝 **且明显同形** → §13.4 的标签陷阱；蓝 **且确实异形** → 真实排序失误，这两类要分开记账。
+3. 同一查询的四行横向对比：哪个臂把真变体抬到前面、哪个把 `N <同族>` 抬到前面。
+4. T3 图里的 `landform (unlabelled)`：不是假阳性（无相关性标签，池塘不可能是星的变体）。
+5. 空格：该臂确实没返回候选，与"返回了但排不进 Top-5"是两件事。
+6. T1 图的 E2 行：找 self-rank 掉到 4 的那个查询 —— 本轮唯一未解释的实现异常（留给 D）。
+
+**E. 这些图不能读成什么**：没有任何人工评分，因此 **不是** "人眼匹配准确率"；一格绿不代表
+匹配被验证过，一格蓝不代表眼睛看出它不像；跨臂只能比 **名次**，不能比 `d`；`sec/query`
+印在 overview 表里，是本机墙钟，不可跨机复现；`control_gallery.png` 未被 C 重画（§13.7）。
 
 ### 13.6 本轮修掉的三个真实缺陷（都不是排版问题）
 

@@ -233,7 +233,10 @@ mypy                             # Success: no issues found in 31 source files
   `label_pressure`+`per_query`+`timing`+`exact_target_self_rank`+`top1` / `claim_limits`）、
   `method_status.json`（四臂模块 + 参数 + 契约 + POLICY）、`figures_manifest.json`
   （inputs/outputs 的 sha256 + `reproduce.git_commit` + 三条命令）。
-  每个文件"怎么读 / 不能读成什么"逐条写在 notes.md §13.5。
+  每个文件"怎么读 / 不能读成什么"逐条写在 notes.md §13.5；24 张图自身的行/列/颜色/叠加环语义
+  与人工检查顺序写在 notes.md §13.5.1（十六进制值以
+  `grep -nE '"#[0-9a-f]{6}"' scripts/visualize_perceptual.py scripts/visualize_retrieval.py`
+  为准，图只读 `results.csv`，可视化脚本不重新打分）。
 - 数据边界：本轮 **只读** `data/index`（839 候选，commit `77b083c9`，三个文件哈希
   `fbaf4933…` / `e18c3f95…` / `b7255ede…` 未变）与 `gallery.jsonl`（`15be97ae…`）/
   `labels.json`（`26e444ce…`）；T3 的混库只发生在评价脚本内，**未合并进正式索引**。
