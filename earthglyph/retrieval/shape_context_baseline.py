@@ -75,6 +75,7 @@ __all__ = [
     "ANGULAR_BINS",
     "CONTEXT_POINTS",
     "EPSILON",
+    "LibraryDescriptors",
     "ORIENTATION_MODES",
     "POLICY",
     "R_MAX_FACTOR",
@@ -82,6 +83,7 @@ __all__ = [
     "RADIAL_BINS",
     "ROTATION_STEPS",
     "ShapeContextError",
+    "build_library_descriptors",
     "canonical_frame",
     "chi_square_costs",
     "context_match_cost",
@@ -91,6 +93,7 @@ __all__ = [
     "resolve_params",
     "rotation_grid_deg",
     "score_library",
+    "score_library_from_descriptors",
     "shape_contexts",
 ]
 
@@ -633,6 +636,142 @@ def score_library(
         "params": grid.as_dict(),
         "elapsed_seconds": round(elapsed, 6),
         "seconds_per_candidate": round(elapsed / max(scores.shape[0], 1), 9),
+    }
+
+
+@dataclass(frozen=True)
+class LibraryDescriptors:
+    """Candidate context sets for one library, built once and reusable across queries.
+
+    This is the precompute half of a two-stage retriever: :func:`_score_stack` already
+    builds these once *per call*, so the saving is the repeat work across queries, not
+    per candidate.  The arrays are the same objects that path would have produced — no
+    descriptor is approximated, truncated or re-binned to make the cache smaller.
+    """
+
+    contexts: np.ndarray
+    candidate_notes: list[dict[str, Any]]
+    mirror_contexts: np.ndarray | None
+    sample_count: int
+    grid_params: dict[str, Any]
+    build_seconds: float
+
+    @property
+    def rows(self) -> int:
+        return int(self.contexts.shape[0])
+
+    @property
+    def bytes_used(self) -> int:
+        owned = int(self.contexts.nbytes)
+        if self.mirror_contexts is not None:
+            owned += int(self.mirror_contexts.nbytes)
+        return owned
+
+
+def build_library_descriptors(
+    library: Any, *, allow_mirror: bool = False, **params: Any
+) -> LibraryDescriptors:
+    """Precompute every candidate's context set (and its mirror) for one library.
+
+    The returned object carries its own build wall-clock and byte count so a results
+    table can charge the precompute to the arm that uses it instead of quoting a
+    query time that quietly excludes it.
+    """
+    grid = resolve_params(**params)
+    started = time.perf_counter()
+    rows = contour_stack(library, "library")
+    frames = [_aligned(row, grid) for row in rows]
+    contexts = np.stack([shape_contexts(row, grid=grid) for row, _ in frames])
+    mirror_contexts = (
+        np.stack(
+            [
+                shape_contexts(_aligned(mirror_points(row), grid)[0], grid=grid)
+                for row, _ in frames
+            ]
+        )
+        if allow_mirror
+        else None
+    )
+    return LibraryDescriptors(
+        contexts=contexts,
+        candidate_notes=[note for _, note in frames],
+        mirror_contexts=mirror_contexts,
+        sample_count=int(rows.shape[1]),
+        grid_params=grid.call_params(),
+        build_seconds=time.perf_counter() - started,
+    )
+
+
+def score_library_from_descriptors(
+    query: Any,
+    cached: LibraryDescriptors,
+    indices: Any = None,
+    *,
+    allow_mirror: bool = False,
+    **params: Any,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Score one query against cached candidate descriptors, optionally a subset.
+
+    Same loop, same ``_score_pair``, same grid as :func:`score_library`; only the
+    candidate context arrays come from the cache.  ``indices`` selects rows in cache
+    order, which is what a coarse filter hands over — the distances of the selected
+    rows are numerically identical to the full-library call, and a test pins that.
+    """
+    grid = resolve_params(**params)
+    if grid.call_params() != cached.grid_params:
+        raise ShapeContextError(
+            "the cache was built with a different descriptor grid than this query uses: "
+            f"{cached.grid_params} vs {grid.call_params()}"
+        )
+    if allow_mirror and cached.mirror_contexts is None:
+        raise ShapeContextError("this cache holds no mirrored contexts; rebuild with allow_mirror")
+    a = check_contour(query, "query")
+    if a.shape[0] != cached.sample_count:
+        raise ShapeContextError(
+            f"sample count mismatch: query has {a.shape[0]}, cache has {cached.sample_count}"
+        )
+    selection = (
+        np.arange(cached.rows, dtype=int)
+        if indices is None
+        else np.asarray(indices, dtype=int)
+    )
+    if selection.ndim != 1:
+        raise ShapeContextError(f"indices must be 1-D, got shape {selection.shape}")
+    rows = [int(row) for row in selection]
+    if rows and (min(rows) < 0 or max(rows) >= cached.rows):
+        raise ShapeContextError(
+            f"indices out of range for a {cached.rows}-row cache: {min(rows)}..{max(rows)}"
+        )
+    started = time.perf_counter()
+    angles, query_contexts, query_note = _query_frames(a, grid)
+    scores = np.empty(len(rows), dtype=float)
+    details: list[dict[str, Any]] = []
+    for position, row in enumerate(rows):
+        mirror = (
+            cached.mirror_contexts[row] if cached.mirror_contexts is not None else None
+        )
+        cost, detail = _score_pair(
+            query_contexts,
+            angles,
+            cached.contexts[row],
+            mirror,
+            grid,
+            {"query": query_note, "candidate": cached.candidate_notes[int(row)]},
+        )
+        detail["row"] = int(row)
+        scores[position] = cost
+        details.append(detail)
+    elapsed = time.perf_counter() - started
+    return scores, {
+        "policy": describe_policy(**grid.call_params()),
+        "transforms": details,
+        "params": grid.as_dict(),
+        "elapsed_seconds": round(elapsed, 6),
+        "seconds_per_candidate": round(elapsed / max(scores.shape[0], 1), 9),
+        "cache_build_seconds": round(cached.build_seconds, 6),
+        "cache_bytes": cached.bytes_used,
+        "cache_rows": cached.rows,
+        "rows_scored": int(scores.shape[0]),
     }
 
 
