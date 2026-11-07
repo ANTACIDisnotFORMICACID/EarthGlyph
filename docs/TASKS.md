@@ -128,7 +128,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 > 固定查询集与人工肉眼判读（P0-6），仍需 P0-5 的 100–200 形状分级曲线。
 > **P0 未通过前不进行大规模 Web 开发。**
 
-## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint C（2026-11-07）
+## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint D · D1（2026-11-07）
 
 任务边界：**Checkpoint A** 做到「数据与实验设计 + 受控图库 + control_gallery + 固定划分」即停止；
 **Checkpoint B** 做到「E1/E2/E3 三臂实现 + 同一评分契约 + 自测量探针 + 测试全绿」即停止；
@@ -228,6 +228,29 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 **仍未进入 P0-5（分级曲线）与 P0-6（真人手绘 ≥10，未获授权），未做 Web 产品开发。**
 **下一步 = Checkpoint D**：T1/T2/T3 分开解释 + 不变性探针 + ≥3 人盲评（拿不到评分则交付
 盲评图与评分表并如实标注"未获评分"）+ 结论与失败归因；E2 的 rank 4 需在 D 定位原因。
+
+### Checkpoint D · D1：公平展示 + 可盲评的视觉材料 ✅（2026-11-07）
+
+| 项 | 状态 |
+|----|------|
+| 任务边界 | D1 只做「让 C 的图可比、让评分可盲」：新增展示对齐器 + 盲评材料生成器 + 两类图 + 空评分表。**未做**视觉评分、**未做** E0–E3 诊断、**未做**混合检索实验、**未改**任何既有臂的产品代码与 C 的产物、**未进入** P0-5/P0-6/Web |
+| C 的两个真实缺陷（本轮的立项理由） | ① **不可比**：`scripts/visualize_perceptual.py:317` 只对 E0 调用 `apply_alignment`（E0 返回逐候选姿态），E1/E2/E3 的格子画的是标准器坐标里的原样 → 红/绿环重叠度不是同一把尺子；② **不盲**：C 的 comparison 图把 `arm` / `item_id` / 距离 / REL 全印在格子上，`syn-heart-e3` 这类 id 本身就把族与角色念出来了 |
+| 展示对齐器（新模块） | ✅ [`earthglyph/retrieval/display_alignment.py`](../earthglyph/retrieval/display_alignment.py)：代价 = **对称 chamfer**（不用 Fourier / shape context / turning 任何一台机器），搜索 = **仅旋转**（不做尺度拟合：标准器已把 RMS 半径钉成 1，再拟合尺度就违反"同尺寸同坐标系"），粗扫 3° → 0.25° 精扫。**它在排名读出之后才跑，因此动不了分数与名次**；`__all__` 只有三个符号，`ast` 解析出的 import 集合 ⊆ `{__future__, hashlib, typing, collections.abc, numpy, scipy.spatial.distance, earthglyph.retrieval.perceptual_methods}` → 结构上不可能偷用某一臂 |
+| 两类图（A2 要求） | ✅ `unaligned`（候选按标准器存储原样画出，允许评审脑内旋转，注明"朝向不计分"）与 `display_aligned`（四臂候选统一用同一个展示拟合摆到查询上，页脚原文写明"该拟合不属于 E0..E3、只改图像"）。同一设置内**所有面板共用一个方形框**（实测 T2 `±1.937`、T3 `±1.897`，由 `frame_for()` 取全部被画轮廓的最大 `\|坐标\|×1.08`），`aspect="equal"`，不重采样、不平滑、不缩放 |
+| 盲评页（A3 八条） | ✅ 每组 = 查询 + 四臂真实结果；臂名隐藏、A/B/C/D 由 `default_rng(20261107)` 按 (setting, query, rank) **逐组独立**置换；距离 / REL / 族 / 来源全部隐藏，只保留查询码、候选码、名次、字母；映射另存 `blind_mapping.json`（`reveal_rule`：写完 `visual_review_scores.csv` 之前不得打开）；渲染对四臂**逐字节同规则**（一个填色、一个线宽、一个框、无臂专属样式）；候选形状未被修改（只刚体旋转，`pdist` 不变，测试 `TestRigidOnly` 钉住） |
+| 不透明编码 | ✅ `Q##` / `C####` 按**排序后的 id** 分配，故跨运行稳定；同一候选在 T2/T3 共用一个码。`item_id` 不上图，因为它编码族与角色（`qd-star-variant-02` = 星族 + 已标相关变体） |
+| 材料规模 | 180 组（18 查询 × {T2,T3} × Top-5）× 4 臂 = **720 个待评单元**，两套视图 → `visual_review_template.csv` **1 440 行**，全部 `status=pending_review`、评分列全空。字母-臂均衡核验：每设置每臂恰好 90 次，单一字母最多承载某臂 35/90（E3→D, T2）→ 没有"永远是 B"这类可反推的规律 |
+| 产物 | ✅ `experiments/p0_perceptual_probe/checkpoint_d/` 40 个生成文件 / 13 414 479 B（另加本检查点说明 `notes.md`）：7 张 `fair_*_t2.png`（带标签、左右双块对照）、14 张 `blind_{族}_{设置}.png`（盲评正文，display_aligned）、14 张 `blind_unaligned_{族}_{设置}.png`（同盲评的 unaligned 参照）、2 张 `blind_review_{t2,t3}.png`（单页总览）、`blind_mapping.json`、`visual_review_template.csv`、`display_poses.json`（439 条拟合缓存，按 (查询,候选) 字节 sha 校验，库变了不会命中旧姿态）；每个文件的读法与"不能读成什么"写在 [`checkpoint_d/notes.md`](../experiments/p0_perceptual_probe/checkpoint_d/notes.md) §D1.2 |
+| C 的产物 | ✅ **只读**：`results.csv`（sha256 `ecf5bd45…`，926 636 B）与 `labels.json`（`26e444ce…`，118 796 B）由 `blind_mapping.json.inputs` 记哈希；`metrics.json` / `figures_manifest.json` / `notes.md` / 24 张 C 图与 `data/index` 未触碰，无覆盖 |
+| 自动化测试 | ✅ `pytest -o addopts="" -q` → **643 passed**（+22：`test_display_alignment.py` 11 项含"只刚体/能恢复已知 37° 旋转/圆无法更优/缓存命中与失效/不依赖四臂/公开 API"，`test_blind_review.py` 11 项含"每组每臂恰一字母/同 seed 复现且换 seed 变化/组间独立置换/不发明不丢候选/码不透明且稳定/表序错乱即报错/缺格跳过不补/一设置一框/未加载轮廓即报错/模板 8 行且无臂列"）· `ruff check .` All checks passed · `mypy` no issues in 32 source files |
+| 确定性核验 | ✅ 默认参数连跑两次到两个全新目录：37 张 PNG **md5 全同**、`visual_review_template.csv` **字节相同**、`blind_mapping.json` 除 `generated_at_utc` 外相同；再跑第三次写回 `checkpoint_d/`，与全新目录产物 md5 全同 → 入库字节 = 默认命令产物（先前草稿用的是一组更低的 DPI 手旗，已作废重生成，避免"复现命令"与产物不符） |
+
+**D1 能主张的**：视觉材料已公平化且可盲评，材料本身可复现（种子 20261107 + 输入哈希 + 基线 commit `2b5cc966`）。
+**D1 不能主张的**：`visual_review_template.csv` 是**空的**，本轮**没有**任何视觉分数；`display_aligned` 的
+重叠度好看**不等于**该臂检索得准（拟合不属于任何臂）；受控图案不是真实地貌。
+**下一步 = D2**：E0–E3 逐臂诊断（E1 心形/旋转/归一化漂移 + 固定查询与图库的特征组消融、E2 零事件地板之后的
+具体失败与 DP 对应、E3 vs E0 逐查询全对照与耗时分解）+ `diagnostic_cases.png`；视觉能力可用则按 B2 做
+`AI_visual_review`（先定标准、只读像素、不反复重评到某臂胜出）。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
@@ -391,6 +414,27 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   + `1a73d6e`（`data:` 28 个产物文件，17 MiB，单文件最大 926 636 B < 1 MiB 门槛），推送 `78915ba..1a73d6e main -> main`，推送后核验
   `git ls-remote origin` = `1a73d6e678ce5eea6d08d2fd274119d87d4ebeea` = `git rev-parse HEAD`；本轮文档在紧随的 `docs:` 提交里（其自身 sha 写不进本行，沿用 B 的处理，不再另立检查点）。
   后续两个 `docs:` 提交：`17e2ea8`（C 收尾文档）与 **`f3e474c`（新增 notes.md §13.5.1「结果图像怎么读」：行/列/颜色/叠加环逐条语义 + 页脚原文 + 人工检查顺序，颜色值以脚本常量为准，附 `grep` 核验命令；TASKS 的"对比图"行与 experiment_log 同步指向该节）**。推送 `17e2ea8..f3e474c main -> main`，推送后核验 `git ls-remote origin refs/heads/main` = `f3e474c94c107173f7412690a43836fb45761598` = `git rev-parse HEAD`、`git status --short` 无输出；提交前 gate：`pytest -o addopts="" -q` **621 passed in 26.35 s** · `ruff check .` All checks passed · `mypy` no issues in 31 source files（纯文档改动，未动代码与产物）。本行自身落在紧随的下一个 `docs:` 提交里，同 B 的处理，不再另立检查点。
+- 复现命令与证据（P0-4.5 · Checkpoint D · D1）：**一条默认命令即可重建全部材料**
+  `python scripts/blind_perceptual_review.py --figures fair,blind,blind_unaligned`
+  （其余全用脚本默认：`--gallery-dir experiments/p0_perceptual_probe --index data/index
+  --out-dir experiments/p0_perceptual_probe/checkpoint_d --settings T2,T3 --top 5 --fair-top 3
+  --fair-settings T2 --dpi 170 --fair-dpi 150 --unaligned-dpi 130 --overview-dpi 120
+  --seed 20261107 --blind-columns 3`；本机墙钟 58 s，含从零重扫 439 条展示姿态）。
+  提交前 gate：`pytest -o addopts="" -q` → **643 passed**（+22）· `ruff check .` All checks passed ·
+  `mypy` no issues in 32 source files。
+  确定性：两次全新目录连跑 → 37 张 PNG md5 全同、`visual_review_template.csv` 字节相同、
+  `blind_mapping.json` 除 `generated_at_utc` 外相同；第三次写回 `checkpoint_d/` 后与全新目录产物
+  md5 仍全同 → **入库字节 = 默认命令产物**（首稿曾用一组更低 DPI 的手旗，与默认命令不符，已作废重生成）。
+  产物 40 文件 / 13 414 479 B；关键哈希 `blind_mapping.json` `5857ab02…`、
+  `visual_review_template.csv` `94d0babe…`、`display_poses.json` `4b289a0c…`、
+  `blind_review_t2.png` `c26d4c8d…`、`blind_review_t3.png` `3b107fe3…`。
+  只读输入哈希（由 `blind_mapping.json.inputs` 自证）：`results.csv` `ecf5bd45…` / `labels.json` `26e444ce…`，
+  与 §10 的 C / A 台账一致 → C 的指标与结果**未被覆盖**。
+  Git 检查点：`16c7d59`（`exp:` 展示对齐器 + 盲评材料生成器 + 2 个测试文件 22 项）+
+  **`3e8229c`**（`data:` `checkpoint_d/` 40 文件 / 13 414 479 B，其中 2 张单页总览 1 324 295 B 与
+  1 350 489 B 超过 1 MiB，理由写在提交信息里：它们是"一页看完一个设置全部 90 组"的入口，
+  分页只会增加文件数不增加信息；C 的同类交付是 17 MiB PNG）。本轮文档在紧随的 `docs:` 提交里
+  （其自身 sha 写不进本行，沿用 A/B/C 的处理，不再另立检查点）。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
@@ -403,7 +447,9 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   **Checkpoint B（E1/E2/E3 三臂 + 四臂评分契约 + POLICY 数字重跑脚本，`5a9f1bc` / `1b8461c` /
   `1696873` / `3ababaf` / `78915ba`）** 与 **Checkpoint C（四臂同集 T1/T2/T3 评价 + 24 张对比图 +
   结果文件 + 表格打印脚本，`48ec6fc` + `05c50b6`）** 均已完成；
-  **Checkpoint D（T1/T2/T3 分开解释 + 不变性探针 + ≥3 人盲评 + 结论与失败归因）尚未开始**。
+  **Checkpoint D 进行中**：**D1（公平展示对齐器 + 两类视图 + 720 单元盲评材料 + 空评分表）已完成**；
+  D2（E0–E3 逐臂诊断 + `diagnostic_cases.png` + 视觉复核）、D3（E0 粗筛 + E3 精排窗口消融）、
+  D4（结论与文档）**尚未完成**。
   B 遗留的**测量学**约束在 C 里逐条固定并留下证据（D49）：E1 归一化改为在冻结 179 成员语料上
   一次拟合（跨设置可比，代价是真实索引 0.5% 描述子单元越界，已实测）；E3 固定
   `d(query, candidate)`；E1 固定 `orientation="canonical"`。**仍未解决**：E1 的各向同性回退

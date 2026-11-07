@@ -264,3 +264,28 @@ mypy                             # Success: no issues found in 31 source files
 并把核对写成断言（`test_the_lookalike_column_is_filled_for_e0_whatever_arms_are_asked_for`
 在修复前的提交上确实失败）。因此 C 的表格全部由 `report_checkpoint_c.py` 从产物打印，
 文档不手抄（D48/D49）。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint D · D1：公平展示 + 可盲评材料）
+
+```bash
+# 前置：C 的产物必须已在（D1 只读 results.csv / labels.json / gallery.jsonl / data/index）
+python scripts/blind_perceptual_review.py --figures fair,blind,blind_unaligned   # 本机墙钟 58 s
+pytest -o addopts="" -q      # 643 passed（+22：display_alignment 11 + blind_review 11）
+ruff check .                 # All checks passed
+mypy                         # Success: no issues found in 32 source files
+```
+
+- 随机性：**只有一个种子** `--seed 20261107`，且只用于**盲评字母的置换**
+  （`default_rng(seed)` 后按 (setting, query, rank) 排序逐组 `permutation`）。形状的几何、
+  排名、距离一律不经过随机数；展示拟合是确定性的粗扫 3° → 精扫 0.25°。
+- 确定性核验：默认参数连跑 **两次到两个全新目录** → 37 张 PNG 的 md5 全同、
+  `visual_review_template.csv` 字节相同、`blind_mapping.json` 除 `generated_at_utc` 外相同；
+  第三次写回 `checkpoint_d/` 与全新目录产物 md5 仍全同。
+  **为什么需要这一条**：首稿产物是用一组更低的 DPI **命令行手旗**画出来的（11 650 934 B），
+  而脚本默认已是另一组值（13 082 441 B）——"复现命令"与入库字节不符就等于不可复现，
+  所以整目录按默认参数作废重生成，而不是把当时的手旗抄进文档（手旗已不可考，抄即伪造）。
+- 本轮**没有运行任何检索评价**：`results.csv` 无新行、`metrics.json` 未变；D1 读排名、画图像，
+  不产生也不修改任何分数。
+- Git 检查点：`16c7d59`（`exp:` 代码 + 22 项测试）→ `3e8229c`（`data:` 40 个材料文件）→ 本行所在
+  的 `docs:` 提交（`checkpoint_d/notes.md` + TASKS + 本日志）。C 的 `results.csv` / `metrics.json` /
+  `figures_manifest.json` / 24 张图与 `data/index` 在本轮**只读**，未被覆盖。
