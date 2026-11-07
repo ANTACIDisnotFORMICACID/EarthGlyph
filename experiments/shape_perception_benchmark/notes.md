@@ -106,3 +106,84 @@ Per-member sha256 values are in `dataset_manifest.json`.
 - 2D Shape Structure part annotations: not acquired.
 
 Commit sha for this checkpoint is recorded in `docs/TASKS.md`.
+
+---
+
+## Checkpoint 2 — data loaders and unified retrieval (2026-11-07)
+
+### Built
+
+- `earthglyph/shape_benchmark/datasets.py` — H1 / H2 / MPEG-7 loaders. Each shape carries
+  both the shared 128-point algorithm contract (`points`) and its original published pose
+  (`display_points`, figures only, never ranked on).
+- `earthglyph/shape_benchmark/retrieval.py` — `Gallery` (per-arm corpora precomputed once)
+  and `search_shape(query, gallery, method, top_k=10, exclude=...)`. Returns the **full**
+  ranking, not just Top-K, plus per-candidate distances and wall-clock time.
+- `scripts/search_shape_benchmark.py` — the required CLI. `--gallery` accepts `mpeg7`,
+  `h1`, or an image directory; `--query` accepts an image path or a gallery shape_id.
+- `tests/test_shape_benchmark.py` — 18 tests. The Range reader is tested against a local
+  HTTP server that actually honours `Range`, including a 1 MB member that must *not* be
+  fetched. Dataset tests skip when the cache is absent so the suite runs offline.
+
+### Findings
+
+**F8 — The published contours need explicit ring closure.**
+`contour_from_points(closed=True)` refused the H1 contours: pair 0's wrap chord is 0.196 of
+its RMS radius, over the sketch loader's 0.15 open-stroke limit. Investigated rather than
+loosened the guard: the median step is 0.0124 while the wrap chord is 0.0950, i.e. ~7.6
+steps, because the published sampling is non-uniform (step range 0.004–0.114). These are
+closed polygons that MATLAB `patch` seals implicitly. Repeating the first vertex states
+that closure explicitly; **500/500 H1 and 15/15 H2** contours then standardize cleanly.
+The sketch guard was left untouched — it is correct for user sketches.
+
+**F9 — MPEG-7 polarity needs no manual inversion.**
+`_binary_mask` detects polarity from the border median, so the white-on-black GIFs work
+as-is. Verified on all 1400: **1398 extract, 2 genuinely fail** (`pocket-11`, `pocket-12`
+each contain two disconnected blobs). Both are recorded in an exclusion ledger and
+returned by the loader rather than silently repaired. Gallery = 1398 shapes / 70 classes.
+
+**F10 — E3's cost is query-side, so descriptor caching does not rescue it.**
+Measured on 200 candidates: `build_library_descriptors` 0.08 s, but scoring still
+41.9 ms/candidate, because the 24-rotation × Hungarian assignment runs per query.
+E1 is the opposite: with a supplied corpus normalizer and cached features, scoring 200
+candidates drops to 0.01 s. E0 is 0.1 ms/candidate.
+
+*Consequence for the design:* the human-rating experiment (D1) computes only the **250
+pairs that were actually rated**, via `pair_distance`, instead of ranking 500 shapes 250
+times. Full-gallery ranking is reserved for the retrieval experiments (D2–D4).
+
+**F11 — E1 needs one corpus normalizer, fitted once.**
+`perceptual_features.score_library` self-fits a minmax normalizer on whatever library it
+is handed when none is supplied. That would make distances incomparable across queries and
+across exclusion conditions. `Gallery` therefore fits one normalizer on the full candidate
+set and passes it explicitly to every call.
+
+**F12 — `rank_order` rejects non-finite distances.**
+Excluded candidates are held as `+inf` to keep the distance array gallery-aligned, so
+ranking is done on the finite subset and mapped back to gallery indices. Stable
+tie-breaking is preserved.
+
+### Fairness contract
+
+E0 / E1 / E3 all receive the identical 128-point centred/unit-RMS/CCW ring and the identical
+candidate set. S0 is different in kind and says so: it consumes the authors' published
+22-D coordinates, produced by their own pipeline (384×2 min-max contour, or the KerNet2
+40×40 image route for H2). No attempt is made to force S0 onto the unified preprocessing,
+because that would break the official input contract. S0 is unavailable on MPEG-7 and
+raises an explicit error rather than returning a fabricated score.
+
+### Verify
+
+```bash
+.venv/Scripts/python.exe -m pytest -q          # 744 passed
+.venv/Scripts/python.exe -m ruff check .       # All checks passed
+.venv/Scripts/python.exe -m mypy               # no issues in 36 source files
+.venv/Scripts/python.exe scripts/search_shape_benchmark.py --query mpeg7_Heart-1 --gallery mpeg7 --method E0 --top-k 5
+.venv/Scripts/python.exe scripts/search_shape_benchmark.py --query h1_0_a --gallery h1 --method S0 --top-k 4
+```
+
+The E0 call returns Heart-1 then Heart-6/8/11/19 (all same class); the S0 call returns
+`h1_0_a` at distance 0 and its rated partner `h1_0_b` at 0.71253, matching the published
+`dist` field exactly.
+
+Commit sha for this checkpoint is recorded in `docs/TASKS.md`.
