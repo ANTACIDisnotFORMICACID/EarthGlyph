@@ -289,3 +289,49 @@ mypy                         # Success: no issues found in 32 source files
 - Git 检查点：`16c7d59`（`exp:` 代码 + 22 项测试）→ `3e8229c`（`data:` 40 个材料文件）→ 本行所在
   的 `docs:` 提交（`checkpoint_d/notes.md` + TASKS + 本日志）。C 的 `results.csv` / `metrics.json` /
   `figures_manifest.json` / 24 张图与 `data/index` 在本轮**只读**，未被覆盖。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint D · D2：E0–E3 逐臂归因 + 模型辅助视觉复核）
+
+```bash
+# 前置：C 的 results.csv / metrics.json / labels.json / gallery.jsonl 与 D1 的盲评材料必须已在（本轮只读）
+python scripts/diagnose_perceptual_arms.py            # 入库那次 564 s（e1 267.6 s + rotation 284.4 s 占大头）
+python scripts/visual_review_report.py                # 本机 5.9 s：读盲评页分数表 → scores.csv / summary.json / examples.png（连跑两次三个产物 md5 全同）
+pytest -o addopts="" -q      # 701 passed（+58：test_arm_diagnostics 33 + test_visual_review_report 25）
+ruff check .                 # All checks passed
+mypy                         # Success: no issues found in 32 source files
+```
+
+- **本轮没有重新评分、没有重新排名**：`arm_diagnostics.json` 里所有距离与名次都从 C 的
+  `results.csv` 读出来（`frozen_rankings_read_not_recomputed = true`），只有两处例外且都写进产物：
+  E1 的特征分组消融（查询与图库冻结、不调权重）和 D3 之前的耗时分解。
+- **视觉分是 `AI_visual_review`，不是真人实验**：500 格（T2 全部 18 查询 × Top-5 × 4 字母 = 360，
+  加 T3 每族 1 个代表查询 = 140）由模型**读盲评 PNG 像素**打出，评分时 `blind_mapping.json` 未打开，
+  打完才写 `visual_review_summary.json`，之后**没有重打任何一格**（`read_order` 字段记录这个顺序）。
+  `unaligned` 视图与 T3 其余查询**未评**，模板里仍是 `pending_review`。
+  口径列（`key_structure_preserved` / `obvious_error` / `low_confidence`）是**规则不是观察**，
+  规则写在 `derived_columns_are_rules_not_observations` 里，其中低置信列由
+  `low_confidence_audit` 证明"声明的 5 个难组全部已被机械规则覆盖"，不是手设。
+- **本轮最重要的新事实是材料缺陷，不是任何臂的胜负**：图库 179 成员里 11 组 / 31 个成员的点列
+  **逐位相同**（sha256 与 `origin_ref` 两条独立读法给出同一分组，`geometric_and_provenance_reads_agree
+  = true`）；40 个同形对只有 6 对在 `labels.json` 声明过。两个查询（`qd-circle-query-01`、
+  `qd-cloud-query-01`）的 T2 库里还留着与自己逐位相同的行——所以"T2 已剔除目标"只对 id 成立。
+  它把 E0 的 11 行"不可区分硬负例"减弱为 **3 个真正不同的形状比较**，也把 E2 的 13 行零距离 Top
+  命中拆成 **3 行同形 + 10 行确实不同**（E2 的结论不受影响）。
+- **本轮撤回两条上一版结论**：① "E0 的距离标尺是反的"—— `count_indistinguishable_relevant = 0`
+  被 `labels.json.rule` 的定义保证，按构造必然成立，只是标注/打分一致性检查；
+  ② "E0 把 6 个族的内部结构看成一样"——那 6 行是同一条 `circle({"radius": 1.0})` 轮廓被登记 6 次。
+  另撤回 ③ "DP 系统性偏好删除"：7 个可比查询里删角只赢 2 次。
+- **可复现的是分数、名次与角度极差，不是秒**：E3 `sample` 模式同一项三次运行 7.42 / 8.28 / 7.96 s，
+  入库这一次是 7.963 s / canonical 0.414 s / 旋转网格占 94.67 % / 比 19.24×。文档只抄入库产物里的数字。
+- **T1 那个 rank 4 已定位，不是实现错误**：`syn-blob-query` 自距离恰好 0.0，T1 库恰好 5 行同为 0.0
+  且显著事件数全为 0，名次由 `np.argsort(..., kind="stable")` 的行序决定（规则 D42）。
+  在定位之前不写"代码 bug"，定位之后也不写"已修复"——那是图库与标注的性质，不是缺陷。
+- Git 检查点：`c3ca33ee`（`exp:` 两个 runner + 58 项测试）→ `33e374c3`（`data:` 5 个产物，
+  共 1 260 993 B，最大 726 515 B，无一超过 1 MiB）→ 本行所在的 `docs:` 提交
+  （`checkpoint_d/notes.md` + TASKS + 本日志）。
+  C 的 `results.csv` / `metrics.json` / `figures_manifest.json` / 24 张图与 D1 的 40 个材料文件
+  在本轮**只读**，未被覆盖；`data/index` 只被 E1 漂移检查读取。
+- **未完成项（交给 D3/D4，不在本轮假装做完）**：E0 粗筛 + E3 精排的两段式混合检索器**一行未跑**，
+  所以"窗口 20/50/100/200 的 Top-10 覆盖率"和"E0+E3 是否够快"目前**没有任何实测数字**；
+  真人盲评仍未做（P0-6 需要 ≥10 真人查询）；`unaligned` 视图的评分；E1 归一化在真实地貌上的
+  重拟合（本轮只测量越界比例，没有重训）。

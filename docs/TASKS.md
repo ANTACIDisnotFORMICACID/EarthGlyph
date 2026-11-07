@@ -252,6 +252,41 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 具体失败与 DP 对应、E3 vs E0 逐查询全对照与耗时分解）+ `diagnostic_cases.png`；视觉能力可用则按 B2 做
 `AI_visual_review`（先定标准、只读像素、不反复重评到某臂胜出）。
 
+### Checkpoint D · D2：视觉复核 + E0–E3 逐臂归因 ✅（2026-11-07）
+
+| 项 | 状态 |
+|----|------|
+| 任务边界 | D2 只做「读 C 的排名、解释名次、按 B2 做模型视觉复核」。**未**改任何臂的产品代码、**未**新增检索评价（`results.csv` / `metrics.json` 未动一行）、**未**进入 P0-5/P0-6/Web、**未**改正式默认算法 |
+| 归因运行器 | ✅ [`scripts/diagnose_perceptual_arms.py`](../scripts/diagnose_perceptual_arms.py)：`frozen_rankings_read_not_recomputed: true`，全部名次读 C 的 `results.csv`；`arm_params` / `fit_gallery_normalizer` / `build_library` / `load_gallery` **从 C 的 runner import**（`__module__` 由测试钉住），因此 D2 不可能与 C 用不同参数而不自知。六个部分 `material,e0,e1,e2,e3,rotation`，默认全跑 |
+| 视觉复核器 | ✅ [`scripts/visual_review_report.py`](../scripts/visual_review_report.py)：评分**先写死在 `SCORES` 表里**，之后才打开 `blind_mapping.json`；密钥与模板逐字母对账（四个字母全查），对不上直接 `SystemExit`。产物标 `reviewer = AI_visual_review`，**不是**真人受试者 |
+| **材料缺陷（本轮最重要的新发现）** | ⚠️ 图库 179 成员里有 **11 组 / 31 个成员是逐位相同的轮廓**（点列 sha256 与 `origin_ref` 两条独立读法给出**完全相同**的分组）。40 个同形对里只有 **6 对**在 `labels.json.near_duplicate_pairs` 声明过 → **34 对未声明**。`circle({"radius": 1.0})` 一条配方被登记成 **7 个族**；一张真人 QuickDraw 圆（`key_id 5064695922819072`）同时是 band 硬负例、blob 变体、star 硬负例**和 blob 自己的查询**。后果：`qd-circle-query-01` / `qd-cloud-query-01` 的 T2 库里留着与自己逐位相同的行，T2「已剔除目标」的保证只对 id 成立、对形状不成立 |
+| 这条缺陷改变了什么归因 | 凡是**跨 id 的 `d = 0.0`** 先查同形：E0 的 11 行"不可区分硬负例"= 3 行同形 + 8 行不同轮廓，**去重后只剩 5 个形状比较、其中 3 个真正不同**；E2 的 13 行 Top-5 零距离 = 3 行同形 + **10 行确实是不同形状且候选事件数全为 0**（E2 的结论不变，E0 的结论减弱 11 → 3） |
+| **本轮撤回的两条上一版结论** | ① ~~"E0 的距离标尺是反的（0.02 带内相关项 0 个）"~~ —— `labels.json.rule` 在定义 relevant 时就排除了"对齐距离 ≤ 0.02 的近重复"，`count_indistinguishable_relevant = 0` **按构造必然成立**，只是标注/打分一致性检查；② ~~"E0 把 6 个族的内部结构看成一样"~~ —— 那 6 行是同一条轮廓被登记 6 次 |
+| C1 · E0 | T2 Top-1 相关率 0.667；简单族（band/blob/irregular，8 查询）0.375；`syn-*` 7 个查询 6 个判对（d ≤ 0.106）；视觉 Top-1 15/18 组 3 分。真正的失效模式只剩「不改变外包络的内部改造」，证据量 3 个比较 |
+| C2 · E1 | `ph-heart-fill` Top-1 = `qd-circle-02`（真人圆），尖头心形掉到 57 / 49；分组距离**平方相加**，`curvature` 45.8 % + `histogram` 50.5 % = **平方距离 96.4 %**。冻结消融（查询与图库不动、不调权重）：去掉 `moments` 或 `curvature` 反而 +0.056，`fourier` 是唯一不能去的组（−0.111），`curvature` 单独用最差（0.444）。归一化漂移：839 条真实地貌上 407 / 76 349 格越界 = **0.5331 %**，最严重 `curv00_w32_concave_share`（4.7676 %），自身语料 0 越界 |
+| C3 · E2 | (a) T1 那个 rank 4 = `syn-blob-query`：自距离恰好 0.0，T1 库恰好 5 行同为 0.0 且显著事件数全 0，名次由 `stable` 排序行序决定 → **不是实现错误**。(b) 零事件普查：1018 形状 19 个（1.87 %）零事件。(c) 丢一个 0.3 rad 凸角 = 0.0477（"不可区分"阈值的 2.4 倍）。(c-2) **删角 vs 老实匹配**：7 个可比查询里删角只赢 **2 次**（心形 +0.0201、`syn-irregular-query` +0.1534），输 5 次 → 撤回"DP 系统性偏好删除"，改成"价格低到足以在个别查询翻盘，心形正是其一"。(d) 心形唯一的凹事件在 Top-3 全部消失。(e) 心形/星形事件**只存在于最细窗口 1/64**，粗一档即归零 |
+| C4 · E3 vs E0 | 逐查询第一相关名次：E3 更好 **4** / 更差 **1** / 平 **13**（`qd-circle-query-01` 上 E0 4 vs E3 5）→ 增益是**局部的**，集中在 E0 完全失败的查询。耗时（入库实测）：`orientation="sample"` 7.963 s vs `canonical` 0.414 s vs 单步 0.424 s → **旋转网格占 94.67 %**、比 19.24×、每候选 0.0450 s |
+| 不变性探针 | 同一形状转一个角度再查：E0 名次 spread 0（完全不变）、E1 0.056（1 次翻转）、E2 0.556（最大 6）、E3 0.667（3 查询抽样） |
+| 视觉复核范围（先声明再给数） | 已评 **500 格** = T2 全部 18 查询 × Top-5 × 4 字母（360）+ T3 每族 1 个代表查询（140）。**未评**：`unaligned` 视图全部、T3 其余查询 → 模板里仍是 `pending_review`，任何数字都不覆盖它们 |
+| T2 结果（`AI_visual_review`） | Top-1 / Top-3 / Top-5 均分、NDCG@5、明显错误率：E0 2.667 / 2.352 / 2.278 / 0.969 / 23.3 %；**E1 2.778 / 2.630 / 2.500 / 0.977 / 15.6 %**；E2 2.222 / 2.111 / 2.044 / 0.892 / 30.0 %；E3 2.722 / 2.593 / 2.467 / 0.973 / 17.8 % |
+| T3 结果（7 个代表查询） | E2 最差（1.571 / 1.629，明显错误率 **48.6 %**），E3 最好（2.429 / 2.314，NDCG@5 0.998） |
+| 三个会被读错的地方 | ① **低置信率四臂恒等**（T2 33.3 % = 30/90、T3 34.3 % = 12/35）是构造性的：一组要么低置信要么不是，每臂在每组恰好一格 → 该列对臂间比较**零信息**；② T3 族表每族只有 1 查询 5 格，**不可用**作族级结论；③ NDCG@5 在整组 0 分时按定义记 1.0，会**抬高**彻底失败的臂 |
+| `low_confidence` 的可核验性 | 由 `hard_groups_audit()` 输出 `{declared, also_flagged_by_the_rule, flagged_only_by_the_list}`：声明的 5 个难组**全部**已被机械规则（四个不同候选同分）覆盖，`flagged_only_by_the_list = []` → 该列**不是手设**。测试 `test_the_declared_hard_list_adds_no_hand_set_flag` 钉住 |
+| 距离 ≠ 视觉分（实测） | 四臂 Pearson(距离, Top-1 分) = E0 −0.747 / E1 −0.625 / E2 −0.303 / E3 −0.560（n=18）：方向对、强度不足以换算，且四臂量纲不同（E1 的 Top-1 距离最大 1.834）。E0 的 Top-1 从 `d=0.000000`（判 3 分）到 `d=0.410148`（判 0 分）都有 |
+| 产物 | ✅ `checkpoint_d/`：`arm_diagnostics.json`（六部分 + `material` 交叉核验）、`diagnostic_cases.png`（5 面板，**重复轮廓面板排在最前**，E0 面板按形状去重）、`visual_review_scores.csv`（500 行逐格原始分）、`visual_review_summary.json`（含 `low_confidence_audit` 与口径声明）、`visual_review_examples.png`（每臂最好+最差，两端都画） |
+| 自动化测试 | ✅ `pytest -o addopts="" -q` → **701 passed**（+58：`test_arm_diagnostics.py` 33 项 + `test_visual_review_report.py` 25 项，含"同形组真的同形 / provenance 与哈希两条读法必须一致 / 零距离的两种原因必须拆开 / 删角表必须双向 / 盲评四字母全对账 / 低置信列非手设"）· `ruff check .` All checks passed · `mypy` no issues in 32 source files |
+| 复现 | 归因 `python scripts/diagnose_perceptual_arms.py`（入库那次墙钟合计 564 s ≈ 9.4 min：e1 267.6 s、rotation 284.4 s 占大头）；视觉复核 `python scripts/visual_review_report.py` |
+
+**D2 能主张的**：四个臂的失效模式各自定位到具体查询、具体源码常量与具体形状对，可复现；
+E2 的 T1 rank-4 是稳定排序 tie-break 而非实现错误；E3 相对 E0 的增益是局部的；
+材料缺陷（11 组同形轮廓）是独立于任何臂的事实。
+**D2 不能主张的**：`AI_visual_review` 不是真人实验；0.5331 % 越界不等于"E1 在真实地貌上失效"；
+~19× 旋转开销不可忽略；消融 Δ 不等于"改进后的 E1"；T3 族表与 3 查询旋转抽样不是结论；
+`unaligned` 视图下结论是否相同**未知**（未评）。
+**下一步 = D3**：E0 粗筛 + E3 精排的实验型混合检索器（窗口 20/50/100/200/全库，
+Full-E3 Top-5/Top-10 覆盖率、T2 NDCG@10 / MRR、T3 变体名次、E0 粗筛与 E3 精排分段耗时、
+被粗筛排除的候选台账），**不改正式默认算法**。
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**
