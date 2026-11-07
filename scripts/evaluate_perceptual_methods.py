@@ -657,6 +657,9 @@ def main(argv: list[str] | None = None) -> int:
     # own near_max_align, the same number the builder used to exclude near-duplicates.
     near_align_max = float(labels["near_max_align"])
     lookalikes: dict[str, dict[str, set[str]]] = {setting: {} for setting in settings}
+    # E0 first whatever --arms says, because the lookalike set that annotates every arm's
+    # rows is measured from E0's alignment.
+    arm_order = (["E0"] if "E0" in arms else []) + [arm for arm in arms if arm != "E0"]
     started_run = time.perf_counter()
     for setting in settings:
         for query_id in query_ids:
@@ -668,7 +671,7 @@ def main(argv: list[str] | None = None) -> int:
             missing = relevant - set(library.ids)
             if missing:
                 raise FrozenInputError(f"{setting}/{query_id}: labels promise {sorted(missing)}")
-            for arm in arms:
+            for arm in arm_order:
                 run = score_run(
                     arm,
                     query_id,
@@ -679,6 +682,16 @@ def main(argv: list[str] | None = None) -> int:
                     relevant=relevant,
                     exclude_from_metrics={query_id} if setting == "T1" else (),
                 )
+                if arm == "E0":
+                    # Set before any row is written: this set is what the CSV's
+                    # align_indistinguishable_from_query column means, and it is defined by
+                    # E0's own alignment distance, so scoring E0 after another arm would
+                    # leave E0's rows — the rows that need the marker most — unmarked.
+                    lookalikes[setting][query_id] = {
+                        library.ids[index]
+                        for index in range(len(library))
+                        if run["distances"][index] <= near_align_max
+                    } - relevant - {query_id}
                 rows.extend(
                     result_rows(
                         setting,
@@ -694,12 +707,6 @@ def main(argv: list[str] | None = None) -> int:
                 slot = per_cell[setting].setdefault(
                     arm, {"per_query": {}, "blocks": [], "slots": []}
                 )
-                if arm == "E0":
-                    lookalikes[setting][query_id] = {
-                        library.ids[index]
-                        for index in range(len(library))
-                        if run["distances"][index] <= near_align_max
-                    } - relevant - {query_id}
                 seen = lookalikes[setting].get(query_id, set())
                 top1_id = library.ids[int(run["ranked_scored"][0])]
                 top1_full_id = library.ids[int(run["ranked"][0])]

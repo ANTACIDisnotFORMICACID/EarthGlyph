@@ -345,3 +345,101 @@ def test_the_runner_and_the_doc_reporter_agree_on_the_schema(tmp_path: Path, cap
         assert needle in printed
     for query_id in LABELS["queries"]:
         assert query_id in printed
+
+
+def _lookalike_dataset(tmp_path: Path) -> Path:
+    """A gallery where one hard negative is geometrically the same shape as the query."""
+    near = {
+        "qa": make_item("qa", "star", "query", 1.0),
+        "va": make_item("va", "star", "variant", 1.3),
+        # A ring 0.05% off the query: E0's alignment calls it the same shape, the frozen
+        # label calls it a hard negative.  That disagreement is the whole point.
+        "ha": Item(
+            item_id="ha",
+            family="star",
+            role="hard_negative",
+            origin="synthetic",
+            contour=scaled(CONTOUR_POINTS, 1.0005),
+            metrics={"solidity": 0.9},
+        ),
+    }
+    fake_labels = {
+        "near_max_align": 0.02,
+        "queries": {
+            "qa": {
+                "family": "star",
+                "relevant_variants": ["va"],
+                "library_t1": ["qa", "va", "ha"],
+                "library_t2_full": ["va", "ha"],
+            }
+        },
+    }
+    gallery = tmp_path / "gallery.jsonl"
+    gallery.write_text(
+        "\n".join(
+            json.dumps(
+                {
+                    "item_id": item.item_id,
+                    "family": item.family,
+                    "role": item.role,
+                    "origin": item.origin,
+                    "contour": item.contour.tolist(),
+                    "metrics": item.metrics,
+                }
+            )
+            for item in near.values()
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    labels = tmp_path / "labels.json"
+    labels.write_text(json.dumps(fake_labels), encoding="utf-8")
+    (tmp_path / "dataset_manifest.json").write_text(
+        json.dumps(
+            {
+                "gallery_version": "test",
+                "content_sha256": {
+                    "gallery.jsonl": sha256_of(gallery),
+                    "labels.json": sha256_of(labels),
+                },
+                "totals": {"members": 3},
+                "settings": ["T2"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return tmp_path
+
+
+def test_the_lookalike_column_is_filled_for_e0_whatever_arms_are_asked_for(
+    tmp_path: Path,
+) -> None:
+    """E0 defines the marker, so E0's own rows must carry it even when --arms lists E1 first."""
+    import csv as _csv
+
+    from scripts.evaluate_perceptual_methods import main as run_main
+
+    dataset = _lookalike_dataset(tmp_path)
+    assert run_main(
+        [
+            "--gallery-dir",
+            str(dataset),
+            "--out-dir",
+            str(dataset),
+            "--settings",
+            "T2",
+            "--arms",
+            "E1,E0",
+            "--top",
+            "3",
+            "--skip-e3-cost",
+        ]
+    ) == 0
+    with (dataset / "results.csv").open(encoding="utf-8", newline="") as handle:
+        rows = list(_csv.DictReader(handle))
+    flagged = {row["arm"] for row in rows if row["align_indistinguishable_from_query"] == "1"}
+    assert {"E0", "E1"} <= flagged, sorted(flagged)
+    assert all(row["candidate_id"] == "ha" for row in rows
+               if row["align_indistinguishable_from_query"] == "1")
+    assert all(row["relevant"] == "0" for row in rows
+               if row["align_indistinguishable_from_query"] == "1")
