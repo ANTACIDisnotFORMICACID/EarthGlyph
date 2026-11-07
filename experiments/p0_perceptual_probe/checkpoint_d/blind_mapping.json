@@ -1,0 +1,5526 @@
+{
+ "checkpoint": "D1",
+ "generated_at_utc": "2026-11-07T05:52:05Z",
+ "git_commit": "2b5cc966b31eeab2887adf80363d383176140103",
+ "seed": 20261107,
+ "top": 5,
+ "settings": [
+  "T2",
+  "T3"
+ ],
+ "reveal_rule": "this file is the key.  open it only after visual_review_scores.csv is written; reading it first would make the review a lookup, not a judgement",
+ "inputs": {
+  "results.csv": {
+   "sha256": "ecf5bd452b04513c2b0086a2e77c780d60a0d92cf083a762a92ae2650ea35b16",
+   "bytes": 926636
+  },
+  "labels.json": {
+   "sha256": "26e444ce2299c414c6deac7d8a260f4597360bcbe35d65dde2e66d2dbcb3b213",
+   "bytes": 118796
+  }
+ },
+ "rendering": {
+  "same_for_every_arm": [
+   "one candidate fill and edge colour",
+   "one line width",
+   "one square frame per setting {'T2': 1.937, 'T3': 1.897}",
+   "no smoothing, no resampling, no per-arm style"
+  ],
+  "hidden_on_the_sheet": [
+   "arm name",
+   "distance",
+   "REL / relevance label",
+   "candidate family and role",
+   "gallery vs landform provenance",
+   "candidate item_id (it encodes family and role)"
+  ],
+  "kept_on_the_sheet": [
+   "query code",
+   "candidate code",
+   "rank position",
+   "letter"
+  ]
+ },
+ "display_alignment": {
+  "module": "earthglyph.retrieval.display_alignment",
+  "cost": "symmetric chamfer, rotation only, coarse 3 deg then 0.25 deg refine",
+  "changes": "the drawing, never a score or a rank",
+  "cache": {
+   "entries": 439,
+   "written": 0
+  }
+ },
+ "query_codes": {
+  "Q01": "ph-circle-fill",
+  "Q02": "ph-heart-fill",
+  "Q03": "ph-lightning-fill",
+  "Q04": "ph-moon-fill",
+  "Q05": "ph-star-fill",
+  "Q06": "ph-tree-structure-fill",
+  "Q07": "qd-circle-query-01",
+  "Q08": "qd-cloud-query-01",
+  "Q09": "qd-lightning-query-01",
+  "Q10": "qd-star-query-01",
+  "Q11": "qd-tree-query-01",
+  "Q12": "syn-band-query",
+  "Q13": "syn-blob-query",
+  "Q14": "syn-crescent-query",
+  "Q15": "syn-forked-query",
+  "Q16": "syn-heart-query",
+  "Q17": "syn-irregular-query",
+  "Q18": "syn-star-query"
+ },
+ "candidate_codes": {
+  "C0001": "05f8c0ed-1ba3-36ff-82c3-bc653abc3c55",
+  "C0002": "06691f6c-2bef-31c5-9e05-001058cb6bfd",
+  "C0003": "089e0867-cd85-32e1-ac32-b87150be9e20",
+  "C0004": "092ee160-86a8-3571-8dd4-a05e9efcdb5e",
+  "C0005": "0aefe975-840c-3800-bc40-e2a9c38ba82e",
+  "C0006": "0bebdfe4-96f3-3cce-b651-9ed98eb9c7db",
+  "C0007": "0c46fd46-4376-3872-ac77-07fa00b9c869",
+  "C0008": "0ecb68a6-0b80-3336-a6fb-cdc64c89a11f",
+  "C0009": "115a02c0-6f82-336a-9635-cfafd1d805c9",
+  "C0010": "15031e1f-7329-3d7b-aee9-a1e42f1a572f",
+  "C0011": "169223b1-585c-3e8e-b871-39ba9d61ea06",
+  "C0012": "16ec4fd3-16fc-30a2-93e7-237ad9bd3de0",
+  "C0013": "1c8772e1-d7b5-3d4e-b4fc-de7e8f65ea3d",
+  "C0014": "1da7c515-eb3a-30b2-a6c0-43774ce4e996",
+  "C0015": "20b4b381-3cd7-3b5e-86bc-550fcb8ad569",
+  "C0016": "23471724-e4e6-390e-9fdc-84e71967289a",
+  "C0017": "23e5d091-b686-315a-b02c-bac4dae2a785",
+  "C0018": "2409f6ad-eaf7-3744-8e63-f20574b94cb0",
+  "C0019": "26259da7-7972-32e7-bd09-e1a84f3aa361",
+  "C0020": "2f0f8875-f697-3cfa-b780-46a94cc7d475",
+  "C0021": "31d8d464-e787-3e42-b86e-410641b213bf",
+  "C0022": "31e39c72-f75a-3887-8fa2-d6596a3fdee3",
+  "C0023": "37c1b2c6-9580-3112-a2ac-0c97fe23273c",
+  "C0024": "387ec174-62c1-3ef3-8895-d6f3b6105eba",
+  "C0025": "38a62979-8019-321f-97a5-45369de55a1c",
+  "C0026": "393ce2b1-e012-316f-be3b-7ae5806d28a1",
+  "C0027": "3a84a3e0-e8d8-3aa8-8416-81b02d15b923",
+  "C0028": "3d38fd2c-4852-38b3-a7c3-2e3d938e0a9a",
+  "C0029": "3dc938ef-088c-3ed0-9485-c7522957f88a",
+  "C0030": "3f657320-1f2d-35ae-a27d-479532473ba5",
+  "C0031": "4454e47e-b4e9-3299-96ee-136f65a6fbed",
+  "C0032": "48e13726-e0b1-3453-ac46-531aa78ee3f0",
+  "C0033": "48ec1614-a5bb-32d9-9637-b250a313f7e5",
+  "C0034": "499ea1cb-3a4b-3278-ad85-b9558d3dab07",
+  "C0035": "526733eb-d25c-3d54-9c89-c0696ac432cf",
+  "C0036": "54445150-7221-3d57-acd0-4d30ebdf442a",
+  "C0037": "56522f1a-c9b9-3847-b43b-60fbf685ea79",
+  "C0038": "569226b6-353e-36ae-9181-fc2295ff0d53",
+  "C0039": "57092dd8-1b2f-3f68-84da-3b65b19d6d56",
+  "C0040": "5a8c9f94-3439-38b6-9135-13e07f7b9402",
+  "C0041": "5f2768df-b3f8-3f3f-b1da-83c11a93bf42",
+  "C0042": "6495a804-6507-3a6a-9ae2-832b35552adc",
+  "C0043": "6842e2b8-ad11-3b03-90c7-a5b4358ddd0e",
+  "C0044": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+  "C0045": "72616317-779f-3b71-93cd-5bc28dab907c",
+  "C0046": "7ebcd259-9665-37a4-8b83-975209313bff",
+  "C0047": "8915ea78-5085-3155-b06a-dc6104c87cbc",
+  "C0048": "8e47393b-2f30-3e44-8879-b10a507a87cb",
+  "C0049": "918be20f-c36a-3763-b41e-fb5df192288c",
+  "C0050": "95b40788-d929-3a49-9451-c3abaffbb04a",
+  "C0051": "9610acf1-d6b8-350f-80b6-7a41f3db7b41",
+  "C0052": "97a7f7c3-6e0e-3416-ba30-98d696ca6f2e",
+  "C0053": "97e4d930-5b79-34f4-8f81-5310e5375581",
+  "C0054": "981b0f52-aed7-3d96-af8e-cb20d247bde6",
+  "C0055": "988b75ca-73f4-32f1-8a0d-dc0c37992cf2",
+  "C0056": "992796ee-b546-38c5-afee-70e4fee9c692",
+  "C0057": "9e9211df-ab8d-3835-84ce-5acf87e3da47",
+  "C0058": "a51b6553-e2c7-3966-9288-88905859e70c",
+  "C0059": "a5a6e0eb-feca-3d10-bbe9-f9aa639c17d3",
+  "C0060": "a73f0c85-0094-3f86-b086-00bf7e4df22f",
+  "C0061": "ab0f156f-56a0-34ca-91fe-6d9cdb75b56a",
+  "C0062": "ac8b3b5d-c1ad-355e-b677-08128167acf0",
+  "C0063": "ad2a58d8-245d-3104-84da-5899dd4dcd90",
+  "C0064": "ad9166ae-b9b4-3ff8-9f61-100311c27c5c",
+  "C0065": "b0f8b28d-434d-3df7-aae5-c0e8aea88c21",
+  "C0066": "b7045019-0984-36b9-bf72-985d85e8d8f9",
+  "C0067": "bd73b2cc-98d4-39f6-a942-3ff31b7380a4",
+  "C0068": "bd9b935f-94f4-3d6e-b67c-e03643d2cc37",
+  "C0069": "bf7514fe-6be9-3ac0-8497-19d906f5e9ad",
+  "C0070": "c163bfee-4890-3d25-b219-8a8c676978f3",
+  "C0071": "c535bbdb-11ea-35ad-9820-2bb0f74bfec2",
+  "C0072": "c5e022a7-1300-3e47-825c-d7b3bebcc63d",
+  "C0073": "c5f0e626-76f9-3f3d-8008-5eb326e726e6",
+  "C0074": "c8085b59-cd53-3972-a281-78cca5d942f5",
+  "C0075": "cd4b7243-224b-3701-bcb0-932aaa25e5be",
+  "C0076": "cdc97179-25a6-31d6-93b4-13ccf6a09b02",
+  "C0077": "ce1037b5-c413-3444-8e8a-df13c7efe491",
+  "C0078": "ce8356a7-37ba-3778-9e70-e1a11baf3664",
+  "C0079": "d0a608fc-c486-36e1-9c31-77f1221f773a",
+  "C0080": "d8e4ed77-fc23-39d0-8573-d90dceb7e7f0",
+  "C0081": "d90df46c-9dc9-3175-944f-89d6d996d39e",
+  "C0082": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+  "C0083": "dcefbcde-8592-31d9-9c53-eb70d9ee0438",
+  "C0084": "e385d08b-feaa-378f-b816-2eead506b5b1",
+  "C0085": "e64c51a3-c2ca-3e4f-bf70-056017ddb4a8",
+  "C0086": "e709f179-c8bd-3049-b453-f2077d786ec3",
+  "C0087": "e74ff7e1-ae19-31bd-b178-0541630825c8",
+  "C0088": "e76def41-a169-3a51-a694-4f559a7c207e",
+  "C0089": "ea04e4d0-12b4-3804-86f8-293ff5115a20",
+  "C0090": "ea56068d-a847-3094-8daf-37c44178b079",
+  "C0091": "f09cc273-e2b4-33eb-9cf1-a1547ed1f21a",
+  "C0092": "f69fa7d4-56cb-39fb-bd96-e30f32038c31",
+  "C0093": "f7faa2bf-f7a3-3ed1-8051-03fc70385c95",
+  "C0094": "fa23f2d7-7917-37f3-94ce-ef0c19759dbb",
+  "C0095": "fb5224d4-f6e2-3118-87d7-cfd6dcd37230",
+  "C0096": "fd87f04c-deb7-3efe-909b-859bdfa0590c",
+  "C0097": "fefa6348-df18-3238-a4b0-a243736e5f9b",
+  "C0098": "ffc02e38-3394-35cf-bdb4-94a9888a291b",
+  "C0099": "ph-circle-fill",
+  "C0100": "ph-clover-fill",
+  "C0101": "ph-drop-fill",
+  "C0102": "ph-heart-break-fill",
+  "C0103": "ph-knife-fill",
+  "C0104": "ph-leaf-fill",
+  "C0105": "ph-moon-fill",
+  "C0106": "ph-square-fill",
+  "C0107": "ph-star-fill",
+  "C0108": "ph-star4-fill",
+  "C0109": "ph-tree-structure-fill",
+  "C0110": "qd-band-circle-01",
+  "C0111": "qd-band-circle-02",
+  "C0112": "qd-band-circle-03",
+  "C0113": "qd-band-circle-04",
+  "C0114": "qd-blob-circle-02",
+  "C0115": "qd-blob-circle-03",
+  "C0116": "qd-blob-circle-04",
+  "C0117": "qd-circle-01",
+  "C0118": "qd-circle-02",
+  "C0119": "qd-circle-04",
+  "C0120": "qd-circle-05",
+  "C0121": "qd-cloud-01",
+  "C0122": "qd-cloud-03",
+  "C0123": "qd-cloud-04",
+  "C0124": "qd-cloud-query-01",
+  "C0125": "qd-diamond-01",
+  "C0126": "qd-diamond-02",
+  "C0127": "qd-diamond-03",
+  "C0128": "qd-fork-01",
+  "C0129": "qd-fork-04",
+  "C0130": "qd-irregular-cloud-01",
+  "C0131": "qd-irregular-cloud-02",
+  "C0132": "qd-irregular-cloud-03",
+  "C0133": "qd-irregular-cloud-04",
+  "C0134": "qd-irregular-cloud-05",
+  "C0135": "qd-leaf-01",
+  "C0136": "qd-leaf-03",
+  "C0137": "qd-leaf-04",
+  "C0138": "qd-lightning-01",
+  "C0139": "qd-lightning-02",
+  "C0140": "qd-lightning-03",
+  "C0141": "qd-lightning-04",
+  "C0142": "qd-lightning-05",
+  "C0143": "qd-lightning-06",
+  "C0144": "qd-moon-02",
+  "C0145": "qd-moon-03",
+  "C0146": "qd-moon-04",
+  "C0147": "qd-moon-06",
+  "C0148": "qd-moon-07",
+  "C0149": "qd-moon-08",
+  "C0150": "qd-palm-02",
+  "C0151": "qd-palm-03",
+  "C0152": "qd-snake-01",
+  "C0153": "qd-snake-02",
+  "C0154": "qd-snake-05",
+  "C0155": "qd-star-01",
+  "C0156": "qd-star-02",
+  "C0157": "qd-star-03",
+  "C0158": "qd-star-04",
+  "C0159": "qd-star-05",
+  "C0160": "qd-star-06",
+  "C0161": "qd-star-07",
+  "C0162": "qd-star-08",
+  "C0163": "qd-star-query-01",
+  "C0164": "qd-tree-02",
+  "C0165": "qd-tree-03",
+  "C0166": "qd-tree-04",
+  "C0167": "qd-tree-05",
+  "C0168": "qd-triangle-02",
+  "C0169": "qd-triangle-03",
+  "C0170": "qd-triangle-04",
+  "C0171": "syn-band-loose",
+  "C0172": "syn-band-query",
+  "C0173": "syn-band-single-turn",
+  "C0174": "syn-band-tight",
+  "C0175": "syn-band-zigzag",
+  "C0176": "syn-blob-circle",
+  "C0177": "syn-blob-e2",
+  "C0178": "syn-blob-query",
+  "C0179": "syn-blob-smooth",
+  "C0180": "syn-blob-square",
+  "C0181": "syn-blob-star5",
+  "C0182": "syn-blob-triangle",
+  "C0183": "syn-circle",
+  "C0184": "syn-circle-band",
+  "C0185": "syn-circle-crescent",
+  "C0186": "syn-circle-forked",
+  "C0187": "syn-circle-heart",
+  "C0188": "syn-crescent-deformed",
+  "C0189": "syn-crescent-fat",
+  "C0190": "syn-crescent-query",
+  "C0191": "syn-crescent-taper",
+  "C0192": "syn-crescent-thin",
+  "C0193": "syn-crescent-turn",
+  "C0194": "syn-egg",
+  "C0195": "syn-ellipse-band",
+  "C0196": "syn-ellipse-e1",
+  "C0197": "syn-forked-four",
+  "C0198": "syn-forked-query",
+  "C0199": "syn-forked-sharp",
+  "C0200": "syn-forked-uneven",
+  "C0201": "syn-heart-bean",
+  "C0202": "syn-heart-deep",
+  "C0203": "syn-heart-kite",
+  "C0204": "syn-heart-lobed-2",
+  "C0205": "syn-heart-lobed-3",
+  "C0206": "syn-heart-lobed-4",
+  "C0207": "syn-heart-point",
+  "C0208": "syn-heart-round",
+  "C0209": "syn-heart-shallow",
+  "C0210": "syn-heart-wide",
+  "C0211": "syn-irregular-a",
+  "C0212": "syn-irregular-b",
+  "C0213": "syn-irregular-c",
+  "C0214": "syn-irregular-ellipse",
+  "C0215": "syn-irregular-silted",
+  "C0216": "syn-semicircle",
+  "C0217": "syn-spade-ish",
+  "C0218": "syn-star-inner-030",
+  "C0219": "syn-star-inner-055",
+  "C0220": "syn-star-jitter",
+  "C0221": "syn-star-lobed-5",
+  "C0222": "syn-star-query",
+  "C0223": "syn-star-rounded",
+  "C0224": "syn-star-soft",
+  "C0225": "syn-teardrop",
+  "C0226": "syn-two-prong",
+  "C0227": "syn-vesica"
+ },
+ "groups": [
+  {
+   "setting": "T2",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-query",
+     "candidate_code": "C0178"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-irregular-silted",
+     "candidate_code": "C0215"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-02",
+     "candidate_code": "C0111"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-04",
+     "candidate_code": "C0113"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-blob-circle-02",
+     "candidate_code": "C0114"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-06",
+     "candidate_code": "C0143"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-diamond-03",
+     "candidate_code": "C0127"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-diamond-01",
+     "candidate_code": "C0125"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-four",
+     "candidate_code": "C0197"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "ph-square-fill",
+     "candidate_code": "C0106"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-forked-four",
+     "candidate_code": "C0197"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-05",
+     "candidate_code": "C0142"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-diamond-02",
+     "candidate_code": "C0126"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "ph-knife-fill",
+     "candidate_code": "C0103"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "ph-star4-fill",
+     "candidate_code": "C0108"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-square",
+     "candidate_code": "C0180"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-irregular-cloud-03",
+     "candidate_code": "C0132"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-lobed-4",
+     "candidate_code": "C0206"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-cloud-query-01",
+     "candidate_code": "C0124"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-kite",
+     "candidate_code": "C0203"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "ph-star4-fill",
+     "candidate_code": "C0108"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "ph-star4-fill",
+     "candidate_code": "C0108"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-forked-four",
+     "candidate_code": "C0197"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-irregular-cloud-01",
+     "candidate_code": "C0130"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-02",
+     "candidate_code": "C0144"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-band-query",
+     "candidate_code": "C0172"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-semicircle",
+     "candidate_code": "C0216"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-band-zigzag",
+     "candidate_code": "C0175"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-band-query",
+     "candidate_code": "C0172"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-04",
+     "candidate_code": "C0146"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-semicircle",
+     "candidate_code": "C0216"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-semicircle",
+     "candidate_code": "C0216"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-palm-03",
+     "candidate_code": "C0151"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-query",
+     "candidate_code": "C0198"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-irregular-cloud-03",
+     "candidate_code": "C0132"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-forked-query",
+     "candidate_code": "C0198"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "ph-heart-break-fill",
+     "candidate_code": "C0102"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-03",
+     "candidate_code": "C0122"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-leaf-03",
+     "candidate_code": "C0136"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "ph-leaf-fill",
+     "candidate_code": "C0104"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-forked-query",
+     "candidate_code": "C0198"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "ph-clover-fill",
+     "candidate_code": "C0100"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-star-06",
+     "candidate_code": "C0160"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-04",
+     "candidate_code": "C0123"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-fork-04",
+     "candidate_code": "C0129"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-band-query",
+     "candidate_code": "C0172"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-04",
+     "candidate_code": "C0119"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-query",
+     "candidate_code": "C0178"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-04",
+     "candidate_code": "C0113"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "ph-drop-fill",
+     "candidate_code": "C0101"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-blob-circle-04",
+     "candidate_code": "C0116"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-query",
+     "candidate_code": "C0178"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-circle-05",
+     "candidate_code": "C0120"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-silted",
+     "candidate_code": "C0215"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-spade-ish",
+     "candidate_code": "C0217"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-03",
+     "candidate_code": "C0145"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-tree-05",
+     "candidate_code": "C0167"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-irregular-cloud-03",
+     "candidate_code": "C0132"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-teardrop",
+     "candidate_code": "C0225"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-irregular-cloud-02",
+     "candidate_code": "C0131"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-irregular-cloud-04",
+     "candidate_code": "C0133"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-lobed-2",
+     "candidate_code": "C0204"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-04",
+     "candidate_code": "C0123"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-ellipse-e1",
+     "candidate_code": "C0196"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-irregular-cloud-03",
+     "candidate_code": "C0132"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-teardrop",
+     "candidate_code": "C0225"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-irregular-cloud-05",
+     "candidate_code": "C0134"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-cloud-03",
+     "candidate_code": "C0122"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-02",
+     "candidate_code": "C0139"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-lightning-02",
+     "candidate_code": "C0139"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-snake-05",
+     "candidate_code": "C0154"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-06",
+     "candidate_code": "C0143"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-06",
+     "candidate_code": "C0147"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-snake-01",
+     "candidate_code": "C0152"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-lightning-02",
+     "candidate_code": "C0139"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-snake-02",
+     "candidate_code": "C0153"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-star-05",
+     "candidate_code": "C0159"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-snake-01",
+     "candidate_code": "C0152"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-06",
+     "candidate_code": "C0147"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-05",
+     "candidate_code": "C0142"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-snake-01",
+     "candidate_code": "C0152"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-star-08",
+     "candidate_code": "C0162"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-star-07",
+     "candidate_code": "C0161"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-leaf-04",
+     "candidate_code": "C0137"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-star-03",
+     "candidate_code": "C0157"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-star-05",
+     "candidate_code": "C0159"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-star-07",
+     "candidate_code": "C0161"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-star-03",
+     "candidate_code": "C0157"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-star-04",
+     "candidate_code": "C0158"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-fork-01",
+     "candidate_code": "C0128"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-04",
+     "candidate_code": "C0166"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-triangle-02",
+     "candidate_code": "C0168"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-tree-04",
+     "candidate_code": "C0166"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-04",
+     "candidate_code": "C0146"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-04",
+     "candidate_code": "C0123"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-star-05",
+     "candidate_code": "C0159"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-irregular-cloud-05",
+     "candidate_code": "C0134"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-star-01",
+     "candidate_code": "C0155"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-triangle-03",
+     "candidate_code": "C0169"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-star-query-01",
+     "candidate_code": "C0163"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-03",
+     "candidate_code": "C0122"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "ph-moon-fill",
+     "candidate_code": "C0105"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-02",
+     "candidate_code": "C0144"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "ph-moon-fill",
+     "candidate_code": "C0105"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-query",
+     "candidate_code": "C0190"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-band-single-turn",
+     "candidate_code": "C0173"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-04",
+     "candidate_code": "C0146"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-band-zigzag",
+     "candidate_code": "C0175"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "ph-circle-fill",
+     "candidate_code": "C0099"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-circle",
+     "candidate_code": "C0176"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-ellipse-e1",
+     "candidate_code": "C0196"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-two-prong",
+     "candidate_code": "C0226"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-vesica",
+     "candidate_code": "C0227"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-thin",
+     "candidate_code": "C0192"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-thin",
+     "candidate_code": "C0192"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-04",
+     "candidate_code": "C0146"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-taper",
+     "candidate_code": "C0191"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-leaf-01",
+     "candidate_code": "C0135"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-triangle-04",
+     "candidate_code": "C0170"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-cloud-03",
+     "candidate_code": "C0122"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "ph-tree-structure-fill",
+     "candidate_code": "C0109"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-lobed-3",
+     "candidate_code": "C0205"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-fork-04",
+     "candidate_code": "C0129"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-01",
+     "candidate_code": "C0138"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-palm-02",
+     "candidate_code": "C0150"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-triangle",
+     "candidate_code": "C0182"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-fork-04",
+     "candidate_code": "C0129"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-deep",
+     "candidate_code": "C0202"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-deep",
+     "candidate_code": "C0202"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-triangle-03",
+     "candidate_code": "C0169"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "ph-drop-fill",
+     "candidate_code": "C0101"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-b",
+     "candidate_code": "C0212"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-band-single-turn",
+     "candidate_code": "C0173"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-silted",
+     "candidate_code": "C0215"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-03",
+     "candidate_code": "C0145"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "ph-drop-fill",
+     "candidate_code": "C0101"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-b",
+     "candidate_code": "C0212"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-band-circle-04",
+     "candidate_code": "C0113"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-silted",
+     "candidate_code": "C0215"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    }
+   }
+  },
+  {
+   "setting": "T2",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-band",
+     "candidate_code": "C0184"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-crescent",
+     "candidate_code": "C0185"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-query",
+     "candidate_code": "C0178"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-forked",
+     "candidate_code": "C0186"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q01",
+   "query_id": "ph-circle-fill",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-circle",
+     "candidate_code": "C0183"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-circle-heart",
+     "candidate_code": "C0187"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "1da7c515-eb3a-30b2-a6c0-43774ce4e996",
+     "candidate_code": "C0014"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "499ea1cb-3a4b-3278-ad85-b9558d3dab07",
+     "candidate_code": "C0034"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "2f0f8875-f697-3cfa-b780-46a94cc7d475",
+     "candidate_code": "C0020"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "ac8b3b5d-c1ad-355e-b677-08128167acf0",
+     "candidate_code": "C0062"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "115a02c0-6f82-336a-9635-cfafd1d805c9",
+     "candidate_code": "C0009"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "2f0f8875-f697-3cfa-b780-46a94cc7d475",
+     "candidate_code": "C0020"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "393ce2b1-e012-316f-be3b-7ae5806d28a1",
+     "candidate_code": "C0026"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "37c1b2c6-9580-3112-a2ac-0c97fe23273c",
+     "candidate_code": "C0023"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "37c1b2c6-9580-3112-a2ac-0c97fe23273c",
+     "candidate_code": "C0023"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "97e4d930-5b79-34f4-8f81-5310e5375581",
+     "candidate_code": "C0053"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "23e5d091-b686-315a-b02c-bac4dae2a785",
+     "candidate_code": "C0017"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "b0f8b28d-434d-3df7-aae5-c0e8aea88c21",
+     "candidate_code": "C0065"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "05f8c0ed-1ba3-36ff-82c3-bc653abc3c55",
+     "candidate_code": "C0001"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q02",
+   "query_id": "ph-heart-fill",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "5f2768df-b3f8-3f3f-b1da-83c11a93bf42",
+     "candidate_code": "C0041"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "d90df46c-9dc9-3175-944f-89d6d996d39e",
+     "candidate_code": "C0081"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "526733eb-d25c-3d54-9c89-c0696ac432cf",
+     "candidate_code": "C0035"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "918be20f-c36a-3763-b41e-fb5df192288c",
+     "candidate_code": "C0049"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-diamond-01",
+     "candidate_code": "C0125"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "c5e022a7-1300-3e47-825c-d7b3bebcc63d",
+     "candidate_code": "C0072"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "8915ea78-5085-3155-b06a-dc6104c87cbc",
+     "candidate_code": "C0047"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-06",
+     "candidate_code": "C0143"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-four",
+     "candidate_code": "C0197"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "72616317-779f-3b71-93cd-5bc28dab907c",
+     "candidate_code": "C0045"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "4454e47e-b4e9-3299-96ee-136f65a6fbed",
+     "candidate_code": "C0031"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "6842e2b8-ad11-3b03-90c7-a5b4358ddd0e",
+     "candidate_code": "C0043"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "569226b6-353e-36ae-9181-fc2295ff0d53",
+     "candidate_code": "C0038"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "16ec4fd3-16fc-30a2-93e7-237ad9bd3de0",
+     "candidate_code": "C0012"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-05",
+     "candidate_code": "C0142"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "b7045019-0984-36b9-bf72-985d85e8d8f9",
+     "candidate_code": "C0066"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "20b4b381-3cd7-3b5e-86bc-550fcb8ad569",
+     "candidate_code": "C0015"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q03",
+   "query_id": "ph-lightning-fill",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "ea56068d-a847-3094-8daf-37c44178b079",
+     "candidate_code": "C0090"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "d0a608fc-c486-36e1-9c31-77f1221f773a",
+     "candidate_code": "C0079"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "ab0f156f-56a0-34ca-91fe-6d9cdb75b56a",
+     "candidate_code": "C0061"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "fb5224d4-f6e2-3118-87d7-cfd6dcd37230",
+     "candidate_code": "C0095"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "48e13726-e0b1-3453-ac46-531aa78ee3f0",
+     "candidate_code": "C0032"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-02",
+     "candidate_code": "C0144"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "e709f179-c8bd-3049-b453-f2077d786ec3",
+     "candidate_code": "C0086"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+     "candidate_code": "C0082"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "ad2a58d8-245d-3104-84da-5899dd4dcd90",
+     "candidate_code": "C0063"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "ce1037b5-c413-3444-8e8a-df13c7efe491",
+     "candidate_code": "C0077"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "c163bfee-4890-3d25-b219-8a8c676978f3",
+     "candidate_code": "C0070"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "3f657320-1f2d-35ae-a27d-479532473ba5",
+     "candidate_code": "C0030"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "26259da7-7972-32e7-bd09-e1a84f3aa361",
+     "candidate_code": "C0019"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "a73f0c85-0094-3f86-b086-00bf7e4df22f",
+     "candidate_code": "C0060"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "6495a804-6507-3a6a-9ae2-832b35552adc",
+     "candidate_code": "C0042"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "26259da7-7972-32e7-bd09-e1a84f3aa361",
+     "candidate_code": "C0019"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "26259da7-7972-32e7-bd09-e1a84f3aa361",
+     "candidate_code": "C0019"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-band-query",
+     "candidate_code": "C0172"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+     "candidate_code": "C0082"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q04",
+   "query_id": "ph-moon-fill",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "3f657320-1f2d-35ae-a27d-479532473ba5",
+     "candidate_code": "C0030"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-band-zigzag",
+     "candidate_code": "C0175"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "e709f179-c8bd-3049-b453-f2077d786ec3",
+     "candidate_code": "C0086"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q05",
+   "query_id": "ph-star-fill",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-star-lobed-5",
+     "candidate_code": "C0221"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+     "candidate_code": "C0044"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-query",
+     "candidate_code": "C0198"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "ffc02e38-3394-35cf-bdb4-94a9888a291b",
+     "candidate_code": "C0098"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+     "candidate_code": "C0044"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "bf7514fe-6be9-3ac0-8497-19d906f5e9ad",
+     "candidate_code": "C0069"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "fa23f2d7-7917-37f3-94ce-ef0c19759dbb",
+     "candidate_code": "C0094"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-irregular-cloud-03",
+     "candidate_code": "C0132"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "97a7f7c3-6e0e-3416-ba30-98d696ca6f2e",
+     "candidate_code": "C0052"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "38a62979-8019-321f-97a5-45369de55a1c",
+     "candidate_code": "C0025"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "387ec174-62c1-3ef3-8895-d6f3b6105eba",
+     "candidate_code": "C0024"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "cdc97179-25a6-31d6-93b4-13ccf6a09b02",
+     "candidate_code": "C0076"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "3d38fd2c-4852-38b3-a7c3-2e3d938e0a9a",
+     "candidate_code": "C0028"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "f7faa2bf-f7a3-3ed1-8051-03fc70385c95",
+     "candidate_code": "C0093"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q06",
+   "query_id": "ph-tree-structure-fill",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "2409f6ad-eaf7-3744-8e63-f20574b94cb0",
+     "candidate_code": "C0018"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "57092dd8-1b2f-3f68-84da-3b65b19d6d56",
+     "candidate_code": "C0039"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "ph-heart-break-fill",
+     "candidate_code": "C0102"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "6eb02eb1-105e-3c62-a96f-035b7b4961ce",
+     "candidate_code": "C0044"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-01",
+     "candidate_code": "C0110"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-circle-01",
+     "candidate_code": "C0117"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "e64c51a3-c2ca-3e4f-bf70-056017ddb4a8",
+     "candidate_code": "C0085"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-circle-04",
+     "candidate_code": "C0119"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-query",
+     "candidate_code": "C0178"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "bd9b935f-94f4-3d6e-b67c-e03643d2cc37",
+     "candidate_code": "C0068"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-band-circle-04",
+     "candidate_code": "C0113"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "e76def41-a169-3a51-a694-4f559a7c207e",
+     "candidate_code": "C0088"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q07",
+   "query_id": "qd-circle-query-01",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "f09cc273-e2b4-33eb-9cf1-a1547ed1f21a",
+     "candidate_code": "C0091"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "ph-drop-fill",
+     "candidate_code": "C0101"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-blob-circle-04",
+     "candidate_code": "C0116"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-cloud-01",
+     "candidate_code": "C0121"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "fd87f04c-deb7-3efe-909b-859bdfa0590c",
+     "candidate_code": "C0096"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "e74ff7e1-ae19-31bd-b178-0541630825c8",
+     "candidate_code": "C0087"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "54445150-7221-3d57-acd0-4d30ebdf442a",
+     "candidate_code": "C0036"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "e74ff7e1-ae19-31bd-b178-0541630825c8",
+     "candidate_code": "C0087"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "31d8d464-e787-3e42-b86e-410641b213bf",
+     "candidate_code": "C0021"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "3dc938ef-088c-3ed0-9485-c7522957f88a",
+     "candidate_code": "C0029"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "48ec1614-a5bb-32d9-9637-b250a313f7e5",
+     "candidate_code": "C0033"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "ce8356a7-37ba-3778-9e70-e1a11baf3664",
+     "candidate_code": "C0078"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "7ebcd259-9665-37a4-8b83-975209313bff",
+     "candidate_code": "C0046"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "31d8d464-e787-3e42-b86e-410641b213bf",
+     "candidate_code": "C0021"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "ce8356a7-37ba-3778-9e70-e1a11baf3664",
+     "candidate_code": "C0078"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "d8e4ed77-fc23-39d0-8573-d90dceb7e7f0",
+     "candidate_code": "C0080"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q08",
+   "query_id": "qd-cloud-query-01",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "bd73b2cc-98d4-39f6-a942-3ff31b7380a4",
+     "candidate_code": "C0067"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "3a84a3e0-e8d8-3aa8-8416-81b02d15b923",
+     "candidate_code": "C0027"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "c5f0e626-76f9-3f3d-8008-5eb326e726e6",
+     "candidate_code": "C0073"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "56522f1a-c9b9-3847-b43b-60fbf685ea79",
+     "candidate_code": "C0037"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-lightning-02",
+     "candidate_code": "C0139"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-02",
+     "candidate_code": "C0139"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "8e47393b-2f30-3e44-8879-b10a507a87cb",
+     "candidate_code": "C0048"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-04",
+     "candidate_code": "C0141"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "169223b1-585c-3e8e-b871-39ba9d61ea06",
+     "candidate_code": "C0011"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "9e9211df-ab8d-3835-84ce-5acf87e3da47",
+     "candidate_code": "C0057"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-lightning-06",
+     "candidate_code": "C0143"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "f69fa7d4-56cb-39fb-bd96-e30f32038c31",
+     "candidate_code": "C0092"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "988b75ca-73f4-32f1-8a0d-dc0c37992cf2",
+     "candidate_code": "C0055"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "ad9166ae-b9b4-3ff8-9f61-100311c27c5c",
+     "candidate_code": "C0064"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "9e9211df-ab8d-3835-84ce-5acf87e3da47",
+     "candidate_code": "C0057"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q09",
+   "query_id": "qd-lightning-query-01",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-star-05",
+     "candidate_code": "C0159"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-snake-01",
+     "candidate_code": "C0152"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-snake-05",
+     "candidate_code": "C0154"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "9610acf1-d6b8-350f-80b6-7a41f3db7b41",
+     "candidate_code": "C0051"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-star-08",
+     "candidate_code": "C0162"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-star-07",
+     "candidate_code": "C0161"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-star-03",
+     "candidate_code": "C0157"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-leaf-04",
+     "candidate_code": "C0137"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "qd-star-05",
+     "candidate_code": "C0159"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-star-07",
+     "candidate_code": "C0161"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-star-query",
+     "candidate_code": "C0222"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q10",
+   "query_id": "qd-star-query-01",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-star-04",
+     "candidate_code": "C0158"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-star-03",
+     "candidate_code": "C0157"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-star-02",
+     "candidate_code": "C0156"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-04",
+     "candidate_code": "C0166"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "0bebdfe4-96f3-3cce-b651-9ed98eb9c7db",
+     "candidate_code": "C0006"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "981b0f52-aed7-3d96-af8e-cb20d247bde6",
+     "candidate_code": "C0054"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "c8085b59-cd53-3972-a281-78cca5d942f5",
+     "candidate_code": "C0074"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "e709f179-c8bd-3049-b453-f2077d786ec3",
+     "candidate_code": "C0086"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "ea04e4d0-12b4-3804-86f8-293ff5115a20",
+     "candidate_code": "C0089"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "c535bbdb-11ea-35ad-9820-2bb0f74bfec2",
+     "candidate_code": "C0071"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "e709f179-c8bd-3049-b453-f2077d786ec3",
+     "candidate_code": "C0086"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "31e39c72-f75a-3887-8fa2-d6596a3fdee3",
+     "candidate_code": "C0022"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "a51b6553-e2c7-3966-9288-88905859e70c",
+     "candidate_code": "C0058"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "0c46fd46-4376-3872-ac77-07fa00b9c869",
+     "candidate_code": "C0007"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "qd-fork-01",
+     "candidate_code": "C0128"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "31e39c72-f75a-3887-8fa2-d6596a3fdee3",
+     "candidate_code": "C0022"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-tree-03",
+     "candidate_code": "C0165"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q11",
+   "query_id": "qd-tree-query-01",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "cd4b7243-224b-3701-bcb0-932aaa25e5be",
+     "candidate_code": "C0075"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "a5a6e0eb-feca-3d10-bbe9-f9aa639c17d3",
+     "candidate_code": "C0059"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "992796ee-b546-38c5-afee-70e4fee9c692",
+     "candidate_code": "C0056"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "fefa6348-df18-3238-a4b0-a243736e5f9b",
+     "candidate_code": "C0097"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-ellipse-band",
+     "candidate_code": "C0195"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "1c8772e1-d7b5-3d4e-b4fc-de7e8f65ea3d",
+     "candidate_code": "C0013"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "a73f0c85-0094-3f86-b086-00bf7e4df22f",
+     "candidate_code": "C0060"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "3f657320-1f2d-35ae-a27d-479532473ba5",
+     "candidate_code": "C0030"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "ph-moon-fill",
+     "candidate_code": "C0105"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-band-tight",
+     "candidate_code": "C0174"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+     "candidate_code": "C0082"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "db4176d6-a500-34d2-9b08-3eaf0fe45de4",
+     "candidate_code": "C0082"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-moon-02",
+     "candidate_code": "C0144"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q12",
+   "query_id": "syn-band-query",
+   "query_family_hidden_from_sheet": "band",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "ad2a58d8-245d-3104-84da-5899dd4dcd90",
+     "candidate_code": "C0063"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "6495a804-6507-3a6a-9ae2-832b35552adc",
+     "candidate_code": "C0042"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-query",
+     "candidate_code": "C0190"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "1c8772e1-d7b5-3d4e-b4fc-de7e8f65ea3d",
+     "candidate_code": "C0013"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "ph-circle-fill",
+     "candidate_code": "C0099"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-egg",
+     "candidate_code": "C0194"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-ellipse",
+     "candidate_code": "C0214"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-band-loose",
+     "candidate_code": "C0171"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "qd-band-circle-03",
+     "candidate_code": "C0112"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-circle",
+     "candidate_code": "C0176"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-ellipse-e1",
+     "candidate_code": "C0196"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-e2",
+     "candidate_code": "C0177"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-blob-circle-03",
+     "candidate_code": "C0115"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q13",
+   "query_id": "syn-blob-query",
+   "query_family_hidden_from_sheet": "blob",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "23471724-e4e6-390e-9fdc-84e71967289a",
+     "candidate_code": "C0016"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "95b40788-d929-3a49-9451-c3abaffbb04a",
+     "candidate_code": "C0050"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-two-prong",
+     "candidate_code": "C0226"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-smooth",
+     "candidate_code": "C0179"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-turn",
+     "candidate_code": "C0193"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-crescent-deformed",
+     "candidate_code": "C0188"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-thin",
+     "candidate_code": "C0192"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "qd-moon-08",
+     "candidate_code": "C0149"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "qd-moon-07",
+     "candidate_code": "C0148"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q14",
+   "query_id": "syn-crescent-query",
+   "query_family_hidden_from_sheet": "crescent",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "qd-moon-04",
+     "candidate_code": "C0146"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-crescent-thin",
+     "candidate_code": "C0192"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-crescent-taper",
+     "candidate_code": "C0191"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-crescent-fat",
+     "candidate_code": "C0189"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-uneven",
+     "candidate_code": "C0200"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "0ecb68a6-0b80-3336-a6fb-cdc64c89a11f",
+     "candidate_code": "C0008"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-forked-sharp",
+     "candidate_code": "C0199"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-leaf-01",
+     "candidate_code": "C0135"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "ph-tree-structure-fill",
+     "candidate_code": "C0109"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-03",
+     "candidate_code": "C0140"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "qd-triangle-04",
+     "candidate_code": "C0170"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "06691f6c-2bef-31c5-9e05-001058cb6bfd",
+     "candidate_code": "C0002"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "qd-tree-02",
+     "candidate_code": "C0164"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "092ee160-86a8-3571-8dd4-a05e9efcdb5e",
+     "candidate_code": "C0004"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "qd-fork-04",
+     "candidate_code": "C0129"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-lobed-3",
+     "candidate_code": "C0205"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q15",
+   "query_id": "syn-forked-query",
+   "query_family_hidden_from_sheet": "forked",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "31e39c72-f75a-3887-8fa2-d6596a3fdee3",
+     "candidate_code": "C0022"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-triangle",
+     "candidate_code": "C0182"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "15031e1f-7329-3d7b-aee9-a1e42f1a572f",
+     "candidate_code": "C0010"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "qd-lightning-01",
+     "candidate_code": "C0138"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-deep",
+     "candidate_code": "C0202"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-bean",
+     "candidate_code": "C0201"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-heart-point",
+     "candidate_code": "C0207"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q16",
+   "query_id": "syn-heart-query",
+   "query_family_hidden_from_sheet": "heart",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "23e5d091-b686-315a-b02c-bac4dae2a785",
+     "candidate_code": "C0017"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-heart-wide",
+     "candidate_code": "C0210"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-heart-round",
+     "candidate_code": "C0208"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-heart-shallow",
+     "candidate_code": "C0209"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "5a8c9f94-3439-38b6-9135-13e07f7b9402",
+     "candidate_code": "C0040"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-a",
+     "candidate_code": "C0211"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "d8e4ed77-fc23-39d0-8573-d90dceb7e7f0",
+     "candidate_code": "C0080"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "089e0867-cd85-32e1-ac32-b87150be9e20",
+     "candidate_code": "C0003"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "e385d08b-feaa-378f-b816-2eead506b5b1",
+     "candidate_code": "C0084"
+    },
+    "D": {
+     "arm": "E3",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E2",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    },
+    "B": {
+     "arm": "E1",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "089e0867-cd85-32e1-ac32-b87150be9e20",
+     "candidate_code": "C0003"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "e385d08b-feaa-378f-b816-2eead506b5b1",
+     "candidate_code": "C0084"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "0aefe975-840c-3800-bc40-e2a9c38ba82e",
+     "candidate_code": "C0005"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "e385d08b-feaa-378f-b816-2eead506b5b1",
+     "candidate_code": "C0084"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "05f8c0ed-1ba3-36ff-82c3-bc653abc3c55",
+     "candidate_code": "C0001"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-irregular-c",
+     "candidate_code": "C0213"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q17",
+   "query_id": "syn-irregular-query",
+   "query_family_hidden_from_sheet": "irregular",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "ph-drop-fill",
+     "candidate_code": "C0101"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "qd-circle-02",
+     "candidate_code": "C0118"
+    },
+    "C": {
+     "arm": "E1",
+     "candidate_id": "5f2768df-b3f8-3f3f-b1da-83c11a93bf42",
+     "candidate_code": "C0041"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "dcefbcde-8592-31d9-9c53-eb70d9ee0438",
+     "candidate_code": "C0083"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 1,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "C": {
+     "arm": "E0",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    },
+    "D": {
+     "arm": "E2",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 2,
+   "assignment": {
+    "A": {
+     "arm": "E3",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "B": {
+     "arm": "E0",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 3,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "syn-blob-star5",
+     "candidate_code": "C0181"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-soft",
+     "candidate_code": "C0224"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "syn-star-rounded",
+     "candidate_code": "C0223"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 4,
+   "assignment": {
+    "A": {
+     "arm": "E1",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "B": {
+     "arm": "E3",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    },
+    "C": {
+     "arm": "E2",
+     "candidate_id": "syn-star-jitter",
+     "candidate_code": "C0220"
+    },
+    "D": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    }
+   }
+  },
+  {
+   "setting": "T3",
+   "query_code": "Q18",
+   "query_id": "syn-star-query",
+   "query_family_hidden_from_sheet": "star",
+   "rank": 5,
+   "assignment": {
+    "A": {
+     "arm": "E0",
+     "candidate_id": "syn-star-inner-030",
+     "candidate_code": "C0218"
+    },
+    "B": {
+     "arm": "E2",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    },
+    "C": {
+     "arm": "E3",
+     "candidate_id": "syn-star-inner-055",
+     "candidate_code": "C0219"
+    },
+    "D": {
+     "arm": "E1",
+     "candidate_id": "ph-star-fill",
+     "candidate_code": "C0107"
+    }
+   }
+  }
+ ],
+ "cells": 720,
+ "template_rows": 1440
+}
