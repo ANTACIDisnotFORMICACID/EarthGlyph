@@ -390,6 +390,7 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   `05c50b6`（`fix:` E0 lookalike 列）+ `11b2bc8`（`fix:` 表格列宽）
   + `1a73d6e`（`data:` 28 个产物文件，17 MiB，单文件最大 926 636 B < 1 MiB 门槛），推送 `78915ba..1a73d6e main -> main`，推送后核验
   `git ls-remote origin` = `1a73d6e678ce5eea6d08d2fd274119d87d4ebeea` = `git rev-parse HEAD`；本轮文档在紧随的 `docs:` 提交里（其自身 sha 写不进本行，沿用 B 的处理，不再另立检查点）。
+  后续两个 `docs:` 提交：`17e2ea8`（C 收尾文档）与 **`f3e474c`（新增 notes.md §13.5.1「结果图像怎么读」：行/列/颜色/叠加环逐条语义 + 页脚原文 + 人工检查顺序，颜色值以脚本常量为准，附 `grep` 核验命令；TASKS 的"对比图"行与 experiment_log 同步指向该节）**。推送 `17e2ea8..f3e474c main -> main`，推送后核验 `git ls-remote origin refs/heads/main` = `f3e474c94c107173f7412690a43836fb45761598` = `git rev-parse HEAD`、`git status --short` 无输出；提交前 gate：`pytest -o addopts="" -q` **621 passed in 26.35 s** · `ruff check .` All checks passed · `mypy` no issues in 31 source files（纯文档改动，未动代码与产物）。本行自身落在紧随的下一个 `docs:` 提交里，同 B 的处理，不再另立检查点。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
