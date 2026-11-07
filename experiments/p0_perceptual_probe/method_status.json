@@ -1,0 +1,296 @@
+{
+ "arms": {
+  "E0": {
+   "module": "earthglyph.retrieval.perceptual_e0",
+   "n_scored_per_query": {
+    "T1": [
+     19,
+     20,
+     21,
+     22,
+     23,
+     26,
+     27,
+     34,
+     35
+    ],
+    "T2": [
+     177,
+     178
+    ],
+    "T3": [
+     1016,
+     1017
+    ]
+   },
+   "params_passed": {},
+   "policy": {
+    "coarse_window": "bypassed here; the product path still uses shortlist_size=200",
+    "cost": "O(n log n) per candidate (one FFT pair + one inverse per comparison)",
+    "id": "E0",
+    "invariance": {
+     "mirror": "only when allow_mirror=True; off by default, as in the product path",
+     "rotation": "searched in closed form by the cross spectrum, not assumed",
+     "start_point": "searched cyclically in the same closed form",
+     "translation": "exact (contours are centroid-centred by the standardizer)",
+     "traversal_direction": "NOT invariant: rings are made CCW upstream, a reversal is a separate invariance probe",
+     "uniform_scale": "exact (unit RMS radius by the standardizer)"
+    },
+    "name": "P0-4 baseline: Fourier coarse filter + closed-form rotation/shift alignment",
+    "new_code_in_this_checkpoint": false,
+    "score": "aligned RMS boundary offset of the 128-point contour (smaller is closer)"
+   },
+   "settings_scored": [
+    "T1",
+    "T2",
+    "T3"
+   ]
+  },
+  "E1": {
+   "module": "earthglyph.retrieval.perceptual_features",
+   "n_scored_per_query": {
+    "T1": [
+     19,
+     20,
+     21,
+     22,
+     23,
+     26,
+     27,
+     34,
+     35
+    ],
+    "T2": [
+     177,
+     178
+    ],
+    "T3": [
+     1016,
+     1017
+    ]
+   },
+   "params_passed": {
+    "normalizer": "FeatureNormalizer(method=minmax, n_samples=179, n_descriptors=91)",
+    "orientation": "canonical"
+   },
+   "policy": {
+    "ablation": "groups=... is a parameter of every entry point, so 'which group earns the accuracy' needs no code edit; group sizes are unequal, so the plain Euclidean sum weights them unequally by dimension count and the ablation measures that",
+    "constants": {
+     "chord_axis_max": 4.0,
+     "chord_bins": 16,
+     "curvature_concave_max": -0.5,
+     "curvature_convex_min": 2.0,
+     "curvature_window_fractions": [
+      0.03125,
+      0.0625,
+      0.125
+     ],
+     "efd_harmonics": 8,
+     "moment_max_order": 3,
+     "orientation_isotropy_max": 0.98,
+     "radius_axis_max": 3.0,
+     "radius_bins": 12,
+     "tangent_bins": 12,
+     "tangent_window_fraction": 0.03125
+    },
+    "cost": "library features O(m * n log n) (convex hull per row), cached by content hash so the queries of one grid share a single extraction per candidate; the distance itself is O(d) per pair",
+    "descriptor_counts": {
+     "curvature": 18,
+     "fourier": 15,
+     "global": 10,
+     "histogram": 42,
+     "moments": 6,
+     "total": 91
+    },
+    "groups": {
+     "curvature": "per window: mean |psi|, std, max, min, convex-event share, concave-event share, where psi is the signed turning angle divided by the turning a circle shows at the same arc-length window",
+     "fourier": "elliptic Fourier semi-axis magnitudes divided by the first harmonic's major axis (magnitudes only; the per-harmonic angles are not used)",
+     "global": "area, perimeter, compactness, solidity, convexity, extent, eccentricity, moment aspect, circularity, diameter fill",
+     "histogram": "chord-length, centroid-radius and tangent-angle shares on fixed axes plus the explicit overflow shares",
+     "moments": "Hu's first six invariants of the exactly integrated polygon region (the seventh is omitted: see known_limitations)"
+    },
+    "id": "E1",
+    "invariance": {
+     "mirror": "not claimed. Length/magnitude/ratio descriptors and the chord/radius histograms are mirror-blind and cannot separate a chiral pair. Among Hu's invariants only the seventh is reflection-odd, and it is omitted, so the only block that moves under a mirror is the tangent histogram. allow_mirror=True scores min(d(query, candidate), d(query, mirror(candidate))) at twice the library feature cost",
+     "rotation": "exact for global, moments, curvature, fourier and the chord/radius histograms. The tangent-angle histogram is rotation COVARIANT and is measured in a canonical frame (region principal axis onto +x, sign from the normalised third moment). The frame is undefined for near-isotropic contours (lambda2/lambda1 >= 0.98), where it falls back to the input frame and that block is NOT rotation invariant; orientation_statuses(library) reports the flag per candidate. Measured, the fallback is not an edge case here: every 3-fold-or-higher symmetric member of the gallery takes it (circle and square 1.00000, pentagon 0.99939, hexagon 0.99922, star(5) 0.99869, star(6) 0.99582, triangle 0.99904), while crescent 0.31132, heart 0.59892 and the chiral blob 0.76984 get a real frame",
+     "sampling_count": "not invariant: fixed bin counts and window fractions are defined on the shared 128-point resampling",
+     "start_point": "exact: every descriptor is a statistic over the closed loop, never an indexed sequence",
+     "translation": "exact (re-centroided in prepare; every feature is a difference or a central integral)",
+     "traversal_direction": "exact, by re-winding to CCW with ensure_ccw; a reversed ring is the same contour and scores 0.0 against itself",
+     "uniform_scale": "exact (re-scaled to unit RMS radius in prepare; every angle, ratio and event share is scale-free by definition)"
+    },
+    "known_limitations": {
+     "area_and_perimeter_cannot_both_be_matched_to_a_disc": "equal area and equal perimeter force compactness 4*pi*A/P^2 to 1, and the isoperimetric equality holds only for the disc. The star-vs-disc contrast test therefore matches the two sizes to a stated tolerance (area to 1%, perimeter to 2%) instead of claiming exactness",
+     "group_sizes_unequal": "the histogram block has 42 of the 91 descriptors against the global block's 10, so the plain Euclidean sum weights it 4.2x by dimension count alone; the grouped ablation measures exactly that, and no fusion weight is invented",
+     "hu_seventh_omitted": "Hu I7 is the reflection-odd invariant and this arm has no honest use for it. Measured at the contract's 128-point sampling: the mirror-symmetric crescent curve reports I7 = -2.5e-8 from its (asymmetric) samples alone - 1.5e-7 at 64 points, 5.3e-10 at 1024, so a sampling artefact eleven decades above the under-epsilon floor and emitted as +7.6; where the samples are symmetric the value is round-off (1e-30 for a 5-point star, 1e-64 for a 6-point one) whose sign flips with the rotation angle. I1-I6 move by less than 3.0e-7 under the same rotations. Emitting I7 would put a sampler- and frame-dependent term in every distance, so this arm emits six invariants; tests/test_perceptual_features.py reproduces these numbers",
+     "isotropic_shapes_lose_rotation_invariance": "the priced consequence of the frame rule quoted under invariance. score_library() without a normalizer puts a 37-degree rotation of star(5) at 4.8047 in the five-row library [rotated copy, circle, crescent, pentagon, chiral blob] - the unrelated rows there run 6.0360 to 7.3931, so the rotated copy still ranks first, just not by much, while E0 and E2 measure exactly 0.0000 for the same pair and E3 0.1405. Cause: with no principal axis the 42-column histogram block is measured against static bin edges. The frame is then doing nothing at all, and the same library in orientation='raw' gives 4.6945 for that pair; the contrast is the control that shows the mechanism works where it is defined - the chiral blob (lambda2/lambda1 = 0.76984) measures 1.3434 raw and exactly 0.0000 canonical. This arm's rotation invariance is therefore a property of the shape's second moments, not of the arm; tests/test_perceptual_features.py reproduces the flag, both residuals and the control",
+     "self_fitted_scale_moves_with_the_library": "score_library(normalizer=None) fits its minmax ranges on the rows it scores, so the constants - and occasionally the order - depend on the library: in the three-row library [circle, crescent, rotated star(5)] the rotated copy of the query ranks second (7.5459 against the crescent's 7.5072), where the five-row library above ranks it first (4.8047). A comparison grid must therefore pass one fixed corpus-fitted normalizer through every query; the self-fit path exists so a single call cannot be quoted as a corpus claim"
+    },
+    "measurements": "the orientation census is a call, not a sentence: `orientation_statuses()` returns lambda2/lambda1 and the status for every row. The rotation residuals and the self-fitted-scale reorder quoted under invariance/known_limitations are re-derived against a tolerance by `python experiments/p0_perceptual_probe/verify_policy_claims.py`",
+    "name": "ShapeComp-inspired classical descriptor battery (not the ShapeComp model)",
+    "new_code_in_this_checkpoint": true,
+    "normalization": {
+     "alternatives": [
+      "minmax",
+      "robust"
+     ],
+     "default_method": "minmax",
+     "deviation_from_shapecomp": "ShapeComp divides each pairwise descriptor distance by the corpus maximum pairwise distance over 25,712 animal silhouettes; this divides each descriptor value by the corpus range (or IQR) of the library in hand. Same intent, different constant, and the constants are not comparable across runs",
+     "fitted_on": "a corpus, never the query. score_library(normalizer=None) self-fits on the library it scores and reports it in normalizer.fitted_on; distance() with no normalizer reports 'none (raw descriptor units)'. A query-time fit is a much weaker claim than a corpus fit and is never made silently here"
+    },
+    "orientation_handling": {
+     "cost": "O(n_samples) per contour for the moments (exact polygon integration, no rasterisation), O(n_samples) for the rotation",
+     "method": "principal-axis canonical frame: one 2x2 eigenpair on the region's second moments plus one third-moment pass for the sign rule",
+     "search_not_used": "a cyclic search over K sampled angles inside the distance was rejected: it multiplies the library feature cost by K (about K x 179 descriptor extractions per query) to fix one block of the vector"
+    },
+    "provenance": "inspired by Morgenstern et al. 2021, PLOS Comput Biol 17(6):e1008981. Not a port and not a reproduction: different descriptor set, no 25,712-shape corpus, no classical MDS, no 22-D space, no MatNet/KerNet weights, no purchased silhouettes, no MATLAB. Do not cite as 'the ShapeComp model'. Evidence log: experiments/p0_perceptual_probe/shapecomp_research.md",
+    "scale_policy": "stage 1: every descriptor is computed on the shared standardized contour (unit RMS radius, centroid centred), so lengths are in units of the RMS radius and ratios/angles/event shares are dimensionless; stage 2: each descriptor is divided by a corpus-fitted spread before any distance is taken",
+    "score": "Euclidean (or cityblock) distance in corpus-normalized descriptor space; smaller is closer; ties broken by library row order"
+   },
+   "settings_scored": [
+    "T1",
+    "T2",
+    "T3"
+   ]
+  },
+  "E2": {
+   "module": "earthglyph.retrieval.salient_structure",
+   "n_scored_per_query": {
+    "T1": [
+     19,
+     20,
+     21,
+     22,
+     23,
+     26,
+     27,
+     34,
+     35
+    ],
+    "T2": [
+     177,
+     178
+    ],
+    "T3": [
+     1016,
+     1017
+    ]
+   },
+   "params_passed": {},
+   "policy": {
+    "cost": "two signature extractions (O(n * scales)) plus O(max_offset_trials * n_events^2) per pair; the DP is the slow part and runs on tens of events, not on 128 vertices",
+    "id": "E2",
+    "invariance": {
+     "mirror": "only when allow_mirror=True",
+     "pen_jitter": "down-weighted by geometry, not by a coefficient: a gap costs the turning an event carries, so a 0.3 rad wobble is a sixth of a 1.8 rad prong, and the bar (3x the accumulated turning of a circle over the same window) decides what counts as a corner at all. Measured on a unit-RMS disk: 0.2% radial noise raises no event at all (distance exactly 0.0), 0.5% raises one 0.505 rad event worth 0.0805 against 2.8610 for circle-vs-star. persistence is reported per event so a single-window detection can be audited but is not multiplied into the score; doing that was tried on this checkpoint's shapes and it is a rescaling rather than a filter — pairs whose corners share a lifetime were unchanged to 4 decimals (worn star, pentagon, the 0.5% noise disk) while star-vs-five-lobed went 1.5045 -> 5.3802",
+     "rotation": "searched as a cyclic offset of the event sequences",
+     "start_point": "same search as rotation: positions are arc-length fractions",
+     "translation": "exact (chord angles and arc-length positions ignore position)",
+     "traversal_direction": "NOT invariant; rings arrive CCW, a reversal is a probe",
+     "uniform_scale": "exact (angles are scale-free and the salience bar is a turning-per-vertex of a circle, also scale-free; the shared standardizer is still applied so every method sees the same ring)"
+    },
+    "measurements": "every digit quoted above came from a measurement, and `python experiments/p0_perceptual_probe/verify_policy_claims.py` re-derives each one against a stated tolerance — so a parameter change that invalidates this prose fails that run instead of leaving the sentence behind",
+    "name": "multi-scale salient structure matching (this project's design)",
+    "new_code_in_this_checkpoint": true,
+    "not_a_corner_count": "the score charges signed turning magnitude, convex-vs-concave sign (a prong matched to a valley pays both turns), ordered position drift beyond a 0.02 budget, how pointed each matched corner is (PEAK_GAIN=0.25, so worn tips are a real but second-order difference rather than a false identity) and unmatched events; two shapes with the same event count but a different arrangement score differently (tested)",
+    "scales": [
+     0.015625,
+     0.03125,
+     0.0625,
+     0.125,
+     0.25
+    ],
+    "score": "weighted sequence-alignment cost of signed salient turning events, in radians, divided by 2*pi (one full turn of the boundary). 0.0 = identical structure. The denominator is geometry, not the pair's own weight, so a shape cannot win by carrying less measurable structure (see the noise test)"
+   },
+   "settings_scored": [
+    "T1",
+    "T2",
+    "T3"
+   ]
+  },
+  "E3": {
+   "module": "earthglyph.retrieval.shape_context_baseline",
+   "n_scored_per_query": {
+    "T1": [
+     19,
+     20,
+     21,
+     22,
+     23,
+     26,
+     27,
+     34,
+     35
+    ],
+    "T2": [
+     177,
+     178
+    ],
+    "T3": [
+     1016,
+     1017
+    ]
+   },
+   "params_passed": {
+    "orientation": "sample"
+   },
+   "policy": {
+    "cost": "per candidate and per orientation step searched: one chi-square tensor of context_points^2 x log_polar_bins (64^2 x 75 at the defaults) plus one linear_sum_assignment of that size; the default sample mode is 24x canonical. The library's descriptors are built once per gallery and the query's rotated variants once per query. Measured here at the defaults, 179 candidates per query: about 7 s sample mode, about 0.4 s canonical.",
+    "descriptor": "per sampled point, a log-polar histogram of the relative positions of every other sampled point: 5 radial bins geometrically spaced over [R/8, 2R] where R is the point set's mean pairwise distance, and 15 angular bins over the full 2*pi (24 deg each); every histogram row is normalised to sum 1; radii outside the range are clipped into the end bins instead of dropped",
+    "deviations_from_the_paper": [
+     "the curvature penalty term of the paper's objective is omitted (chi-square only)",
+     "the total assignment cost is divided by the number of matched contexts",
+     "a positive epsilon is added to the chi-square denominator so an empty bin cannot divide by zero (1e-6 on sum-to-1 histograms)",
+     "pairs beyond the radial range are clipped into the last bin instead of discarded",
+     "5x15 log-polar bins instead of the paper's 5x20, and 64 outline samples instead of 100",
+     "the rotation search is exhaustive over the reported grid with the winner reported, not the paper's estimate-and-refine on matched-point displacement",
+     "the canonical orientation policy is this implementation's addition: the paper's contexts are rotation-covariant and assume an already aligned frame"
+    ],
+    "id": "E3",
+    "implementation": "this project's own NumPy + SciPy code. OpenCV contrib is not used and is not presented as the implementation, because the installed opencv-python-headless 5.0.0 in this environment has no cv2.createShapeContextDistanceExtractor (checked against the live install).",
+    "invariance": {
+     "mirror": "only when allow_mirror=True (off by default, same policy as E0 and the product path); with it off a mirrored candidate is scored as a different shape",
+     "rotation": "searched, not assumed: the query is rotated through a fixed grid of relative rotations and the cheapest is kept and reported, so invariance holds only up to half a grid step. Not exact beyond that, and not a function of the relative rotation alone either: the log-polar bin grid is fixed to the coordinate frame, so a common rotation of both shapes re-bins both histograms against static edges and changes the score. The score is also not symmetric in its arguments: measured over the 780 unordered pairs of the first 40 gallery members at the defaults, |d(A,B) - d(B,A)| has median 0.0061, mean 0.0092 and maximum 0.0610 on a 0-1 score, and 45 of the 780 pairs agree exactly",
+     "start_point": "invariant - no index correspondence is assumed; the assignment finds the pairing, which is what makes the descriptor tolerant of a wobbly trace. Exact when context_points covers every sample; at the default 64-of-128 subsampling a shifted start selects a different phase of the same ring, which leaves a small residual (see traversal_direction)",
+     "translation": "exact - the descriptor uses relative positions only",
+     "traversal_direction": "NOT a control. The contexts are a correspondence-free set of histograms and the assignment finds the pairing, so permuting the samples of a contour - reversing the walk included - leaves the score exactly unchanged (verified with context_points equal to the ring's sample count). E3 is therefore direction-blind and cannot stand in for the reversal probe the shared contract wants measured separately. At the default 64-of-128 subsampling a reversed ring is sampled at the opposite phase, which is a different point set, so a small residual survives: a sampling-phase artefact, not a direction sensitivity.",
+     "uniform_scale": "exact - the radial grid is in units of the point set's own mean pairwise distance, on top of the standardizer's unit RMS radius"
+    },
+    "matching": "chi-square histogram distance, then a one-to-one assignment with scipy.optimize.linear_sum_assignment; total cost divided by the number of matched contexts",
+    "measurements": "the asymmetry census and the two timings quoted above are re-derived by `python experiments/p0_perceptual_probe/verify_policy_claims.py` (it reads the gitignored `gallery.jsonl`, which `scripts/prepare_perceptual_dataset.py --offline` rebuilds; `--pairs` sets how many members the census uses), so a change that moves a quoted digit fails that run instead of leaving the sentence behind",
+    "name": "Shape Context (Belongie et al. 2002), reference implementation in this repo",
+    "new_code_in_this_checkpoint": true,
+    "orientation": "searched, not assumed: the query is rotated through a fixed grid of relative rotations and the cheapest is kept and reported, so invariance holds only up to half a grid step. Not exact beyond that, and not a function of the relative rotation alone either: the log-polar bin grid is fixed to the coordinate frame, so a common rotation of both shapes re-bins both histograms against static edges and changes the score. The score is also not symmetric in its arguments: measured over the 780 unordered pairs of the first 40 gallery members at the defaults, |d(A,B) - d(B,A)| has median 0.0061, mean 0.0092 and maximum 0.0610 on a 0-1 score, and 45 of the 780 pairs agree exactly",
+    "params": {
+     "angular_bins": 15,
+     "context_points": 64,
+     "epsilon": 1e-06,
+     "ignored_params": [],
+     "log_polar_bins": 75,
+     "orientation": "sample",
+     "r_max_factor": 2.0,
+     "r_min_factor": 0.125,
+     "radial_bins": 5,
+     "rotation_step_deg": 15.0,
+     "rotation_steps": 24
+    },
+    "points": "64 of the 128 standardized ring samples (every second one), exposed as context_points",
+    "score": "mean over the one-to-one matched context pairs of the chi-square distance between their log-polar histograms (smaller is closer; exactly 0 when the two context sets coincide under this policy, unrelated shapes sit near O(1); an internal cost, not a similarity percentage and not a probability)"
+   },
+   "settings_scored": [
+    "T1",
+    "T2",
+    "T3"
+   ]
+  }
+ },
+ "checkpoint": "C",
+ "command": "scripts/evaluate_perceptual_methods.py --top 10",
+ "contract": {
+  "coarse_window": "none",
+  "contour_points": 128,
+  "module": "earthglyph.retrieval.perceptual_methods",
+  "ranking": "smaller distance is closer; ties broken by row order"
+ },
+ "git_commit": "05c50b695b6a6937ee4a4d0b6df465a43bc7a7b4"
+}

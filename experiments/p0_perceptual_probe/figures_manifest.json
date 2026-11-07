@@ -1,0 +1,132 @@
+{
+ "checkpoint": "C",
+ "built_at_utc": "2026-11-07T02:46:32Z",
+ "reproduce": {
+  "git_commit": "05c50b695b6a6937ee4a4d0b6df465a43bc7a7b4",
+  "commands": [
+   "python scripts/prepare_perceptual_dataset.py --offline --force",
+   "python scripts/evaluate_perceptual_methods.py --top 10",
+   "python scripts/visualize_perceptual.py --settings all --top 5"
+  ]
+ },
+ "inputs": {
+  "gallery.jsonl": {
+   "sha256": "15be97ae5ae583ceacfbf5ea76a18911acd1004bb3dc2c17b7d552b189e77891",
+   "bytes": 1231166
+  },
+  "labels.json": {
+   "sha256": "26e444ce2299c414c6deac7d8a260f4597360bcbe35d65dde2e66d2dbcb3b213",
+   "bytes": 118796
+  },
+  "dataset_manifest.json": {
+   "sha256": "b9f3c357beea963f54d129572164d05d962997e9d7b9de98be7183a4e45f9de8",
+   "bytes": 76709
+  },
+  "results.csv": {
+   "sha256": "ecf5bd452b04513c2b0086a2e77c780d60a0d92cf083a762a92ae2650ea35b16",
+   "bytes": 926636
+  },
+  "metrics.json": {
+   "sha256": "40583146086f43f0bc4dfcb56051bdde65c3fecb0b95ef151b41c3b9f0a19a1b",
+   "bytes": 139356
+  }
+ },
+ "outputs": {
+  "comparison_band_t1.png": {
+   "sha256": "602affd299eccf270873c11847951cad2eeec7a0e4ae7e2ada7436aa959ca19c",
+   "bytes": 752108
+  },
+  "comparison_blob_t1.png": {
+   "sha256": "eb73ced172b64dc71ba73106d6cff9c4a6767b81c1031de8f0bfd8be018b5202",
+   "bytes": 706577
+  },
+  "comparison_crescent_t1.png": {
+   "sha256": "15f8628be61a4d53c2228b17c19bbb698975f20ab6349f4e150db077c719c809",
+   "bytes": 539900
+  },
+  "comparison_forked_t1.png": {
+   "sha256": "401c9cafe506bef0214060a03b7da073a6e65f0f931e23ccc8ed019717e80bcc",
+   "bytes": 793215
+  },
+  "comparison_heart_t1.png": {
+   "sha256": "37f2e43e1bc7bcc90b8c89e7e2f1be6cf90cad88fe267e97cf20955a40f1d2c2",
+   "bytes": 498754
+  },
+  "comparison_irregular_t1.png": {
+   "sha256": "afa6098c875f4d880a2ae6aedbbde4adaf852a155f1b7f2a7e1ea7fdc9daf6ba",
+   "bytes": 512812
+  },
+  "comparison_star_t1.png": {
+   "sha256": "3aaae7b0d13f08a459234d3061a7cc84428c06441bbf5409204c5d38ba90451d",
+   "bytes": 769744
+  },
+  "perception_comparison_overview_t1.png": {
+   "sha256": "cb8856c72fd03f6c5dfe7f638486264e9172e637990cc26f8bc429c3805e70ec",
+   "bytes": 670418
+  },
+  "comparison_band_t2.png": {
+   "sha256": "a4ff413e74bad0c4b59599b66dd2f556eb1311eeeae484b2e506e7069016bb79",
+   "bytes": 764765
+  },
+  "comparison_blob_t2.png": {
+   "sha256": "f5091ab0f6274557898d33d1c5e78e1de672a074e25d0a0e11d04cfcad355a8b",
+   "bytes": 687542
+  },
+  "comparison_crescent_t2.png": {
+   "sha256": "9c7d6e154f9d4fc3563d4ae7229b91049ce2e9c30d20565ae3039a450bcc81c7",
+   "bytes": 545417
+  },
+  "comparison_forked_t2.png": {
+   "sha256": "3ec2e449995cb960d8d8de8459f130ebe8c5623145af743ce40269ef03a295ef",
+   "bytes": 801422
+  },
+  "comparison_heart_t2.png": {
+   "sha256": "50a8ac3cb9e8c41b49447da8ad559935e4b5465d04e039fd417ad2c899f8abe9",
+   "bytes": 503911
+  },
+  "comparison_irregular_t2.png": {
+   "sha256": "79aa2928db415c39905b9b61b252ea3f1ae556644c4ab36e224728b81285dac8",
+   "bytes": 510326
+  },
+  "comparison_star_t2.png": {
+   "sha256": "609a949dbcfbc3efba1061aa1f40b2c232c186fd4166ca52e1dd666122fb50ae",
+   "bytes": 780600
+  },
+  "perception_comparison_overview_t2.png": {
+   "sha256": "17233c173931782c744d4662d4a378c28f904c037dcabc92370b4946d18befa8",
+   "bytes": 763248
+  },
+  "comparison_band_t3.png": {
+   "sha256": "ae65a3ee97af7bfc2468e8d76c17199ddf82908f5681f2377eeaea52ea01a9a4",
+   "bytes": 812956
+  },
+  "comparison_blob_t3.png": {
+   "sha256": "d53553b97b7406cbf5315dc92ac7e36e881cd07ade0b7857aa8ecede7484ca60",
+   "bytes": 693836
+  },
+  "comparison_crescent_t3.png": {
+   "sha256": "464f69650bd1ff35ee0e2d064f1adb4db8758cf6996c47caf426663a8759cde0",
+   "bytes": 555077
+  },
+  "comparison_forked_t3.png": {
+   "sha256": "5b81ec34a5d659bee13b5676a9d3f7a603a6fd56f4d0d4b0fcba6ef525506391",
+   "bytes": 846046
+  },
+  "comparison_heart_t3.png": {
+   "sha256": "459166ce6c606499169f17f37a6d4a4a546549ec46bad1859715ad0ddaa63948",
+   "bytes": 523449
+  },
+  "comparison_irregular_t3.png": {
+   "sha256": "abe47c3bfe709ecdc34d5a0a4cb11eac9b98a5fd8431874c3f8347d387370b20",
+   "bytes": 531899
+  },
+  "comparison_star_t3.png": {
+   "sha256": "1de3cd70512e7c3fb48f3b3ae6d8e6c21e3ded8d9edb01a4ed5d436fc72dc082",
+   "bytes": 778290
+  },
+  "perception_comparison_overview_t3.png": {
+   "sha256": "36bf0bc1a278d30eb5d4cce7d027a84e41815ace67b221e7950b4040b5279836",
+   "bytes": 778941
+  }
+ }
+}
