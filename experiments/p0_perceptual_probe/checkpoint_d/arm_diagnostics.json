@@ -1,0 +1,3754 @@
+{
+ "checkpoint": "D2",
+ "setting": "T2",
+ "inputs": {
+  "results_csv": "experiments\\p0_perceptual_probe\\results.csv",
+  "queries": 18,
+  "gallery_members": 179,
+  "landform_rows": 839
+ },
+ "frozen_rankings_read_not_recomputed": true,
+ "elapsed_seconds": {
+  "material": 0.02,
+  "e0": 0.32,
+  "e1": 267.58,
+  "e2": 3.27,
+  "e3": 8.8,
+  "rotation": 284.37
+ },
+ "material": {
+  "setting": "T2",
+  "gallery_members": 179,
+  "identical_contour_groups": 11,
+  "members_in_a_group": 31,
+  "groups": [
+   {
+    "ids": [
+     "qd-band-circle-01",
+     "qd-blob-circle-01",
+     "qd-circle-01",
+     "qd-circle-query-01"
+    ],
+    "labels": [
+     "qd-band-circle-01 [band/hard_negative]",
+     "qd-blob-circle-01 [blob/variant]",
+     "qd-circle-01 [star/hard_negative]",
+     "qd-circle-query-01 [blob/query]"
+    ],
+    "families_present": [
+     "band",
+     "blob",
+     "star"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "query",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-band-circle-02",
+     "qd-blob-circle-02"
+    ],
+    "labels": [
+     "qd-band-circle-02 [band/hard_negative]",
+     "qd-blob-circle-02 [blob/variant]"
+    ],
+    "families_present": [
+     "band",
+     "blob"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-band-circle-03",
+     "qd-blob-circle-03"
+    ],
+    "labels": [
+     "qd-band-circle-03 [band/hard_negative]",
+     "qd-blob-circle-03 [blob/variant]"
+    ],
+    "families_present": [
+     "band",
+     "blob"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-band-circle-04",
+     "qd-blob-circle-04",
+     "qd-circle-05"
+    ],
+    "labels": [
+     "qd-band-circle-04 [band/hard_negative]",
+     "qd-blob-circle-04 [blob/variant]",
+     "qd-circle-05 [star/hard_negative]"
+    ],
+    "families_present": [
+     "band",
+     "blob",
+     "star"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-cloud-01",
+     "qd-cloud-query-01",
+     "qd-irregular-cloud-01"
+    ],
+    "labels": [
+     "qd-cloud-01 [crescent/hard_negative]",
+     "qd-cloud-query-01 [irregular/query]",
+     "qd-irregular-cloud-01 [irregular/variant]"
+    ],
+    "families_present": [
+     "crescent",
+     "irregular"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "query",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-cloud-04",
+     "qd-irregular-cloud-05"
+    ],
+    "labels": [
+     "qd-cloud-04 [crescent/hard_negative]",
+     "qd-irregular-cloud-05 [irregular/variant]"
+    ],
+    "families_present": [
+     "crescent",
+     "irregular"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-lightning-01",
+     "qd-lightning-query-01"
+    ],
+    "labels": [
+     "qd-lightning-01 [band/variant]",
+     "qd-lightning-query-01 [band/query]"
+    ],
+    "families_present": [
+     "band"
+    ],
+    "roles_present": [
+     "query",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-moon-01",
+     "qd-moon-query-01"
+    ],
+    "labels": [
+     "qd-moon-01 [crescent/hard_negative]",
+     "qd-moon-query-01 [crescent/hard_negative]"
+    ],
+    "families_present": [
+     "crescent"
+    ],
+    "roles_present": [
+     "hard_negative"
+    ]
+   },
+   {
+    "ids": [
+     "qd-star-01",
+     "qd-star-query-01"
+    ],
+    "labels": [
+     "qd-star-01 [star/variant]",
+     "qd-star-query-01 [star/query]"
+    ],
+    "families_present": [
+     "star"
+    ],
+    "roles_present": [
+     "query",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "qd-tree-01",
+     "qd-tree-query-01"
+    ],
+    "labels": [
+     "qd-tree-01 [forked/variant]",
+     "qd-tree-query-01 [forked/query]"
+    ],
+    "families_present": [
+     "forked"
+    ],
+    "roles_present": [
+     "query",
+     "variant"
+    ]
+   },
+   {
+    "ids": [
+     "syn-blob-circle",
+     "syn-circle",
+     "syn-circle-band",
+     "syn-circle-crescent",
+     "syn-circle-forked",
+     "syn-circle-heart",
+     "syn-irregular-circle"
+    ],
+    "labels": [
+     "syn-blob-circle [blob/variant]",
+     "syn-circle [star/hard_negative]",
+     "syn-circle-band [band/hard_negative]",
+     "syn-circle-crescent [crescent/hard_negative]",
+     "syn-circle-forked [forked/hard_negative]",
+     "syn-circle-heart [heart/hard_negative]",
+     "syn-irregular-circle [irregular/hard_negative]"
+    ],
+    "families_present": [
+     "band",
+     "blob",
+     "crescent",
+     "forked",
+     "heart",
+     "irregular",
+     "star"
+    ],
+    "roles_present": [
+     "hard_negative",
+     "variant"
+    ]
+   }
+  ],
+  "pairs_total": 40,
+  "pairs_declared_in_labels": 6,
+  "pairs_not_declared": [
+   [
+    "qd-band-circle-01",
+    "qd-blob-circle-01"
+   ],
+   [
+    "qd-band-circle-01",
+    "qd-circle-01"
+   ],
+   [
+    "qd-band-circle-01",
+    "qd-circle-query-01"
+   ],
+   [
+    "qd-band-circle-02",
+    "qd-blob-circle-02"
+   ],
+   [
+    "qd-band-circle-03",
+    "qd-blob-circle-03"
+   ],
+   [
+    "qd-band-circle-04",
+    "qd-blob-circle-04"
+   ],
+   [
+    "qd-band-circle-04",
+    "qd-circle-05"
+   ],
+   [
+    "qd-blob-circle-01",
+    "qd-circle-01"
+   ],
+   [
+    "qd-blob-circle-04",
+    "qd-circle-05"
+   ],
+   [
+    "qd-circle-01",
+    "qd-circle-query-01"
+   ],
+   [
+    "qd-cloud-01",
+    "qd-cloud-query-01"
+   ],
+   [
+    "qd-cloud-01",
+    "qd-irregular-cloud-01"
+   ],
+   [
+    "qd-cloud-04",
+    "qd-irregular-cloud-05"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-circle"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-circle-band"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-circle-crescent"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-circle-forked"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-circle-heart"
+   ],
+   [
+    "syn-blob-circle",
+    "syn-irregular-circle"
+   ],
+   [
+    "syn-circle",
+    "syn-circle-band"
+   ],
+   [
+    "syn-circle",
+    "syn-circle-crescent"
+   ],
+   [
+    "syn-circle",
+    "syn-circle-forked"
+   ],
+   [
+    "syn-circle",
+    "syn-circle-heart"
+   ],
+   [
+    "syn-circle",
+    "syn-irregular-circle"
+   ],
+   [
+    "syn-circle-band",
+    "syn-circle-crescent"
+   ],
+   [
+    "syn-circle-band",
+    "syn-circle-forked"
+   ],
+   [
+    "syn-circle-band",
+    "syn-circle-heart"
+   ],
+   [
+    "syn-circle-band",
+    "syn-irregular-circle"
+   ],
+   [
+    "syn-circle-crescent",
+    "syn-circle-forked"
+   ],
+   [
+    "syn-circle-crescent",
+    "syn-circle-heart"
+   ],
+   [
+    "syn-circle-crescent",
+    "syn-irregular-circle"
+   ],
+   [
+    "syn-circle-forked",
+    "syn-circle-heart"
+   ],
+   [
+    "syn-circle-forked",
+    "syn-irregular-circle"
+   ],
+   [
+    "syn-circle-heart",
+    "syn-irregular-circle"
+   ]
+  ],
+  "query_duplicates_left_in_library": [
+   {
+    "query_id": "qd-circle-query-01",
+    "identical_rows_in_library": [
+     "qd-band-circle-01",
+     "qd-circle-01"
+    ]
+   },
+   {
+    "query_id": "qd-cloud-query-01",
+    "identical_rows_in_library": [
+     "qd-cloud-01"
+    ]
+   }
+  ],
+  "origin_ref_groups": 11,
+  "origin_ref_members": 31,
+  "geometric_and_provenance_reads_agree": true,
+  "provenance_of_groups": [
+   {
+    "group": [
+     "qd-band-circle-01",
+     "qd-blob-circle-01",
+     "qd-circle-01",
+     "qd-circle-query-01"
+    ],
+    "origin_ref": "quickdraw:circle:5064695922819072"
+   },
+   {
+    "group": [
+     "qd-band-circle-02",
+     "qd-blob-circle-02"
+    ],
+    "origin_ref": "quickdraw:circle:5881692050948096"
+   },
+   {
+    "group": [
+     "qd-band-circle-03",
+     "qd-blob-circle-03"
+    ],
+    "origin_ref": "quickdraw:circle:5715360001032192"
+   },
+   {
+    "group": [
+     "qd-band-circle-04",
+     "qd-blob-circle-04",
+     "qd-circle-05"
+    ],
+    "origin_ref": "quickdraw:circle:4511254590783488"
+   },
+   {
+    "group": [
+     "qd-cloud-01",
+     "qd-cloud-query-01",
+     "qd-irregular-cloud-01"
+    ],
+    "origin_ref": "quickdraw:cloud:5007611478933504"
+   },
+   {
+    "group": [
+     "qd-cloud-04",
+     "qd-irregular-cloud-05"
+    ],
+    "origin_ref": "quickdraw:cloud:5006251572330496"
+   },
+   {
+    "group": [
+     "qd-lightning-01",
+     "qd-lightning-query-01"
+    ],
+    "origin_ref": "quickdraw:lightning:4855432919121920"
+   },
+   {
+    "group": [
+     "qd-moon-01",
+     "qd-moon-query-01"
+    ],
+    "origin_ref": "quickdraw:moon:5783988255850496"
+   },
+   {
+    "group": [
+     "qd-star-01",
+     "qd-star-query-01"
+    ],
+    "origin_ref": "quickdraw:star:5770830308966400"
+   },
+   {
+    "group": [
+     "qd-tree-01",
+     "qd-tree-query-01"
+    ],
+    "origin_ref": "quickdraw:tree:5294749034479616"
+   },
+   {
+    "group": [
+     "syn-blob-circle",
+     "syn-circle",
+     "syn-circle-band",
+     "syn-circle-crescent",
+     "syn-circle-forked",
+     "syn-circle-heart",
+     "syn-irregular-circle"
+    ],
+    "origin_ref": "circle({\"radius\": 1.0})"
+   }
+  ],
+  "reading": "a distance of 0.0 between two ids in one of these groups is the gallery reusing one contour under several family labels, not an arm failing to see a structural difference; the generator reuses the same recipe for all the syn-circle* hard negatives and the same QuickDraw row for qd-circle / qd-blob-circle / qd-band-circle / qd-circle-query, so the intended inner structure never reaches the point array"
+ },
+ "e0": {
+  "near_max_align": 0.02,
+  "per_query": [
+   {
+    "query_id": "ph-circle-fill",
+    "family": "blob",
+    "top1_candidate": "syn-circle",
+    "top1_distance": 7.28316078840726e-05,
+    "top1_relevant": false,
+    "theta_deg": -52.500236199616616,
+    "shift": 20,
+    "top5_distance_spread": 0.0,
+    "worst_relevant_in_top5": null,
+    "lookalikes_below_threshold": 6,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 6
+   },
+   {
+    "query_id": "ph-heart-fill",
+    "family": "heart",
+    "top1_candidate": "syn-heart-shallow",
+    "top1_distance": 0.06845391178846272,
+    "top1_relevant": true,
+    "theta_deg": -0.3598174118811937,
+    "shift": 100,
+    "top5_distance_spread": 0.019787,
+    "worst_relevant_in_top5": 0.085512,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "ph-lightning-fill",
+    "family": "band",
+    "top1_candidate": "qd-diamond-01",
+    "top1_distance": 0.19244697118642012,
+    "top1_relevant": false,
+    "theta_deg": 169.1031089255775,
+    "shift": 28,
+    "top5_distance_spread": 0.026617,
+    "worst_relevant_in_top5": null,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "ph-moon-fill",
+    "family": "crescent",
+    "top1_candidate": "syn-crescent-fat",
+    "top1_distance": 0.14054588873627788,
+    "top1_relevant": true,
+    "theta_deg": 44.43778227539713,
+    "shift": 0,
+    "top5_distance_spread": 0.039739,
+    "worst_relevant_in_top5": 0.151632,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "ph-star-fill",
+    "family": "star",
+    "top1_candidate": "syn-star-inner-055",
+    "top1_distance": 0.037204588891038864,
+    "top1_relevant": true,
+    "theta_deg": -143.99873496402174,
+    "shift": 23,
+    "top5_distance_spread": 0.048043,
+    "worst_relevant_in_top5": 0.062686,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "ph-tree-structure-fill",
+    "family": "forked",
+    "top1_candidate": "syn-band-tight",
+    "top1_distance": 0.4101484466992718,
+    "top1_relevant": false,
+    "theta_deg": 89.40186694776239,
+    "shift": 41,
+    "top5_distance_spread": 0.015093,
+    "worst_relevant_in_top5": null,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "qd-circle-query-01",
+    "family": "blob",
+    "top1_candidate": "qd-band-circle-01",
+    "top1_distance": 0.0,
+    "top1_relevant": false,
+    "theta_deg": -6.7366011001703e-16,
+    "shift": 0,
+    "top5_distance_spread": 0.043396,
+    "worst_relevant_in_top5": 0.041527,
+    "lookalikes_below_threshold": 2,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 2
+   },
+   {
+    "query_id": "qd-cloud-query-01",
+    "family": "irregular",
+    "top1_candidate": "qd-cloud-01",
+    "top1_distance": 1.4901161193847656e-08,
+    "top1_relevant": false,
+    "theta_deg": 1.1073187207749157e-15,
+    "shift": 0,
+    "top5_distance_spread": 0.146099,
+    "worst_relevant_in_top5": 0.146099,
+    "lookalikes_below_threshold": 1,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 1
+   },
+   {
+    "query_id": "qd-lightning-query-01",
+    "family": "band",
+    "top1_candidate": "qd-lightning-04",
+    "top1_distance": 0.22985870218521418,
+    "top1_relevant": true,
+    "theta_deg": 8.54337257671946,
+    "shift": 10,
+    "top5_distance_spread": 0.107654,
+    "worst_relevant_in_top5": 0.322792,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "qd-star-query-01",
+    "family": "star",
+    "top1_candidate": "syn-star-jitter",
+    "top1_distance": 0.2137776691558544,
+    "top1_relevant": true,
+    "theta_deg": 88.2315311416277,
+    "shift": 112,
+    "top5_distance_spread": 0.034257,
+    "worst_relevant_in_top5": 0.248035,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "qd-tree-query-01",
+    "family": "forked",
+    "top1_candidate": "qd-tree-03",
+    "top1_distance": 0.23493000611646667,
+    "top1_relevant": true,
+    "theta_deg": -20.751801170785413,
+    "shift": 15,
+    "top5_distance_spread": 0.043745,
+    "worst_relevant_in_top5": 0.23493,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-band-query",
+    "family": "band",
+    "top1_candidate": "syn-band-tight",
+    "top1_distance": 0.10308972345646866,
+    "top1_relevant": true,
+    "theta_deg": -0.39212365847234404,
+    "shift": 127,
+    "top5_distance_spread": 0.039407,
+    "worst_relevant_in_top5": 0.136228,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-blob-query",
+    "family": "blob",
+    "top1_candidate": "syn-egg",
+    "top1_distance": 6.285040589858037e-07,
+    "top1_relevant": false,
+    "theta_deg": -72.0000107808307,
+    "shift": 32,
+    "top5_distance_spread": 0.043395,
+    "worst_relevant_in_top5": 0.029179,
+    "lookalikes_below_threshold": 2,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 2
+   },
+   {
+    "query_id": "syn-crescent-query",
+    "family": "crescent",
+    "top1_candidate": "syn-crescent-turn",
+    "top1_distance": 0.04164662385357372,
+    "top1_relevant": true,
+    "theta_deg": -34.425038967012036,
+    "shift": 0,
+    "top5_distance_spread": 0.092178,
+    "worst_relevant_in_top5": 0.133824,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-forked-query",
+    "family": "forked",
+    "top1_candidate": "syn-forked-uneven",
+    "top1_distance": 0.10555677922469335,
+    "top1_relevant": true,
+    "theta_deg": -5.049683132069458,
+    "shift": 1,
+    "top5_distance_spread": 0.129064,
+    "worst_relevant_in_top5": 0.175979,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-heart-query",
+    "family": "heart",
+    "top1_candidate": "syn-heart-point",
+    "top1_distance": 0.02705943732441724,
+    "top1_relevant": true,
+    "theta_deg": -0.013976935067679792,
+    "shift": 0,
+    "top5_distance_spread": 0.049387,
+    "worst_relevant_in_top5": 0.076447,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-irregular-query",
+    "family": "irregular",
+    "top1_candidate": "syn-irregular-a",
+    "top1_distance": 0.048192595094925926,
+    "top1_relevant": true,
+    "theta_deg": -2.6611933339308975,
+    "shift": 0,
+    "top5_distance_spread": 0.01697,
+    "worst_relevant_in_top5": 0.065163,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   },
+   {
+    "query_id": "syn-star-query",
+    "family": "star",
+    "top1_candidate": "syn-star-rounded",
+    "top1_distance": 0.02526204812387276,
+    "top1_relevant": true,
+    "theta_deg": 71.77623179826831,
+    "shift": 104,
+    "top5_distance_spread": 0.052011,
+    "worst_relevant_in_top5": 0.077273,
+    "lookalikes_below_threshold": 0,
+    "lookalikes_relevant": 0,
+    "lookalikes_not_relevant": 0
+   }
+  ],
+  "top1_relevant_rate": 0.6667,
+  "simple_family_top1_relevant_rate": 0.375,
+  "n_simple_queries": 8,
+  "indistinguishable_but_not_relevant": [
+   {
+    "query_id": "qd-circle-query-01",
+    "candidate_id": "qd-band-circle-01",
+    "distance": 0.0,
+    "candidate_family": "band",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": true,
+    "note": "a closed loop: same stroke thickness, no turns"
+   },
+   {
+    "query_id": "qd-circle-query-01",
+    "candidate_id": "qd-circle-01",
+    "distance": 0.0,
+    "candidate_family": "star",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": true,
+    "note": "human circles drawn by the same population"
+   },
+   {
+    "query_id": "qd-cloud-query-01",
+    "candidate_id": "qd-cloud-01",
+    "distance": 1e-08,
+    "candidate_family": "crescent",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": true,
+    "note": "bumpy, but convex-ish"
+   },
+   {
+    "query_id": "syn-blob-query",
+    "candidate_id": "syn-egg",
+    "distance": 6.3e-07,
+    "candidate_family": "heart",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": "asymmetric-ish convex blob"
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-circle",
+    "distance": 7.283e-05,
+    "candidate_family": "star",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": "no corners at all; the shape a purely envelope-based matcher loves"
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-circle-band",
+    "distance": 7.283e-05,
+    "candidate_family": "band",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": ""
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-circle-crescent",
+    "distance": 7.283e-05,
+    "candidate_family": "crescent",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": "same outer arc, no inner arc"
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-circle-forked",
+    "distance": 7.283e-05,
+    "candidate_family": "forked",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": ""
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-circle-heart",
+    "distance": 7.283e-05,
+    "candidate_family": "heart",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": ""
+   },
+   {
+    "query_id": "ph-circle-fill",
+    "candidate_id": "syn-irregular-circle",
+    "distance": 7.283e-05,
+    "candidate_family": "irregular",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": ""
+   },
+   {
+    "query_id": "syn-blob-query",
+    "candidate_id": "syn-irregular-ellipse",
+    "distance": 0.01089636,
+    "candidate_family": "irregular",
+    "candidate_role": "hard_negative",
+    "same_contour_as_query": false,
+    "note": ""
+   }
+  ],
+  "count_indistinguishable_non_relevant": 11,
+  "count_indistinguishable_relevant": 0,
+  "same_contour_as_query": 3,
+  "distinct_contours": 8,
+  "distinct_shape_comparisons": 5,
+  "distinct_comparisons_on_a_different_contour": 3
+ },
+ "e1": {
+  "heart_queries": [
+   {
+    "query_id": "ph-heart-fill",
+    "top3": [
+     {
+      "candidate_id": "qd-circle-02",
+      "family": "star",
+      "role": "hard_negative",
+      "note": "human circles drawn by the same population",
+      "relevant": false
+     },
+     {
+      "candidate_id": "syn-heart-bean",
+      "family": "heart",
+      "role": "variant",
+      "note": "short point, deep cleft: the cleft and the two lobes survive, so the structure is kept (written as a kidney-shaped negative; the decoded contour is a heart with a stubby tip, which is a variant)",
+      "relevant": true
+     },
+     {
+      "candidate_id": "syn-heart-shallow",
+      "family": "heart",
+      "role": "variant",
+      "note": "shallow cleft",
+      "relevant": true
+     }
+    ],
+    "first_relevant_rank": 103,
+    "pointed_variant_ranks": {
+     "syn-heart-deep": 57,
+     "syn-heart-point": 49
+    },
+    "group_distances_for_top1": {
+     "global": 0.135,
+     "moments": 0.0407,
+     "curvature": 0.6848,
+     "fourier": 0.131,
+     "histogram": 0.7191,
+     "total": 1.0115
+    }
+   },
+   {
+    "query_id": "syn-heart-query",
+    "top3": [
+     {
+      "candidate_id": "syn-heart-round",
+      "family": "heart",
+      "role": "variant",
+      "note": "short, round heart",
+      "relevant": true
+     },
+     {
+      "candidate_id": "syn-heart-bean",
+      "family": "heart",
+      "role": "variant",
+      "note": "short point, deep cleft: the cleft and the two lobes survive, so the structure is kept (written as a kidney-shaped negative; the decoded contour is a heart with a stubby tip, which is a variant)",
+      "relevant": true
+     },
+     {
+      "candidate_id": "syn-heart-shallow",
+      "family": "heart",
+      "role": "variant",
+      "note": "shallow cleft",
+      "relevant": true
+     }
+    ],
+    "first_relevant_rank": 22,
+    "pointed_variant_ranks": {
+     "syn-heart-deep": 5,
+     "syn-heart-point": 4
+    },
+    "group_distances_for_top1": {
+     "global": 0.1124,
+     "moments": 0.0167,
+     "curvature": 0.3538,
+     "fourier": 0.0975,
+     "histogram": 0.3778,
+     "total": 0.5388
+    }
+   }
+  ],
+  "descriptor_counts": {
+   "global": 10,
+   "moments": 6,
+   "curvature": 18,
+   "fourier": 15,
+   "histogram": 42
+  },
+  "ablation": {
+   "full": {
+    "n_descriptors": 91,
+    "hit@1": 0.6111,
+    "mean_first_relevant_rank": 2.556,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->qd-circle-02",
+     "ph-lightning-fill->qd-diamond-03",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "syn-blob-query->syn-egg"
+    ],
+    "hit@1_delta_vs_full": 0.0
+   },
+   "drop_global": {
+    "n_descriptors": 81,
+    "hit@1": 0.6111,
+    "mean_first_relevant_rank": 2.278,
+    "wrong_top1_queries": [
+     "ph-heart-fill->qd-circle-02",
+     "ph-lightning-fill->ph-star4-fill",
+     "ph-tree-structure-fill->syn-forked-query",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "syn-blob-query->syn-egg"
+    ],
+    "hit@1_delta_vs_full": 0.0
+   },
+   "drop_moments": {
+    "n_descriptors": 85,
+    "hit@1": 0.6667,
+    "mean_first_relevant_rank": 2.389,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->syn-two-prong",
+     "ph-lightning-fill->syn-spade-ish",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "syn-blob-query->syn-egg"
+    ],
+    "hit@1_delta_vs_full": 0.0556
+   },
+   "drop_curvature": {
+    "n_descriptors": 73,
+    "hit@1": 0.6667,
+    "mean_first_relevant_rank": 2.889,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-irregular-bumps",
+     "ph-lightning-fill->qd-irregular-cloud-03",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "syn-blob-query->syn-egg",
+     "syn-star-query->syn-blob-star5"
+    ],
+    "hit@1_delta_vs_full": 0.0556
+   },
+   "drop_fourier": {
+    "n_descriptors": 76,
+    "hit@1": 0.5,
+    "mean_first_relevant_rank": 2.778,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->qd-circle-02",
+     "ph-lightning-fill->syn-star-inner-055",
+     "ph-tree-structure-fill->syn-forked-query",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01"
+    ],
+    "hit@1_delta_vs_full": -0.1111
+   },
+   "drop_histogram": {
+    "n_descriptors": 49,
+    "hit@1": 0.6111,
+    "mean_first_relevant_rank": 2.0,
+    "wrong_top1_queries": [
+     "ph-heart-fill->qd-circle-02",
+     "ph-lightning-fill->qd-tree-05",
+     "ph-tree-structure-fill->qd-star-06",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "qd-tree-query-01->qd-fork-04"
+    ],
+    "hit@1_delta_vs_full": 0.0
+   },
+   "global": {
+    "n_descriptors": 10,
+    "hit@1": 0.5,
+    "mean_first_relevant_rank": 3.556,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->syn-irregular-query",
+     "ph-lightning-fill->syn-band-query",
+     "ph-moon-fill->qd-tree-05",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01"
+    ],
+    "hit@1_delta_vs_full": -0.1111
+   },
+   "moments": {
+    "n_descriptors": 6,
+    "hit@1": 0.6111,
+    "mean_first_relevant_rank": 2.833,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-irregular-bumps",
+     "ph-lightning-fill->qd-circle-03",
+     "ph-star-fill->syn-pentagon",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "syn-band-query->qd-moon-07"
+    ],
+    "hit@1_delta_vs_full": 0.0
+   },
+   "curvature": {
+    "n_descriptors": 18,
+    "hit@1": 0.4444,
+    "mean_first_relevant_rank": 3.944,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->syn-two-prong",
+     "ph-lightning-fill->ph-knife-fill",
+     "ph-star-fill->syn-forked-four",
+     "ph-tree-structure-fill->syn-star-lobed-5",
+     "qd-circle-query-01->qd-band-circle-01"
+    ],
+    "hit@1_delta_vs_full": -0.1667
+   },
+   "fourier": {
+    "n_descriptors": 15,
+    "hit@1": 0.5,
+    "mean_first_relevant_rank": 2.833,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-heart-fill->qd-circle-03",
+     "ph-lightning-fill->syn-crescent-lobed",
+     "ph-moon-fill->qd-diamond-02",
+     "ph-tree-structure-fill->qd-star-06",
+     "qd-circle-query-01->qd-band-circle-01"
+    ],
+    "hit@1_delta_vs_full": -0.1111
+   },
+   "histogram": {
+    "n_descriptors": 42,
+    "hit@1": 0.5556,
+    "mean_first_relevant_rank": 2.667,
+    "wrong_top1_queries": [
+     "ph-circle-fill->syn-circle",
+     "ph-lightning-fill->qd-star-06",
+     "ph-tree-structure-fill->qd-star-07",
+     "qd-circle-query-01->qd-band-circle-01",
+     "qd-cloud-query-01->qd-cloud-01",
+     "qd-star-query-01->ph-spiral-fill"
+    ],
+    "hit@1_delta_vs_full": -0.0555
+   }
+  },
+  "normalizer_shift_on_landforms": {
+   "rows_scored": 839,
+   "descriptor_cells": 76349,
+   "cells_below_fitted_min": 97,
+   "cells_above_fitted_max": 310,
+   "cells_outside_fitted_interval_share": 0.005330783638292577,
+   "worst_descriptor": "curv00_w32_concave_share",
+   "worst_descriptor_outside_share": 0.04767580452920143,
+   "reading": "a minmax scale fitted on stylised icons does not bound natural coastlines; the Euclidean distance in E1 is then partly a distance *outside* the fitted range, which is a property of this corpus choice, not of the descriptors"
+  },
+  "normalizer_shift_on_gallery": {
+   "rows_scored": 179,
+   "descriptor_cells": 16289,
+   "cells_outside_fitted_interval": 0
+  }
+ },
+ "e2": {
+  "constants": {
+   "DEFAULT_SCALES": [
+    0.015625,
+    0.03125,
+    0.0625,
+    0.125,
+    0.25
+   ],
+   "SALIENCE_K": 3.0,
+   "MIN_SEPARATION": 2,
+   "GAP_COST": 1.0,
+   "DEFORMATION_BUDGET": 0.02,
+   "PEAK_GAIN": 0.25,
+   "normalisation": "cost / 2*pi"
+  },
+  "t1_self_rank": {
+   "queries_off_rank_one": [
+    {
+     "query_id": "syn-blob-query",
+     "observed_self_rank": 4,
+     "self_distance": 0.0,
+     "self_distance_is_zero": true,
+     "query_signature": {
+      "events": 0,
+      "convex": 0,
+      "concave": 0,
+      "total_turning_rad": 6.283185,
+      "positions": [],
+      "signed_magnitudes": [],
+      "persistence": [],
+      "peaks": []
+     },
+     "tie_set": [
+      {
+       "candidate_id": "ph-circle-fill",
+       "distance": 0.0,
+       "events": 0,
+       "family": "blob",
+       "role": "query",
+       "library_row": 0
+      },
+      {
+       "candidate_id": "syn-blob-circle",
+       "distance": 0.0,
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "library_row": 13
+      },
+      {
+       "candidate_id": "syn-blob-e2",
+       "distance": 0.0,
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "library_row": 14
+      },
+      {
+       "candidate_id": "syn-blob-query",
+       "distance": 0.0,
+       "events": 0,
+       "family": "blob",
+       "role": "query",
+       "library_row": 15
+      },
+      {
+       "candidate_id": "syn-blob-smooth",
+       "distance": 0.0,
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "library_row": 16
+      }
+     ],
+     "tie_break_rule": "np.argsort(kind='stable') -> first row wins (D42)",
+     "verdict": "not an implementation error: an empty salient sequence aligns with an empty salient sequence at cost 0.0 by definition, so every shape with no measurable turning sits in one tie of 5 rows and the stable tie-break, not the score, decides who is first"
+    }
+   ],
+   "n_queries_off_rank_one": 1
+  },
+  "zero_distance_top_hits": {
+   "setting": "T2",
+   "n_queries_with_zero_distance_top_hits": 4,
+   "zero_hits_that_are_the_same_contour": 3,
+   "zero_hits_on_a_genuinely_different_contour": 10,
+   "groups": [
+    {
+     "query_id": "ph-circle-fill",
+     "query_family": "blob",
+     "query_events": 0,
+     "ranks_at_zero": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "candidates": [
+      {
+       "rank": 1,
+       "candidate_id": "syn-band-loose",
+       "events": 0,
+       "family": "band",
+       "role": "variant",
+       "relevant": false,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 2,
+       "candidate_id": "syn-blob-e2",
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "relevant": true,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 3,
+       "candidate_id": "syn-blob-query",
+       "events": 0,
+       "family": "blob",
+       "role": "query",
+       "relevant": false,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 4,
+       "candidate_id": "syn-blob-smooth",
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "relevant": true,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 5,
+       "candidate_id": "syn-circle",
+       "events": 0,
+       "family": "star",
+       "role": "hard_negative",
+       "relevant": false,
+       "same_contour_as_query": false
+      }
+     ],
+     "all_candidates_eventless": true,
+     "n_same_contour": 0
+    },
+    {
+     "query_id": "qd-circle-query-01",
+     "query_family": "blob",
+     "query_events": 3,
+     "ranks_at_zero": [
+      1,
+      2
+     ],
+     "candidates": [
+      {
+       "rank": 1,
+       "candidate_id": "qd-band-circle-01",
+       "events": 3,
+       "family": "band",
+       "role": "hard_negative",
+       "relevant": false,
+       "same_contour_as_query": true
+      },
+      {
+       "rank": 2,
+       "candidate_id": "qd-circle-01",
+       "events": 3,
+       "family": "star",
+       "role": "hard_negative",
+       "relevant": false,
+       "same_contour_as_query": true
+      }
+     ],
+     "all_candidates_eventless": false,
+     "n_same_contour": 2
+    },
+    {
+     "query_id": "qd-cloud-query-01",
+     "query_family": "irregular",
+     "query_events": 6,
+     "ranks_at_zero": [
+      1
+     ],
+     "candidates": [
+      {
+       "rank": 1,
+       "candidate_id": "qd-cloud-01",
+       "events": 6,
+       "family": "crescent",
+       "role": "hard_negative",
+       "relevant": false,
+       "same_contour_as_query": true
+      }
+     ],
+     "all_candidates_eventless": false,
+     "n_same_contour": 1
+    },
+    {
+     "query_id": "syn-blob-query",
+     "query_family": "blob",
+     "query_events": 0,
+     "ranks_at_zero": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ],
+     "candidates": [
+      {
+       "rank": 1,
+       "candidate_id": "ph-circle-fill",
+       "events": 0,
+       "family": "blob",
+       "role": "query",
+       "relevant": false,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 2,
+       "candidate_id": "syn-band-loose",
+       "events": 0,
+       "family": "band",
+       "role": "variant",
+       "relevant": false,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 3,
+       "candidate_id": "syn-blob-circle",
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "relevant": true,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 4,
+       "candidate_id": "syn-blob-e2",
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "relevant": true,
+       "same_contour_as_query": false
+      },
+      {
+       "rank": 5,
+       "candidate_id": "syn-blob-smooth",
+       "events": 0,
+       "family": "blob",
+       "role": "variant",
+       "relevant": true,
+       "same_contour_as_query": false
+      }
+     ],
+     "all_candidates_eventless": true,
+     "n_same_contour": 0
+    }
+   ],
+   "reading": "distance 0.0 here is a property of two empty salient-event sequences aligning at cost 0, not a claim that the two outlines agree; where all_candidates_eventless is true the metric has simply run out of signal, and where same_contour_as_query is true the gallery handed the arm its own contour back under a different id, which no metric could score differently"
+  },
+  "event_census": {
+   "shapes_census": 1018,
+   "event_count_histogram": {
+    "0": 19,
+    "1": 23,
+    "2": 130,
+    "3": 181,
+    "4": 195,
+    "5": 128,
+    "6": 76,
+    "7": 67,
+    "8": 70,
+    "9": 52,
+    "10": 41,
+    "11": 16,
+    "12": 10,
+    "13": 6,
+    "14": 2,
+    "15": 1,
+    "16": 1
+   },
+   "share_zero_event": 0.0187,
+   "query_event_counts": {
+    "ph-circle-fill": 0,
+    "ph-heart-fill": 2,
+    "ph-lightning-fill": 6,
+    "ph-moon-fill": 2,
+    "ph-star-fill": 10,
+    "ph-tree-structure-fill": 12,
+    "qd-circle-query-01": 3,
+    "qd-cloud-query-01": 6,
+    "qd-lightning-query-01": 8,
+    "qd-star-query-01": 8,
+    "qd-tree-query-01": 9,
+    "syn-band-query": 2,
+    "syn-blob-query": 0,
+    "syn-crescent-query": 2,
+    "syn-forked-query": 8,
+    "syn-heart-query": 2,
+    "syn-irregular-query": 4,
+    "syn-star-query": 10
+   }
+  },
+  "gap_price": {
+   "drop_a_0.3_rad_convex_corner": {
+    "cost": 0.3,
+    "distance_over_2pi": 0.047746
+   },
+   "drop_a_0.6_rad_convex_corner": {
+    "cost": 0.6,
+    "distance_over_2pi": 0.095493
+   },
+   "drop_a_1.0_rad_convex_corner": {
+    "cost": 1.0,
+    "distance_over_2pi": 0.159155
+   },
+   "drop_a_1.6_rad_convex_corner": {
+    "cost": 1.6,
+    "distance_over_2pi": 0.254648
+   },
+   "match_convex_to_concave_1rad": {
+    "cost": 2.0,
+    "distance_over_2pi": 0.31831,
+    "note": "turning term adds, so a prong read as a valley pays both turns"
+   },
+   "reference": {
+    "near_max_align": 0.02,
+    "comment": "a dropped 1.0 rad corner costs 0.159 in the same units E0 calls 'indistinguishable' at the near-duplicate bar above, so the penalty is not tiny in absolute terms; the question is whether the notches in this gallery actually reach 1.0 rad"
+   }
+  },
+  "structure_loss_cases": [
+   {
+    "query_id": "ph-heart-fill",
+    "query_family": "heart",
+    "rank": 1,
+    "candidate_id": "qd-band-circle-03",
+    "candidate_family": "band",
+    "candidate_note": "a closed loop: same stroke thickness, no turns",
+    "distance": 0.3790688845882688,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 1,
+    "candidate_concave": 0,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 1,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.50057,
+      "cost": 0.711231
+     }
+    ],
+    "unmatched_query_events": 1,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "ph-heart-fill",
+    "query_family": "heart",
+    "rank": 2,
+    "candidate_id": "qd-blob-circle-03",
+    "candidate_family": "blob",
+    "candidate_note": "circles as members of the smooth family",
+    "distance": 0.3790688845882688,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 1,
+    "candidate_concave": 0,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 1,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.50057,
+      "cost": 0.711231
+     }
+    ],
+    "unmatched_query_events": 1,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "ph-heart-fill",
+    "query_family": "heart",
+    "rank": 3,
+    "candidate_id": "syn-irregular-silted",
+    "candidate_family": "irregular",
+    "candidate_note": "the query with the finest harmonics removed",
+    "distance": 0.3808677800606274,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 1,
+    "candidate_concave": 0,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 1,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.50057,
+      "cost": 0.722534
+     }
+    ],
+    "unmatched_query_events": 1,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "ph-moon-fill",
+    "query_family": "crescent",
+    "rank": 1,
+    "candidate_id": "qd-moon-02",
+    "candidate_family": "crescent",
+    "candidate_note": "human moons",
+    "distance": 0.08271480375132384,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.267111
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.07919,
+      "cost": 0.252602
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "ph-moon-fill",
+    "query_family": "crescent",
+    "rank": 2,
+    "candidate_id": "syn-band-query",
+    "candidate_family": "band",
+    "candidate_note": "the P0-4 S: a stroked path, twice bent",
+    "distance": 0.10045770028987795,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.121086
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.08767,
+      "cost": 0.510109
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "ph-moon-fill",
+    "query_family": "crescent",
+    "rank": 3,
+    "candidate_id": "syn-band-zigzag",
+    "candidate_family": "band",
+    "candidate_note": "measured, not assumed: this flattens to a convex elongated body (solidity 0.97, no concave vertex), so it has lost the two turns that define the family and cannot be a variant of it",
+    "distance": 0.15370728907641096,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.289634
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.17155,
+      "cost": 0.676137
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "syn-crescent-query",
+    "query_family": "crescent",
+    "rank": 1,
+    "candidate_id": "syn-crescent-deformed",
+    "candidate_family": "crescent",
+    "candidate_note": "coarser boolean sampling, i.e. a boundary perturbation, not a rigid move",
+    "distance": 0.008709125588709248,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.014296
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.00775,
+      "cost": 0.040425
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 0
+   },
+   {
+    "query_id": "syn-crescent-query",
+    "query_family": "crescent",
+    "rank": 2,
+    "candidate_id": "syn-crescent-turn",
+    "candidate_family": "crescent",
+    "candidate_note": "asymmetric waxing crescent",
+    "distance": 0.030773963366087655,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.095654
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.00745,
+      "cost": 0.097705
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 0
+   },
+   {
+    "query_id": "syn-crescent-query",
+    "query_family": "crescent",
+    "rank": 3,
+    "candidate_id": "syn-crescent-fat",
+    "candidate_family": "crescent",
+    "candidate_note": "wider opening",
+    "distance": 0.06296766693929821,
+    "query_events": 2,
+    "query_concave": 0,
+    "query_convex": 2,
+    "candidate_events": 2,
+    "candidate_concave": 0,
+    "candidate_convex": 2,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.180472
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.04676,
+      "cost": 0.215165
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 1
+   },
+   {
+    "query_id": "syn-heart-query",
+    "query_family": "heart",
+    "rank": 1,
+    "candidate_id": "syn-heart-wide",
+    "candidate_family": "heart",
+    "candidate_note": "wider lobes",
+    "distance": 0.0342789480379141,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 2,
+    "candidate_concave": 1,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.089872
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.125509
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 0
+   },
+   {
+    "query_id": "syn-heart-query",
+    "query_family": "heart",
+    "rank": 2,
+    "candidate_id": "syn-heart-point",
+    "candidate_family": "heart",
+    "candidate_note": "longer point",
+    "distance": 0.03754813529038998,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 2,
+    "candidate_concave": 1,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.080847
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.155075
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 0
+   },
+   {
+    "query_id": "syn-heart-query",
+    "query_family": "heart",
+    "rank": 3,
+    "candidate_id": "syn-heart-deep",
+    "candidate_family": "heart",
+    "candidate_note": "deep cleft, higher concavity",
+    "distance": 0.03917596780161114,
+    "query_events": 2,
+    "query_concave": 1,
+    "query_convex": 1,
+    "candidate_events": 2,
+    "candidate_concave": 1,
+    "candidate_convex": 1,
+    "pairs": [
+     {
+      "left": 0,
+      "right": 0,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.086297
+     },
+     {
+      "left": 1,
+      "right": 1,
+      "sign_match": true,
+      "drift": 0.0,
+      "cost": 0.159853
+     }
+    ],
+    "unmatched_query_events": 0,
+    "unmatched_candidate_events": 0,
+    "opposite_sign_pairs": 0,
+    "drift_beyond_budget": 0
+   }
+  ],
+  "deletion_vs_match": {
+   "setting": "T2",
+   "scope": "C's stored Top-10 only; alignments re-derived, distances read",
+   "queries_compared": 7,
+   "deletion_wins": 2,
+   "groups": [
+    {
+     "query_id": "ph-heart-fill",
+     "query_family": "heart",
+     "query_events": 2,
+     "cheapest_with_a_dropped_event": {
+      "rank": 1,
+      "candidate_id": "qd-band-circle-03",
+      "distance": 0.3790688845882688,
+      "relevant": false,
+      "query_events_dropped": 1,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.7112
+      ],
+      "pair_drift": [
+       0.5006
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 6,
+      "candidate_id": "syn-heart-bean",
+      "distance": 0.3991391126621466,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       1.156,
+       1.3519
+      ],
+      "pair_drift": [
+       0.0,
+       0.0006
+      ]
+     },
+     "margin": 0.02007,
+     "deletion_wins": true
+    },
+    {
+     "query_id": "ph-lightning-fill",
+     "query_family": "band",
+     "query_events": 6,
+     "cheapest_with_a_dropped_event": {
+      "rank": 3,
+      "candidate_id": "ph-knife-fill",
+      "distance": 0.6916441206099004,
+      "relevant": false,
+      "query_events_dropped": 2,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.1459,
+       0.2748,
+       0.3308,
+       0.2228
+      ],
+      "pair_drift": [
+       0.0,
+       0.04,
+       0.0163,
+       0.0229
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 1,
+      "candidate_id": "qd-lightning-06",
+      "distance": 0.5189141291293865,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.908,
+       0.3254,
+       0.4827,
+       0.893,
+       0.3374,
+       0.3141
+      ],
+      "pair_drift": [
+       0.0,
+       0.0353,
+       0.0191,
+       0.0161,
+       0.1082,
+       0.0866
+      ]
+     },
+     "margin": -0.17273,
+     "deletion_wins": false
+    },
+    {
+     "query_id": "ph-star-fill",
+     "query_family": "star",
+     "query_events": 10,
+     "cheapest_with_a_dropped_event": {
+      "rank": 4,
+      "candidate_id": "syn-star-jitter",
+      "distance": 0.675258150653012,
+      "relevant": true,
+      "query_events_dropped": 1,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.2222,
+       0.5271,
+       0.2253,
+       0.7352,
+       0.0785,
+       0.4149,
+       0.2961,
+       0.6184,
+       0.0267
+      ],
+      "pair_drift": [
+       0.0,
+       0.0239,
+       0.0422,
+       0.0213,
+       0.0103,
+       0.0275,
+       0.0404,
+       0.0135,
+       0.0055
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 1,
+      "candidate_id": "syn-star-soft",
+      "distance": 0.30524437325915865,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.3101,
+       0.1006,
+       0.2181,
+       0.0914,
+       0.3664,
+       0.088,
+       0.2538,
+       0.1029,
+       0.3017,
+       0.085
+      ],
+      "pair_drift": [
+       0.0,
+       0.0007,
+       0.0002,
+       0.0005,
+       0.0005,
+       0.0005,
+       0.0002,
+       0.0007,
+       0.0005,
+       0.0003
+      ]
+     },
+     "margin": -0.37001,
+     "deletion_wins": false
+    },
+    {
+     "query_id": "qd-circle-query-01",
+     "query_family": "blob",
+     "query_events": 3,
+     "cheapest_with_a_dropped_event": {
+      "rank": 6,
+      "candidate_id": "qd-band-circle-02",
+      "distance": 0.24100146707710549,
+      "relevant": false,
+      "query_events_dropped": 2,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.2223
+      ],
+      "pair_drift": [
+       0.0
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 4,
+      "candidate_id": "qd-blob-circle-04",
+      "distance": 0.0776871106049683,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.2275,
+       0.1382,
+       0.1225
+      ],
+      "pair_drift": [
+       0.0,
+       0.0094,
+       0.1134
+      ]
+     },
+     "margin": -0.16331,
+     "deletion_wins": false
+    },
+    {
+     "query_id": "qd-lightning-query-01",
+     "query_family": "band",
+     "query_events": 8,
+     "cheapest_with_a_dropped_event": {
+      "rank": 5,
+      "candidate_id": "qd-lightning-05",
+      "distance": 1.0617589968898993,
+      "relevant": true,
+      "query_events_dropped": 2,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       1.1438,
+       0.214,
+       0.7599,
+       0.3053,
+       0.2626,
+       0.2524
+      ],
+      "pair_drift": [
+       0.0,
+       0.0152,
+       0.1495,
+       0.059,
+       0.0647,
+       0.0305
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 1,
+      "candidate_id": "qd-lightning-03",
+      "distance": 0.5400979204834891,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.6757,
+       0.513,
+       0.2602,
+       0.0974,
+       0.5332,
+       0.2281,
+       0.5311,
+       0.5548
+      ],
+      "pair_drift": [
+       0.0,
+       0.0848,
+       0.0787,
+       0.0634,
+       0.0071,
+       0.0659,
+       0.0671,
+       0.0504
+      ]
+     },
+     "margin": -0.52166,
+     "deletion_wins": false
+    },
+    {
+     "query_id": "syn-irregular-query",
+     "query_family": "irregular",
+     "query_events": 4,
+     "cheapest_with_a_dropped_event": {
+      "rank": 1,
+      "candidate_id": "syn-irregular-c",
+      "distance": 0.36383024694797617,
+      "relevant": true,
+      "query_events_dropped": 1,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.236,
+       0.431,
+       0.8472
+      ],
+      "pair_drift": [
+       0.0,
+       0.1941,
+       0.5082
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 9,
+      "candidate_id": "qd-irregular-cloud-04",
+      "distance": 0.5172026599535504,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       1.1905,
+       0.3775,
+       0.863,
+       0.8188
+      ],
+      "pair_drift": [
+       0.0,
+       0.199,
+       0.2454,
+       0.2955
+      ]
+     },
+     "margin": 0.15337,
+     "deletion_wins": true
+    },
+    {
+     "query_id": "syn-star-query",
+     "query_family": "star",
+     "query_events": 10,
+     "cheapest_with_a_dropped_event": {
+      "rank": 4,
+      "candidate_id": "syn-star-jitter",
+      "distance": 0.4526205097259641,
+      "relevant": true,
+      "query_events_dropped": 1,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.1316,
+       0.2466,
+       0.1996,
+       0.1749,
+       0.1381,
+       0.1832,
+       0.1984,
+       0.1708,
+       0.2314
+      ],
+      "pair_drift": [
+       0.0,
+       0.0191,
+       0.0012,
+       0.0126,
+       0.0038,
+       0.0167,
+       0.0097,
+       0.0282,
+       0.0224
+      ]
+     },
+     "cheapest_fully_matched_relevant": {
+      "rank": 1,
+      "candidate_id": "syn-star-rounded",
+      "distance": 0.23478396908212015,
+      "relevant": true,
+      "query_events_dropped": 0,
+      "candidate_events_dropped": 0,
+      "pair_costs": [
+       0.2085,
+       0.1875,
+       0.205,
+       0.0677,
+       0.0725,
+       0.131,
+       0.3344,
+       0.131,
+       0.0698,
+       0.0677
+      ],
+      "pair_drift": [
+       0.0,
+       0.0009,
+       0.0018,
+       0.001,
+       0.0001,
+       0.0007,
+       0.0009,
+       0.0011,
+       0.0016,
+       0.0008
+      ]
+     },
+     "margin": -0.21784,
+     "deletion_wins": false
+    }
+   ],
+   "gap_cost_reading": "a dropped query event costs its own signed turning, so the DP compares |magnitude of the lost corner| against the sum of the pair costs it would have paid to match it; deletion wins whenever that comparison is cheap"
+  },
+  "scale_filtering": {
+   "ph-circle-fill": {
+    "family": "blob",
+    "events_all_scales": 0,
+    "events_per_single_scale": {
+     "0.0156": 0,
+     "0.0312": 0,
+     "0.0625": 0,
+     "0.1250": 0,
+     "0.2500": 0
+    },
+    "signs": [],
+    "scale_index_of_each_event": [],
+    "persistence_of_each_event": []
+   },
+   "ph-heart-fill": {
+    "family": "heart",
+    "events_all_scales": 2,
+    "events_per_single_scale": {
+     "0.0156": 2,
+     "0.0312": 0,
+     "0.0625": 0,
+     "0.1250": 0,
+     "0.2500": 0
+    },
+    "signs": [
+     -1,
+     1
+    ],
+    "scale_index_of_each_event": [
+     0,
+     0
+    ],
+    "persistence_of_each_event": [
+     1,
+     1
+    ]
+   },
+   "ph-moon-fill": {
+    "family": "crescent",
+    "events_all_scales": 2,
+    "events_per_single_scale": {
+     "0.0156": 2,
+     "0.0312": 2,
+     "0.0625": 1,
+     "0.1250": 0,
+     "0.2500": 0
+    },
+    "signs": [
+     1,
+     1
+    ],
+    "scale_index_of_each_event": [
+     0,
+     0
+    ],
+    "persistence_of_each_event": [
+     3,
+     2
+    ]
+   },
+   "ph-star-fill": {
+    "family": "star",
+    "events_all_scales": 10,
+    "events_per_single_scale": {
+     "0.0156": 10,
+     "0.0312": 5,
+     "0.0625": 0,
+     "0.1250": 0,
+     "0.2500": 0
+    },
+    "signs": [
+     1,
+     -1,
+     1,
+     -1,
+     1,
+     -1,
+     1,
+     -1,
+     1,
+     -1
+    ],
+    "scale_index_of_each_event": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "persistence_of_each_event": [
+     2,
+     1,
+     2,
+     1,
+     2,
+     1,
+     2,
+     1,
+     2,
+     1
+    ]
+   },
+   "ph-tree-structure-fill": {
+    "family": "forked",
+    "events_all_scales": 12,
+    "events_per_single_scale": {
+     "0.0156": 11,
+     "0.0312": 7,
+     "0.0625": 6,
+     "0.1250": 2,
+     "0.2500": 0
+    },
+    "signs": [
+     1,
+     1,
+     -1,
+     -1,
+     -1,
+     1,
+     1,
+     -1,
+     -1,
+     1,
+     -1,
+     -1
+    ],
+    "scale_index_of_each_event": [
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "persistence_of_each_event": [
+     1,
+     4,
+     1,
+     3,
+     1,
+     3,
+     1,
+     3,
+     4,
+     4,
+     3,
+     3
+    ]
+   }
+  }
+ },
+ "e3": {
+  "per_query": [
+   {
+    "query_id": "ph-circle-fill",
+    "family": "blob",
+    "e0_first_relevant": null,
+    "e3_first_relevant": 7,
+    "delta": 4.0,
+    "direction": "E3 better",
+    "e0_top1": "syn-circle",
+    "e3_top1": "syn-circle",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 6
+   },
+   {
+    "query_id": "ph-heart-fill",
+    "family": "heart",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-heart-shallow",
+    "e3_top1": "syn-heart-shallow",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 8
+   },
+   {
+    "query_id": "ph-lightning-fill",
+    "family": "band",
+    "e0_first_relevant": null,
+    "e3_first_relevant": 9,
+    "delta": 2.0,
+    "direction": "E3 better",
+    "e0_top1": "qd-diamond-01",
+    "e3_top1": "syn-forked-four",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 13
+   },
+   {
+    "query_id": "ph-moon-fill",
+    "family": "crescent",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-crescent-fat",
+    "e3_top1": "syn-crescent-fat",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 11
+   },
+   {
+    "query_id": "ph-star-fill",
+    "family": "star",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-star-inner-055",
+    "e3_top1": "syn-star-soft",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 13
+   },
+   {
+    "query_id": "ph-tree-structure-fill",
+    "family": "forked",
+    "e0_first_relevant": 9,
+    "e3_first_relevant": 2,
+    "delta": 7.0,
+    "direction": "E3 better",
+    "e0_top1": "syn-band-tight",
+    "e3_top1": "syn-forked-query",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 14
+   },
+   {
+    "query_id": "qd-circle-query-01",
+    "family": "blob",
+    "e0_first_relevant": 4,
+    "e3_first_relevant": 5,
+    "delta": -1.0,
+    "direction": "E0 better",
+    "e0_top1": "qd-band-circle-01",
+    "e3_top1": "qd-band-circle-01",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 6
+   },
+   {
+    "query_id": "qd-cloud-query-01",
+    "family": "irregular",
+    "e0_first_relevant": 5,
+    "e3_first_relevant": 3,
+    "delta": 2.0,
+    "direction": "E3 better",
+    "e0_top1": "qd-cloud-01",
+    "e3_top1": "qd-cloud-01",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 10
+   },
+   {
+    "query_id": "qd-lightning-query-01",
+    "family": "band",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "qd-lightning-04",
+    "e3_top1": "qd-lightning-02",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 12
+   },
+   {
+    "query_id": "qd-star-query-01",
+    "family": "star",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-star-jitter",
+    "e3_top1": "syn-star-jitter",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 12
+   },
+   {
+    "query_id": "qd-tree-query-01",
+    "family": "forked",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "qd-tree-03",
+    "e3_top1": "qd-tree-04",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 13
+   },
+   {
+    "query_id": "syn-band-query",
+    "family": "band",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-band-tight",
+    "e3_top1": "syn-band-tight",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 13
+   },
+   {
+    "query_id": "syn-blob-query",
+    "family": "blob",
+    "e0_first_relevant": 4,
+    "e3_first_relevant": 4,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-egg",
+    "e3_top1": "syn-egg",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 7
+   },
+   {
+    "query_id": "syn-crescent-query",
+    "family": "crescent",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-crescent-turn",
+    "e3_top1": "syn-crescent-deformed",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 11
+   },
+   {
+    "query_id": "syn-forked-query",
+    "family": "forked",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-forked-uneven",
+    "e3_top1": "syn-forked-uneven",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 14
+   },
+   {
+    "query_id": "syn-heart-query",
+    "family": "heart",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-heart-point",
+    "e3_top1": "syn-heart-point",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 9
+   },
+   {
+    "query_id": "syn-irregular-query",
+    "family": "irregular",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-irregular-a",
+    "e3_top1": "syn-irregular-a",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 11
+   },
+   {
+    "query_id": "syn-star-query",
+    "family": "star",
+    "e0_first_relevant": 1,
+    "e3_first_relevant": 1,
+    "delta": 0.0,
+    "direction": "tie",
+    "e0_top1": "syn-star-rounded",
+    "e3_top1": "syn-star-rounded",
+    "e0_top1_relevant": true,
+    "e3_top1_relevant": true,
+    "n_relevant": 13
+   }
+  ],
+  "e3_better": 4,
+  "e0_better": 1,
+  "ties": 13,
+  "by_family": {
+   "blob": {
+    "better_e3": 1,
+    "better_e0": 1,
+    "tie": 1
+   },
+   "heart": {
+    "better_e3": 0,
+    "better_e0": 0,
+    "tie": 2
+   },
+   "band": {
+    "better_e3": 1,
+    "better_e0": 0,
+    "tie": 2
+   },
+   "crescent": {
+    "better_e3": 0,
+    "better_e0": 0,
+    "tie": 2
+   },
+   "star": {
+    "better_e3": 0,
+    "better_e0": 0,
+    "tie": 3
+   },
+   "forked": {
+    "better_e3": 1,
+    "better_e0": 0,
+    "tie": 2
+   },
+   "irregular": {
+    "better_e3": 1,
+    "better_e0": 0,
+    "tie": 1
+   }
+  },
+  "where_e3_loses": [
+   {
+    "query_id": "qd-circle-query-01",
+    "family": "blob",
+    "e0_first_relevant": 4,
+    "e3_first_relevant": 5,
+    "delta": -1.0,
+    "direction": "E0 better",
+    "e0_top1": "qd-band-circle-01",
+    "e3_top1": "qd-band-circle-01",
+    "e0_top1_relevant": false,
+    "e3_top1_relevant": false,
+    "n_relevant": 6
+   }
+  ],
+  "timing_breakdown": {
+   "query_id": "ph-circle-fill",
+   "library_rows": 177,
+   "context_build_seconds_for_one_contour": 0.000497,
+   "context_shape": [
+    64,
+    75
+   ],
+   "sample_full_grid_seconds": 7.962988,
+   "canonical_seconds": 0.413784,
+   "sample_one_rotation_seconds": 0.424376,
+   "rotation_grid_share": 0.9467,
+   "seconds_per_candidate": 0.044988634,
+   "rotation_steps": 24,
+   "rotations_searched_per_candidate": [
+    24
+   ],
+   "chi_square_cells_per_pair": 4800,
+   "winning_rotation_deg": {
+    "min": 0.0,
+    "median": 75.0,
+    "max": 315.0,
+    "distinct": 16
+   },
+   "note": "sample mode runs the grid and one linear_sum_assignment per candidate per rotation step; canonical mode runs both once. The ratio below is the measured cost of not assuming an orientation convention, and rotation_grid_share is the measured cost of the grid itself against the same one-step run.",
+   "sample_over_canonical": 19.24
+  }
+ },
+ "rotation": {
+  "E0": {
+   "per_query": [
+    {
+     "query_id": "ph-circle-fill",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 11,
+      "15": 11,
+      "30": 11,
+      "37": 11,
+      "45": 11,
+      "60": 11,
+      "72": 11,
+      "90": 11,
+      "180": 11
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-heart-fill",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-lightning-fill",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 11,
+      "15": 11,
+      "30": 11,
+      "37": 11,
+      "45": 11,
+      "60": 11,
+      "72": 11,
+      "90": 11,
+      "180": 11
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-moon-fill",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-star-fill",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-tree-structure-fill",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 9,
+      "15": 9,
+      "30": 9,
+      "37": 9,
+      "45": 9,
+      "60": 9,
+      "72": 9,
+      "90": 9,
+      "180": 9
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-circle-query-01",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 4,
+      "15": 4,
+      "30": 4,
+      "37": 4,
+      "45": 4,
+      "60": 4,
+      "72": 4,
+      "90": 4,
+      "180": 4
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-cloud-query-01",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 5,
+      "15": 5,
+      "30": 5,
+      "37": 5,
+      "45": 5,
+      "60": 5,
+      "72": 5,
+      "90": 5,
+      "180": 5
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-lightning-query-01",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-star-query-01",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-tree-query-01",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-band-query",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-blob-query",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 4,
+      "15": 4,
+      "30": 4,
+      "37": 4,
+      "45": 4,
+      "60": 4,
+      "72": 4,
+      "90": 4,
+      "180": 4
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-crescent-query",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-forked-query",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-heart-query",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-irregular-query",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-star-query",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    }
+   ],
+   "mean_rank_spread": 0.0,
+   "max_rank_spread": 0,
+   "queries_whose_top1_changed": 0,
+   "n_queries": 18,
+   "angles_deg": [
+    0.0,
+    15.0,
+    30.0,
+    37.0,
+    45.0,
+    60.0,
+    72.0,
+    90.0,
+    180.0
+   ]
+  },
+  "E1": {
+   "per_query": [
+    {
+     "query_id": "ph-circle-fill",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 7,
+      "15": 7,
+      "30": 7,
+      "37": 7,
+      "45": 7,
+      "60": 7,
+      "72": 7,
+      "90": 7,
+      "180": 7
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-heart-fill",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 2,
+      "15": 2,
+      "30": 2,
+      "37": 2,
+      "45": 2,
+      "60": 2,
+      "72": 2,
+      "90": 2,
+      "180": 2
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-lightning-fill",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 11,
+      "15": 11,
+      "30": 11,
+      "37": 11,
+      "45": 11,
+      "60": 11,
+      "72": 11,
+      "90": 11,
+      "180": 11
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-moon-fill",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-star-fill",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-tree-structure-fill",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-circle-query-01",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 7,
+      "15": 7,
+      "30": 7,
+      "37": 7,
+      "45": 7,
+      "60": 7,
+      "72": 7,
+      "90": 7,
+      "180": 7
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-cloud-query-01",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 3,
+      "15": 3,
+      "30": 3,
+      "37": 3,
+      "45": 3,
+      "60": 3,
+      "72": 3,
+      "90": 3,
+      "180": 3
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-lightning-query-01",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-star-query-01",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-tree-query-01",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-band-query",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-blob-query",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 3,
+      "15": 3,
+      "30": 3,
+      "37": 3,
+      "45": 3,
+      "60": 3,
+      "72": 3,
+      "90": 3,
+      "180": 3
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-crescent-query",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-forked-query",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-heart-query",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-irregular-query",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-star-query",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 2,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 2,
+      "72": 2,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 1,
+     "distinct_top1": 2
+    }
+   ],
+   "mean_rank_spread": 0.056,
+   "max_rank_spread": 1,
+   "queries_whose_top1_changed": 1,
+   "n_queries": 18,
+   "angles_deg": [
+    0.0,
+    15.0,
+    30.0,
+    37.0,
+    45.0,
+    60.0,
+    72.0,
+    90.0,
+    180.0
+   ]
+  },
+  "E2": {
+   "per_query": [
+    {
+     "query_id": "ph-circle-fill",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 2,
+      "15": 2,
+      "30": 2,
+      "37": 2,
+      "45": 2,
+      "60": 2,
+      "72": 2,
+      "90": 2,
+      "180": 2
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-heart-fill",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 6,
+      "15": 6,
+      "30": 6,
+      "37": 6,
+      "45": 6,
+      "60": 6,
+      "72": 6,
+      "90": 6,
+      "180": 6
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-lightning-fill",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-moon-fill",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-star-fill",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-tree-structure-fill",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 7,
+      "15": 3,
+      "30": 1,
+      "37": 6,
+      "45": 4,
+      "60": 6,
+      "72": 6,
+      "90": 6,
+      "180": 2
+     },
+     "rank_spread": 6,
+     "distinct_top1": 2
+    },
+    {
+     "query_id": "qd-circle-query-01",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 4,
+      "15": 4,
+      "30": 4,
+      "37": 4,
+      "45": 4,
+      "60": 4,
+      "72": 4,
+      "90": 4,
+      "180": 4
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-cloud-query-01",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 5,
+      "15": 5,
+      "30": 5,
+      "37": 5,
+      "45": 5,
+      "60": 5,
+      "72": 5,
+      "90": 5,
+      "180": 5
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-lightning-query-01",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-star-query-01",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "qd-tree-query-01",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 6,
+      "15": 10,
+      "30": 6,
+      "37": 6,
+      "45": 6,
+      "60": 6,
+      "72": 6,
+      "90": 6,
+      "180": 6
+     },
+     "rank_spread": 4,
+     "distinct_top1": 2
+    },
+    {
+     "query_id": "syn-band-query",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 11,
+      "15": 11,
+      "30": 11,
+      "37": 11,
+      "45": 11,
+      "60": 11,
+      "72": 11,
+      "90": 11,
+      "180": 11
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-blob-query",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 3,
+      "15": 3,
+      "30": 3,
+      "37": 3,
+      "45": 3,
+      "60": 3,
+      "72": 3,
+      "90": 3,
+      "180": 3
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-crescent-query",
+     "family": "crescent",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-forked-query",
+     "family": "forked",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-heart-query",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-irregular-query",
+     "family": "irregular",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "syn-star-query",
+     "family": "star",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "15": 1,
+      "30": 1,
+      "37": 1,
+      "45": 1,
+      "60": 1,
+      "72": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    }
+   ],
+   "mean_rank_spread": 0.556,
+   "max_rank_spread": 6,
+   "queries_whose_top1_changed": 2,
+   "n_queries": 18,
+   "angles_deg": [
+    0.0,
+    15.0,
+    30.0,
+    37.0,
+    45.0,
+    60.0,
+    72.0,
+    90.0,
+    180.0
+   ]
+  },
+  "E3": {
+   "per_query": [
+    {
+     "query_id": "ph-circle-fill",
+     "family": "blob",
+     "first_relevant_rank_by_angle": {
+      "0": 7,
+      "37": 7,
+      "90": 7,
+      "180": 7
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-heart-fill",
+     "family": "heart",
+     "first_relevant_rank_by_angle": {
+      "0": 1,
+      "37": 1,
+      "90": 1,
+      "180": 1
+     },
+     "rank_spread": 0,
+     "distinct_top1": 1
+    },
+    {
+     "query_id": "ph-lightning-fill",
+     "family": "band",
+     "first_relevant_rank_by_angle": {
+      "0": 9,
+      "37": 11,
+      "90": 9,
+      "180": 9
+     },
+     "rank_spread": 2,
+     "distinct_top1": 2
+    }
+   ],
+   "mean_rank_spread": 0.667,
+   "max_rank_spread": 2,
+   "queries_whose_top1_changed": 1,
+   "n_queries": 3,
+   "angles_deg": [
+    0.0,
+    37.0,
+    90.0,
+    180.0
+   ]
+  }
+ },
+ "figure": {
+  "path": "experiments\\p0_perceptual_probe\\checkpoint_d\\diagnostic_cases.png",
+  "panels": [
+   "Gallery first: one contour, several ids",
+   "E0 same boundary, different structure",
+   "E1 heart -> rounded",
+   "E2 lost notch / lost crescent",
+   "E3 vs E0 - losses first, then wins"
+  ]
+ }
+}

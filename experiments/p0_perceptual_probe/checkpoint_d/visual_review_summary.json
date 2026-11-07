@@ -1,0 +1,353 @@
+{
+ "reviewer": "AI_visual_review",
+ "not_human_subject_data": "one model read the blind sheets; this is not a human-subject experiment and must not be quoted as one",
+ "rubric": "checkpoint_d/notes.md section D1.3, fixed before scoring",
+ "read_order": "scores were typed from blind_{family}_{t2,t3}.png pixels, then this file was written, then blind_mapping.json was opened; no score was revised afterwards",
+ "blinding_caveats": {
+  "partial": "the same reviewer had already read the labelled D1 fair pages and the D2 diagnostic tables, so a Top-1 shape could sometimes be recognised as an arm's known answer; the letter->arm key was still unknown while marking",
+  "not_scored": [
+   "the unaligned view",
+   "T3 groups other than the one representative query per family"
+  ]
+ },
+ "derived_columns_are_rules_not_observations": {
+  "key_structure_preserved": "score >= 2",
+  "obvious_error": "score <= 1",
+  "low_confidence": "four different candidates in one group received the same mark, or the group is listed in HARD_GROUPS"
+ },
+ "low_confidence_audit": {
+  "declared": 5,
+  "also_flagged_by_the_rule": 5,
+  "flagged_only_by_the_list": []
+ },
+ "scope": {
+  "groups_scored": 125,
+  "cells_scored": 500,
+  "t2_cells": 360,
+  "t3_cells": 140,
+  "template_display_aligned_cells": 720,
+  "template_cells_both_views": 1440
+ },
+ "T2": {
+  "per_arm": {
+   "E0": {
+    "n_queries": 18,
+    "n_cells": 90,
+    "mean_top1_visual": 2.6667,
+    "mean_top3_visual": 2.3519,
+    "mean_top5_visual": 2.2778,
+    "ndcg_at_5_from_visual_scores": 0.9694,
+    "share_top1_score3": 0.8333,
+    "obvious_error_share": 0.2333,
+    "key_structure_preserved_share": 0.7667,
+    "low_confidence_share": 0.3333
+   },
+   "E1": {
+    "n_queries": 18,
+    "n_cells": 90,
+    "mean_top1_visual": 2.7778,
+    "mean_top3_visual": 2.6296,
+    "mean_top5_visual": 2.5,
+    "ndcg_at_5_from_visual_scores": 0.9767,
+    "share_top1_score3": 0.8889,
+    "obvious_error_share": 0.1556,
+    "key_structure_preserved_share": 0.8444,
+    "low_confidence_share": 0.3333
+   },
+   "E2": {
+    "n_queries": 18,
+    "n_cells": 90,
+    "mean_top1_visual": 2.2222,
+    "mean_top3_visual": 2.1111,
+    "mean_top5_visual": 2.0444,
+    "ndcg_at_5_from_visual_scores": 0.8923,
+    "share_top1_score3": 0.4444,
+    "obvious_error_share": 0.3,
+    "key_structure_preserved_share": 0.7,
+    "low_confidence_share": 0.3333
+   },
+   "E3": {
+    "n_queries": 18,
+    "n_cells": 90,
+    "mean_top1_visual": 2.7222,
+    "mean_top3_visual": 2.5926,
+    "mean_top5_visual": 2.4667,
+    "ndcg_at_5_from_visual_scores": 0.9734,
+    "share_top1_score3": 0.8333,
+    "obvious_error_share": 0.1778,
+    "key_structure_preserved_share": 0.8222,
+    "low_confidence_share": 0.3333
+   }
+  },
+  "best_arm_by_family": {
+   "band": {
+    "E0": 1.7333,
+    "E1": 2.0667,
+    "E2": 1.8,
+    "E3": 1.8667,
+    "best": "E1"
+   },
+   "blob": {
+    "E0": 2.9333,
+    "E1": 2.8,
+    "E2": 2.3333,
+    "E3": 3.0,
+    "best": "E3"
+   },
+   "crescent": {
+    "E0": 2.4,
+    "E1": 2.7,
+    "E2": 1.8,
+    "E3": 2.6,
+    "best": "E1"
+   },
+   "forked": {
+    "E0": 1.0,
+    "E1": 1.8,
+    "E2": 1.2667,
+    "E3": 1.6667,
+    "best": "E1"
+   },
+   "heart": {
+    "E0": 3.0,
+    "E1": 3.0,
+    "E2": 2.7,
+    "E3": 3.0,
+    "best": "E0"
+   },
+   "irregular": {
+    "E0": 2.7,
+    "E1": 2.9,
+    "E2": 1.8,
+    "E3": 2.7,
+    "best": "E1"
+   },
+   "star": {
+    "E0": 2.6,
+    "E1": 2.6,
+    "E2": 2.6667,
+    "E3": 2.7333,
+    "best": "E3"
+   }
+  }
+ },
+ "T3_representative": {
+  "per_arm": {
+   "E0": {
+    "n_queries": 7,
+    "n_cells": 35,
+    "mean_top1_visual": 2.1429,
+    "mean_top3_visual": 2.1905,
+    "mean_top5_visual": 2.2,
+    "ndcg_at_5_from_visual_scores": 0.9032,
+    "share_top1_score3": 0.5714,
+    "obvious_error_share": 0.2857,
+    "key_structure_preserved_share": 0.7143,
+    "low_confidence_share": 0.3429
+   },
+   "E1": {
+    "n_queries": 7,
+    "n_cells": 35,
+    "mean_top1_visual": 2.0,
+    "mean_top3_visual": 2.1429,
+    "mean_top5_visual": 2.1714,
+    "ndcg_at_5_from_visual_scores": 0.8926,
+    "share_top1_score3": 0.4286,
+    "obvious_error_share": 0.3143,
+    "key_structure_preserved_share": 0.6857,
+    "low_confidence_share": 0.3429
+   },
+   "E2": {
+    "n_queries": 7,
+    "n_cells": 35,
+    "mean_top1_visual": 1.5714,
+    "mean_top3_visual": 1.5238,
+    "mean_top5_visual": 1.6286,
+    "ndcg_at_5_from_visual_scores": 0.8452,
+    "share_top1_score3": 0.4286,
+    "obvious_error_share": 0.4857,
+    "key_structure_preserved_share": 0.5143,
+    "low_confidence_share": 0.3429
+   },
+   "E3": {
+    "n_queries": 7,
+    "n_cells": 35,
+    "mean_top1_visual": 2.4286,
+    "mean_top3_visual": 2.381,
+    "mean_top5_visual": 2.3143,
+    "ndcg_at_5_from_visual_scores": 0.9977,
+    "share_top1_score3": 0.7143,
+    "obvious_error_share": 0.2857,
+    "key_structure_preserved_share": 0.7143,
+    "low_confidence_share": 0.3429
+   }
+  },
+  "best_arm_by_family": {
+   "band": {
+    "E0": 1.0,
+    "E1": 1.0,
+    "E2": 1.4,
+    "E3": 1.0,
+    "best": "E2"
+   },
+   "blob": {
+    "E0": 3.0,
+    "E1": 3.0,
+    "E2": 2.2,
+    "E3": 3.0,
+    "best": "E0"
+   },
+   "crescent": {
+    "E0": 2.2,
+    "E1": 2.4,
+    "E2": 1.0,
+    "E3": 2.6,
+    "best": "E3"
+   },
+   "forked": {
+    "E0": 0.2,
+    "E1": 0.6,
+    "E2": 0.6,
+    "E3": 0.6,
+    "best": "E1"
+   },
+   "heart": {
+    "E0": 3.0,
+    "E1": 2.4,
+    "E2": 1.0,
+    "E3": 3.0,
+    "best": "E0"
+   },
+   "irregular": {
+    "E0": 3.0,
+    "E1": 2.8,
+    "E2": 2.2,
+    "E3": 3.0,
+    "best": "E0"
+   },
+   "star": {
+    "E0": 3.0,
+    "E1": 3.0,
+    "E2": 3.0,
+    "E3": 3.0,
+    "best": "E0"
+   }
+  }
+ },
+ "combined": {
+  "per_arm": {
+   "E0": {
+    "n_queries": 25,
+    "n_cells": 125,
+    "mean_top1_visual": 2.52,
+    "mean_top3_visual": 2.3067,
+    "mean_top5_visual": 2.256,
+    "ndcg_at_5_from_visual_scores": 0.9509,
+    "share_top1_score3": 0.76,
+    "obvious_error_share": 0.248,
+    "key_structure_preserved_share": 0.752,
+    "low_confidence_share": 0.336
+   },
+   "E1": {
+    "n_queries": 25,
+    "n_cells": 125,
+    "mean_top1_visual": 2.56,
+    "mean_top3_visual": 2.4933,
+    "mean_top5_visual": 2.408,
+    "ndcg_at_5_from_visual_scores": 0.9532,
+    "share_top1_score3": 0.76,
+    "obvious_error_share": 0.2,
+    "key_structure_preserved_share": 0.8,
+    "low_confidence_share": 0.336
+   },
+   "E2": {
+    "n_queries": 25,
+    "n_cells": 125,
+    "mean_top1_visual": 2.04,
+    "mean_top3_visual": 1.9467,
+    "mean_top5_visual": 1.928,
+    "ndcg_at_5_from_visual_scores": 0.8791,
+    "share_top1_score3": 0.44,
+    "obvious_error_share": 0.352,
+    "key_structure_preserved_share": 0.648,
+    "low_confidence_share": 0.336
+   },
+   "E3": {
+    "n_queries": 25,
+    "n_cells": 125,
+    "mean_top1_visual": 2.64,
+    "mean_top3_visual": 2.5333,
+    "mean_top5_visual": 2.424,
+    "ndcg_at_5_from_visual_scores": 0.9802,
+    "share_top1_score3": 0.8,
+    "obvious_error_share": 0.208,
+    "key_structure_preserved_share": 0.792,
+    "low_confidence_share": 0.336
+   }
+  },
+  "best_arm_by_family": {
+   "band": {
+    "E0": 1.55,
+    "E1": 1.8,
+    "E2": 1.7,
+    "E3": 1.65,
+    "best": "E1"
+   },
+   "blob": {
+    "E0": 2.95,
+    "E1": 2.85,
+    "E2": 2.3,
+    "E3": 3.0,
+    "best": "E3"
+   },
+   "crescent": {
+    "E0": 2.3333,
+    "E1": 2.6,
+    "E2": 1.5333,
+    "E3": 2.6,
+    "best": "E1"
+   },
+   "forked": {
+    "E0": 0.8,
+    "E1": 1.5,
+    "E2": 1.1,
+    "E3": 1.4,
+    "best": "E1"
+   },
+   "heart": {
+    "E0": 3.0,
+    "E1": 2.8,
+    "E2": 2.1333,
+    "E3": 3.0,
+    "best": "E0"
+   },
+   "irregular": {
+    "E0": 2.8,
+    "E1": 2.8667,
+    "E2": 1.9333,
+    "E3": 2.8,
+    "best": "E1"
+   },
+   "star": {
+    "E0": 2.7,
+    "E1": 2.7,
+    "E2": 2.75,
+    "E3": 2.8,
+    "best": "E3"
+   }
+  }
+ },
+ "figure": {
+  "path": "experiments\\p0_perceptual_probe\\checkpoint_d\\visual_review_examples.png",
+  "groups": [
+   "E0 ('T3', 'Q08', 'E0') mean 3.0",
+   "E0 ('T3', 'Q06', 'E0') mean 0.2",
+   "E1 ('T3', 'Q05', 'E1') mean 3.0",
+   "E1 ('T3', 'Q06', 'E1') mean 0.6",
+   "E2 ('T3', 'Q05', 'E2') mean 3.0",
+   "E2 ('T3', 'Q06', 'E2') mean 0.6",
+   "E3 ('T3', 'Q08', 'E3') mean 3.0",
+   "E3 ('T3', 'Q06', 'E3') mean 0.6"
+  ]
+ }
+}
