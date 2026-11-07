@@ -128,12 +128,13 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 > 固定查询集与人工肉眼判读（P0-6），仍需 P0-5 的 100–200 形状分级曲线。
 > **P0 未通过前不进行大规模 Web 开发。**
 
-## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint B（2026-11-06）
+## 进行中：P0-4.5 面向人眼感知的形状检索算法对比 ✅ Checkpoint C（2026-11-07）
 
 任务边界：**Checkpoint A** 做到「数据与实验设计 + 受控图库 + control_gallery + 固定划分」即停止；
-**Checkpoint B** 做到「E1/E2/E3 三臂实现 + 同一评分契约 + 自测量探针 + 测试全绿」即停止。
-**未运行任何检索评价**（无命中率、无排名、无对比图 → 属 Checkpoint C），
-**未进入 P0-5 扰动分级曲线，未开发任何 Web 产品界面。**
+**Checkpoint B** 做到「E1/E2/E3 三臂实现 + 同一评分契约 + 自测量探针 + 测试全绿」即停止；
+**Checkpoint C** 做到「四臂在同一冻结图库上跑完 T1/T2/T3 + 逐查询 Top-K 对比图 + 结果文件 +
+表格由脚本打印」即停止。**C 不解释结论、不做不变性曲线、不做人工盲评（均属 Checkpoint D）**，
+**未进入 P0-5 扰动分级曲线，未做真人手绘（P0-6，未获授权），未开发任何 Web 产品界面。**
 
 ### Checkpoint A：受控感知图库 ✅
 
@@ -194,9 +195,39 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 已知局限（留给 C/D）：E1 的各向同性回退使切向角块在正多边形/星形上不旋转不变（已量化、**未修复**，
 修复需形状族特定的轴约定 → 过度设计）；E1 距离自拟合、跨库不可比；E3 sample 模式昂贵；
 包络匹配 crescent/heart/star 仅部分达标仍是图库属性。
-**下一步 = Checkpoint C**（E0–E3 同集跑 T1/T2/T3 + 逐查询 Top-K 对比图 + 失败案例，
-合成扰动与真人画作来源**分开**评价）→ **Checkpoint D**（指标表 + 不变性探针 + 人工盲评 + 结论）。
+**当时（B 结束时）的下一步 = Checkpoint C**（E0–E3 同集跑 T1/T2/T3 + 逐查询 Top-K 对比图），
+**C 已完成，见下节**；B 留的三条测量学口径（E1 归一化、E3 方向、E1 orientation）在 C 里固定并随产物发布证据（D49）。
+**再下一步 = Checkpoint D**（T1/T2/T3 分开解释 + 不变性探针 + 人工盲评 + 结论）。
 **仍未进入 P0-5 / P0-6，未做 Web 产品开发。**
+
+### Checkpoint C：四臂同集运行 + 逐查询 Top-K 对比图 ✅
+
+| 项 | 状态 |
+|----|------|
+| 任务边界 | C 做到「E0–E3 在同一冻结图库上跑完 T1/T2/T3 + 24 张对比图 + 结果文件 + 表格由脚本打印」即停止。**未做**指标解释结论、**未做**不变性曲线、**未做**人工盲评（均属 D），**未进入** P0-5/P0-6，**未开发** Web 产品 |
+| 先固定的三条比较口径（D49） | ✅ ① E1 归一化在 **179 成员语料** 上 minmax 拟合一次并传给全部设置（`e1_normalizer`：91 描述子、`orientation=canonical`、7 个退化描述子；代价实测——真实索引 76 349 个描述子单元里 0.5% 越界，最差 `curv00_w32_concave_share`）；② E3 固定 `d(query, candidate)`（`e3_direction_probe`：6 对反向 median 0.0071 / max 0.0113）；③ E1 `orientation=canonical`（`raw` 是另一个方法）。不固定则三个设置的数字互相不可比 |
+| 四臂评价 | ✅ 18 查询 × 4 臂 × 3 设置 = 216 次 **全库** 评分（**无粗筛窗口**，与产品链路的 `shortlist_size=200` 明确区分并在 `method_status.json` 记录）；库行数 T1 19–35 / T2 177–178 / T3 1016–1017；T3 的 839 真实候选逐候选标 provenance，**未合并进正式索引**（`data/index` 三份产物哈希 `fbaf4933…` / `e18c3f95…` / `b7255ede…` 未变） |
+| 指标（`report_checkpoint_c.py` 打印，禁止手抄） | T2（判别性主设置）`hit@1 / hit@10 / ap` —— E0 .667/.889/.353，E1 .611/.944/.435，E2 .556/.944/.376，**E3 .667/1.000/.449**；T3（混入 839 真实候选）—— E0 .556/.722/.239，E1 .389/.778/.259，E2 .444/.722/.277，**E3 .667/.889/.322**；T1 自测四臂 `hit@10` 均 1.000。**没有一臂全面占优**：E3 的 `ap` 最高但每查询 40 s，E1 在 T1 最高但在 T3 的 `hit@1` 最低。完整 T1/T2/T3 表（`aggregate` / `top_slots` / `label_pressure` / 逐查询 Top-1 / `exact_target_self_rank`）由命令打印，见 notes.md §13.2 |
+| 标签 vs 人眼的分裂（必须先读） | ✅ 圆盘类被故意标成星/新月族困难负例：`ph-circle-fill` vs `syn-circle` 的 E0 距离 **7.28316078840726e-05**（阈值 `near_max_align=0.02`）→ 图上正确、标签 miss。CSV 用 `align_indistinguishable_from_query` 单列标出，表里用 Top-1 的 `x` 记号与 `top1-lookalike` 比例计数（T2：E0/E1/E3 0.22、E2 0.11） |
+| T1 自测（实现不变性） | ✅ `exact_target_self_rank`：E0/E1/E3 **18/18 rank 1**；**E2 17/18，最差 rank 4 → 未解释，留给 D**，在此之前不得写"四臂通过自测" |
+| 对比图 | ✅ 24 张（7 结构族 × 3 设置 `comparison_*.png` + 3 张 `perception_comparison_overview_*.png`）；每格叠加查询轮廓，E0 格画 **它实际拟合到的姿态**（绿实环），E1/E2/E3 只画标准器坐标里的两个环（红虚环）——它们不返回逐候选姿态，画成"已对齐"即是造假 |
+| 结果文件 | ✅ `results.csv`（20 列 3 601 行：Top-k + 全部带标签行）、`metrics.json`（含 `protocol` / 三条固定口径 / `claim_limits`）、`method_status.json`（四臂模块 + POLICY + 契约）、`figures_manifest.json`（inputs/outputs 的 sha256 + `reproduce.git_commit` + 3 条命令）；每个文件的读法与"不能读成什么"写在 [`notes.md`](../experiments/p0_perceptual_probe/notes.md) §13.5 |
+| 耗时（按 §11 要求报告而非隐藏） | ✅ E3 `sample` T2 7.01 s/查询、T3 40.32 s/查询（缺陷修复前那次是 7.60 / 43.18）；`sample/canonical` 比值 18.7–19.4×（全量 E3 在 T3 上约 12 分钟）。整套评价墙钟 `wall_seconds = 1151.1 s`（前一次 1247.8 s），**本机数字不可跨机复现** |
+| 本轮修掉的三个真实缺陷 | ✅ ① `relevant` 曾按 **库行** 索引读取位置对齐的 `flags`（会静默错标 REL）；② `align_indistinguishable_from_query` 在 E0 自己的行上全空（lookalike 集合晚于 CSV 写出），修法是 E0 先跑（`arm_order`），回归测试在修复前提交上确实失败；③ Top-1 表 36 字符地貌 id 造成列宽粘连 → 动态列宽 + 对齐测试。**缺陷 ② 使第一份完整产物作废重跑**（评分正确、解释列错误 → 不手工补 CSV） |
+| `control_gallery.png` 归属 | ✅ 可视化脚本曾无条件重画它并改变字节（`585ffb28…` → `e294997d…`，根因是 `gallery.jsonl` 轮廓只存 6 位小数）→ 已恢复原文件，重画改为显式 `--with-control` / `--control-only`（D49：谁生成二进制，只有它能重生成） |
+| review F3/F4/F5/F6 | ✅ F5（评测脚本无四臂开关 / `--control-only` 空转）→ 新增 `evaluate_perceptual_methods.py`，`--control-only` 现在真生效；F4（产物无 sha256 清单）→ `figures_manifest.json`；F6（盲评图归属冲突）→ **定为 D**，C 只出 comparison + overview + CSV/JSON；F3（短名单扫描是粗筛 only 口径）→ P0-4 notes §9.4 已补口径与 `G1/mirror` 粗筛 1.0 vs 精排 0.1667 的两阶段解释 |
+| 自动化测试 | ✅ `pytest -o addopts="" -q` → **621 passed**；`ruff check .` All checks passed；`mypy` no issues in 31 source files；`mypy --strict` 对 3 个 C 脚本（runner / visualizer / 表格打印器）clean |
+| 确定性核验 | ✅ 缺陷修复前后各跑一遍完整评价，`results.csv` 的评分列（`setting,arm,query_id,rank,candidate_id,distance,relevant,in_top_k` + 六列臂内附加列）**3 601 行逐字节相同**；两列刻意不参与比对（墙钟列，和 `05c50b6` 本来就要改的 `align_indistinguishable_from_query`）→ 差异只可能来自被修的缺陷，不是随机性。21 张 comparison 图字节相同，3 张 overview 只因表里印了 `sec/query` 而变 |
+
+**Checkpoint C 能主张的**：四臂在同一冻结图库上的检索指标、排名、逐查询 Top-1/Top-5 对比图
+已实测并可由三条命令复现；E0（产品链路）的默认行为未变，评价用的全库打分与产品链路的粗筛窗口
+是两件不同的事，已分别记录。
+**Checkpoint C 不能主张的**：这些指标 **不是** "人眼匹配准确率"（无人工评分）；
+不得称 E1 为原始 ShapeComp，也不得把它的距离跨语料比较；T3 里真实地貌进 Top-k **不是假阳性**
+（无相关性标签，池塘不可能是星的变体）；时延是本机墙钟；E2 的 self-rank 异常未解释；
+**仍未进入 P0-5（分级曲线）与 P0-6（真人手绘 ≥10，未获授权），未做 Web 产品开发。**
+**下一步 = Checkpoint D**：T1/T2/T3 分开解释 + 不变性探针 + ≥3 人盲评（拿不到评分则交付
+盲评图与评分表并如实标注"未获评分"）+ 结论与失败归因；E2 的 rank 4 需在 D 定位原因。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
@@ -341,6 +372,24 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
   E3 普查规模用 `--pairs` 调节）；本轮**未运行任何检索评价** → `results.csv` 无新行，
   台账只登记自测量探针（见 [`experiment_log.md`](../experiments/experiment_log.md) 的
   「P0-4.5 · Checkpoint B」小节）。紧随的 `docs:` 提交补记本行核验，同样写不进自身 sha。
+- 复现命令与证据（P0-4.5 · Checkpoint C）：`pytest -o addopts="" -q` → **621 passed** ·
+  `ruff check .` → All checks passed · `mypy` → no issues in 31 source files ·
+  `mypy --strict` → clean（runner / visualizer / `report_checkpoint_c.py` 三个脚本）；
+  评价与画图三条命令（顺序有意义）见 [`experiment_log.md`](../experiments/experiment_log.md)
+  的「P0-4.5 · Checkpoint C」小节与 notes.md §13.9，表格与产物哈希由
+  `python experiments/p0_perceptual_probe/report_checkpoint_c.py`（`--files` 出哈希）打印。
+  产物：`results.csv`（3 601 行 / 20 列）+ `metrics.json` + `method_status.json` +
+  `figures_manifest.json` + 24 张 PNG；评价墙钟 **1151.1 s**（本机数字，不可跨机复现），
+  **分数列两次完整运行逐字节相同**（3 601 行的评分与相关列；墙钟列与
+  `align_indistinguishable_from_query` 不参与比对——后者正是 `05c50b6` 要改的列，
+  它变化是预期结果，见 notes.md §13.1）；21 张 `comparison_*.png` 字节相同，
+  3 张 overview 只因表里印了 `sec/query` 而变字节，图上数字与排名未变。
+  `data/index` 与 `gallery.jsonl` / `labels.json` / `control_gallery.png` 在本轮 **只读**，
+  三个索引文件哈希与 §10 台账一致，`control_gallery.png` 仍为 `585ffb28…`。
+  Git 检查点：`48ec6fc`（`exp:` runner + 可视化 + `test_perceptual_runner.py` 16 项）+
+  `05c50b6`（`fix:` E0 lookalike 列）+ `11b2bc8`（`fix:` 表格列宽）
+  + `1a73d6e`（`data:` 28 个产物文件，17 MiB，单文件最大 926 636 B < 1 MiB 门槛），推送 `78915ba..1a73d6e main -> main`，推送后核验
+  `git ls-remote origin` = `1a73d6e678ce5eea6d08d2fd274119d87d4ebeea` = `git rev-parse HEAD`；本轮文档在紧随的 `docs:` 提交里（其自身 sha 写不进本行，沿用 B 的处理，不再另立检查点）。
 - 提交身份：一次性 `-c user.name/user.email` 传入（`ANTACIDisnotFORMICACID`），未修改机器级 `git config`。
 - 远程通道：`ssh://git@ssh.github.com:443/...`（本机 `github.com:443` HTTPS 被阻断）；
   未使用 `push --force`，未改写已推送历史（修正一律新增提交）。
@@ -349,15 +398,17 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 - **无阻塞。** P0-0 / P0-1 / P0-2 / P0-3 / P0-4 已完成：标准轮廓库、特征索引与
   真实索引上的两级检索链路均可用（`search_by_contour` / `search_by_image`）。
-- **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`，`10c9e8fa`）
-  与 **Checkpoint B（E1/E2/E3 三臂 + 四臂评分契约 + POLICY 数字重跑脚本，`5a9f1bc` / `1b8461c` /
-  `1696873` / `3ababaf` / `78915ba`，远程 tip = `78915ba`）** 均已完成；
-  **Checkpoint C（E0–E3 同集运行 T1/T2/T3 + 逐查询 Top-K 对比图 + 失败案例）→
-  D（指标表 + 不变性探针 + 人工盲评 + 结论）尚未开始**。
-  B 遗留的**测量学**约束（不是代码缺陷，但决定 C 怎么跑）：E1 的归一化常数自拟合于当前库 →
-  跨库数字不可比；E1 的各向同性回退使 42 列切向角块在正多边形 / 星形上不旋转不变；
-  E3 的分数对参数顺序不对称（780 对实测 median 0.0061）→ C 必须固定 `d(query, candidate)` 方向；
-  E3 sample 模式约 7 s/查询 → 全量运行要在 C 里如实报告耗时。
+- **P0-4.5 进行中**：Checkpoint A（受控感知图库 + 标签冻结 + `control_gallery.png`，`10c9e8fa`）、
+  **Checkpoint B（E1/E2/E3 三臂 + 四臂评分契约 + POLICY 数字重跑脚本，`5a9f1bc` / `1b8461c` /
+  `1696873` / `3ababaf` / `78915ba`）** 与 **Checkpoint C（四臂同集 T1/T2/T3 评价 + 24 张对比图 +
+  结果文件 + 表格打印脚本，`48ec6fc` + `05c50b6`）** 均已完成；
+  **Checkpoint D（T1/T2/T3 分开解释 + 不变性探针 + ≥3 人盲评 + 结论与失败归因）尚未开始**。
+  B 遗留的**测量学**约束在 C 里逐条固定并留下证据（D49）：E1 归一化改为在冻结 179 成员语料上
+  一次拟合（跨设置可比，代价是真实索引 0.5% 描述子单元越界，已实测）；E3 固定
+  `d(query, candidate)`；E1 固定 `orientation="canonical"`。**仍未解决**：E1 的各向同性回退
+  （切向角块在正多边形 / 星形上不旋转不变，已量化未修复）、E3 sample 昂贵（T3 约 43 s/查询）、
+  包络匹配 crescent/heart/star 仅部分达标，以及 C 新发现的 **E2 self-rank 1 个查询排第 4**（未解释）。
+  C 的产物只认最后一次运行：发现 CSV 缺陷后 **整份重跑**，不手工补列。
   已知的真实外部约束：ShapeComp **官方** MATLAB 实现、权重与商业剪影
   在本机不可达 → E1 只能是明确标注 **ShapeComp-inspired** 的自实现基线（D46）；
   人工盲评需要真人，若最终拿不到评分则交付盲评图 + 评分表并 **如实标注"未获评分"**。
@@ -377,14 +428,16 @@ N=128 在真实岸线上的表达上限已量化（极端枝状 / 收颈水库�
 
 ## 下一步：P0-5 合成扰动分级曲线 与 P0-6 真人手绘（未启动，等待授权）
 
-> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint C**：B 已把 E1（`perceptual_features.py`，
-> ShapeComp-inspired）/ E2（`salient_structure.py`）/ E3（`shape_context_baseline.py`）
-> 与四臂契约 `perceptual_methods.py` 实现并测试完毕（三臂 + 契约 = `1696873`，604 passed；
-> POLICY 数字重跑脚本与 `measurements` 指针 = `3ababaf`，605 passed），
-> E0 默认行为经契约测试证明未变。C 做的是**第一次真正的检索评价**：
-> 同一冻结划分（18 查询 / 179 成员 / `labels.json` sha256 `26e444ce…`）上跑 T1/T2/T3，
-> 出逐查询 Top-K 对比图与失败案例，合成扰动族与"真人画作来源"族**分开**记录。
-> T3 仍**不得**把图库形状合并进正式索引（`data/index` 保持 `77b083c9`）。
+> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint D**：C 已在同一冻结划分（18 查询 / 179 成员 /
+> `labels.json` sha256 `26e444ce…`、`gallery.jsonl` `15be97ae…`）上跑完 E0–E3 × T1/T2/T3
+> （216 次全库评分，**无粗筛窗口**），产出 24 张对比图与 `results.csv` / `metrics.json` /
+> `method_status.json` / `figures_manifest.json`，并把比较口径固定为三条（D49）。
+> 数字与图由 `report_checkpoint_c.py` / `visualize_perceptual.py` 打印，不经人手抄写；
+> 解读见 `experiments/p0_perceptual_probe/notes.md` §13。
+> D 做的是：T1/T2/T3 **分开解释**、不变性探针、≥3 人盲评（拿不到评分则交付盲评图与评分表并
+> 如实标注"未获评分"）、失败归因与结论，并解释 C 遗留的 **E2 self-rank 1 个查询 rank 4**。
+> D 仍**不得**把图库形状合并进正式索引（`data/index` 保持 `77b083c9`），也不得在拿到人工评分前
+> 把任何内部指标称作"人眼匹配准确率"。
 > 下列 P0-5 / P0-6 条目仍是**未启动、等待授权**。
 
 P0-4 已给出明确的输入、判据与"本轮不能宣称"的清单（`experiments/p0_retrieval_baseline/notes.md` §12）：

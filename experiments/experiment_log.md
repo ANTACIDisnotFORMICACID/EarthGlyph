@@ -192,3 +192,72 @@ mypy                         # Success: no issues found in 31 source files
 **−17.0258** 的负代价，而不是仓库公式的 3.9716。负数当场被容差检查拦下、**没有**进入任何
 POLICY 或文档；但它说明" prose 里的数字来自一次性脚本"是不可靠的，所以每个数字现在都有一个
 在仓库里、可重跑、超容差即失败的来源。
+
+## p0_perceptual_probe 复现命令（P0-4.5 · Checkpoint C：四臂同集评价 + 对比图 + 结果文件）
+
+```bash
+# 前置：gallery.jsonl 不入库，先重建（构建器产物，含 control_gallery.png）
+python scripts/prepare_perceptual_dataset.py --offline --force
+# 第一次真正的检索评价：18 查询 × 4 臂 × T1/T2/T3 = 216 次全库评分（无粗筛窗口）
+python scripts/evaluate_perceptual_methods.py --top 10              # 墙钟 1151.1 s
+# 24 张图（7 族 × 3 设置 comparison + 3 张 overview）+ figures_manifest.json
+python scripts/visualize_perceptual.py --settings all --top 5
+# 文档里所有表格与产物哈希的唯一来源（不要手抄）
+python experiments/p0_perceptual_probe/report_checkpoint_c.py
+python experiments/p0_perceptual_probe/report_checkpoint_c.py --files
+pytest -o addopts="" -q          # 621 passed
+ruff check .                     # All checks passed
+mypy                             # Success: no issues found in 31 source files
+```
+
+- 随机性：**没有随机数**（四臂在同一 128 点弧长重采样环上确定性地打分；平票按库行序 = D42）。
+  验证方式是缺陷修复前后各跑一遍完整评价，再把 `results.csv` 取列比对：
+  **3 601 行逐字节相同**。参与比对的列是 `setting, arm, query_id, rank, candidate_id, distance,
+  relevant, in_top_k` 加上六列臂内附加列（`theta_deg/shift/mirrored/query_events/
+  candidate_events/pairs`）；刻意 **不** 比对的两列是 `arm_seconds_for_query` / `wall_seconds`
+  （墙钟，1247.8 → 1151.1 s）与 `align_indistinguishable_from_query` —— 后者正是 `05c50b6`
+  唯一要改的东西，所以它是 **预期中** 的差异，不是不确定性。
+  21 张 `comparison_*.png` 的 sha256 亦相同（它们只依赖评分列与 `metrics.json` 的标签计数）；
+  3 张 `perception_comparison_overview_*.png` **字节不同**，因为它们把 `sec/query` 印在表里，
+  表里的命中率 / ap / 排名数字逐位未变。
+- 口径（C 之前必须先固定，否则三个设置的数字互相不可比，见 D49）：E1 的 minmax 归一化在
+  **冻结的 179 成员语料** 上拟合一次并传给全部设置（`metrics.json → e1_normalizer`，
+  91 描述子 / `orientation=canonical` / 7 个退化描述子；代价：真实索引 76 349 个描述子单元里
+  0.5% 越界，最差 `curv00_w32_concave_share`）；E3 固定 `d(query, candidate)`
+  （`e3_direction_probe`：6 对反向 median 0.0071 / max 0.0113）；E3 正式评价用 `sample` 档
+  （论文定义那一档），`sample/canonical` 耗时比 18.7–19.4× 随产物发布而不是隐藏。
+- 产物（`report_checkpoint_c.py --files` 打印字节与 sha256）：`results.csv`
+  （3 601 行 / 20 列：Top-10 + 全部带标签行，`relevant` 只答冻结标签，
+  `align_indistinguishable_from_query` 标出"眼睛分不出、标签说不同"的候选）、
+  `metrics.json`（`frozen_inputs` / `protocol` / 三条固定口径 / 每臂 `aggregate`+`top_slots`+
+  `label_pressure`+`per_query`+`timing`+`exact_target_self_rank`+`top1` / `claim_limits`）、
+  `method_status.json`（四臂模块 + 参数 + 契约 + POLICY）、`figures_manifest.json`
+  （inputs/outputs 的 sha256 + `reproduce.git_commit` + 三条命令）。
+  每个文件"怎么读 / 不能读成什么"逐条写在 notes.md §13.5。
+- 数据边界：本轮 **只读** `data/index`（839 候选，commit `77b083c9`，三个文件哈希
+  `fbaf4933…` / `e18c3f95…` / `b7255ede…` 未变）与 `gallery.jsonl`（`15be97ae…`）/
+  `labels.json`（`26e444ce…`）；T3 的混库只发生在评价脚本内，**未合并进正式索引**。
+  `control_gallery.png` 是构建器产物，C 不再重画（曾静默改写：`585ffb28…` → `e294997d…`，
+  根因是发布版 `gallery.jsonl` 的轮廓只存 6 位小数；已恢复并改成显式开关）。
+- Git 检查点：`48ec6fc`（`exp:`，runner + 可视化 + 表格打印脚本 + 测试）与
+  `05c50b6`（`fix:`，E0 的 lookalike 列）→ 之后 **整份重跑**（缺陷影响 CSV 的解释列，
+  评分不受影响，但不留两份互相矛盾的产物）→ `1a73d6e`（`data:` 28 个产物文件），推送 `78915ba..1a73d6e main -> main`，推送后核验
+  `git ls-remote origin` = `1a73d6e678ce5eea6d08d2fd274119d87d4ebeea` = `git rev-parse HEAD`；本轮文档提交无法写入自身 sha，故不再另立检查点。
+
+**本轮不允许的主张**（写了就是伪造证据）：
+
+1. 这些命中率 / MRR / mAP / NDCG **不是**"人眼匹配准确率"：全程无人工评分，
+   相关集合是 `labels.json` 的 **设计意图**（同族 variant），评分属 Checkpoint D。
+2. 不得称 E1 为原始 ShapeComp（D46：官方 MATLAB / 权重 / 商业剪影本机不可达）。
+3. 不得跨语料比较 E1 的距离数值；E0 的 `d=0.02` 与 E1 的 `d=0.02` 之间没有关系（不同量纲的代价函数）。
+4. T3 里真实地貌候选 **无相关性标签**：地貌进 Top-k 不是假阳性，只能说有标签的变体被挤出前列。
+5. `sec/query` 与 `wall_seconds` 是本机墙钟，换机不可复现；可复现的是分数与排名。
+6. E2 的 `exact_target_self_rank` 有 1 个查询排在第 4，**未解释** → 不得写"四臂通过自测"。
+7. 不得据 C 宣称 P0 门禁通过（要 ≥10 真人查询，属 P0-6）；未做 P0-5 分级曲线；未做 Web 产品。
+
+**方法论记录**：评价脚本本身也会出错，而错误未必落在数字上。本轮三个缺陷里有两个
+（`relevant` 的位置/行索引口径、E0 lookalike 列全空）评分完全正确、只有"解释列"错，
+肉眼很难发现——发现的唯一办法是让 **另一条独立路径**（E0 的距离阈值集合）去核对它，
+并把核对写成断言（`test_the_lookalike_column_is_filled_for_e0_whatever_arms_are_asked_for`
+在修复前的提交上确实失败）。因此 C 的表格全部由 `report_checkpoint_c.py` 从产物打印，
+文档不手抄（D48/D49）。

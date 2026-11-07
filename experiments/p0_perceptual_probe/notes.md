@@ -271,7 +271,7 @@ control_gallery.png identical: True (sha256 8c07d12a8c24632be20bffecb4fd64fd16a1
 |--------|------|------|
 | A 数据与实验设计 | **完成并推送**（`10c9e8fa`，`4c4bf66..10c9e8f main -> main`；`git ls-remote origin` = `git rev-parse HEAD`） | §2–§9；`control_gallery.png`；498 passed；ruff/mypy 干净；逐字节重复构建 |
 | B E1/E2/E3 实现 + 测试 | **完成并推送**（`5a9f1bc` fix + `1b8461c` data + `1696873` feat（604 passed）+ `3ababaf` exp（重跑脚本与 `measurements` 指针，605 passed）+ `78915ba` docs；推送 `6535e98..1696873` 与 `1696873..78915ba`，最终 `git ls-remote origin` = `78915bafe632a3056e6186c021a4dc858a7babd2` = `git rev-parse HEAD`） | E1 `perceptual_features.py` + E2 `salient_structure.py` + E3 `shape_context_baseline.py` + 四臂契约 `perceptual_methods.py` + E0 适配器 `perceptual_e0.py`（**产品链路 0 改动**）；605 passed、ruff/mypy 干净；POLICY 里每个数字由 `python experiments/p0_perceptual_probe/verify_policy_claims.py` 重跑并做容差检查。B **未做检索评价** → 命中率 / 排名 / 对比图属 C。**注意**：`5a9f1bc` 的 `_bevel` 修复改变了生成器 → 本目录的 `gallery.jsonl` 重建为 sha256 `15be97ae…`、`control_gallery.png` 为 `585ffb28…`（1 184 600 B），**§8 里那两个 A 期 sha 因此成为历史记录**；`labels.json` `26e444ce…` 与逐资产字节区间不变，故 §2–§7 的许可、角色与划分结论全部仍然成立 |
-| C 全方法运行 + 对比图 | 未开始 | 需 `perception_comparison_overview.png` + 5 张 `comparison_*.png` + 全量实际排名；E3 的 `sample` 模式约 7 s/查询 → 耗时必须随指标一起报告 |
+| C 全方法运行 + 对比图 | **完成并推送**（`48ec6fc` exp + `05c50b6` fix + `11b2bc8` fix + `1a73d6e` data；推送 `78915ba..1a73d6e`，`git ls-remote origin` = `1a73d6e678ce5eea6d08d2fd274119d87d4ebeea` = `git rev-parse HEAD`；621 passed、ruff/mypy 干净） | §13 全部；`results.csv` 3 601 行、`metrics.json`、`method_status.json`、`figures_manifest.json`、21 张 `comparison_*_{t1,t2,t3}.png` + 3 张 overview；E3 `sample` 耗时随指标一起报告（T2 7.01、T3 40.32 s/查询），评价代码 commit = `05c50b6` |
 | D 指标 / 不变性 / 盲评 / 结论 | 未开始 | 需 T1/T2/T3 分开报告 + ≥3 人盲评（拿不到就如实标注未完成） |
 
 已知阻塞 / 待办：
@@ -329,3 +329,298 @@ DIFF /reproduce/git_commit '4c4bf66fe178fafee4b7ddc21349a2dd5476cc7b' -> '5a9f1b
 4. 三臂的数字与"被否决公式"的代价现在都有仓库内重跑命令（§11 的
    `verify_policy_claims.py`），不再依赖 `.scratch/` 里的一次性脚本。§9 最后一条对
    `.scratch/` 的依赖仍然存在于 **解码器修复** 的对照产物上，那部分证据只在工作区，不在仓库。
+
+## 13. Checkpoint C 的落点（四臂同集实测 + 对比图 + 结果文件怎么读）
+
+C 的范围只到「四臂在同一冻结图库上跑完 T1/T2/T3 + 逐查询 Top-K 对比图 + 结果文件」。
+**评价结论、不变性曲线、人工盲评属 Checkpoint D**，本节一概不下。
+
+### 13.1 先固定口径，才允许三个设置的数字互相比较
+
+§11 给 C 留了三件事，全部按"先测量、后固定"处理，固定值由 runner 写进 `metrics.json`，
+再由 `report_checkpoint_c.py` 原样打印（D48：本节每个数字都来自这条命令）：
+
+1. **E1 的归一化尺度**：`fit_gallery_normalizer` 在 **179 成员语料** 上拟合一次 minmax，
+   再传给 T1/T2/T3 全部库。不这样做时 E1 会在每个库里重拟合，同一查询的距离跨设置不可比
+   （B 的 §11 实测记录过这个副作用）。代价也一并量了：真实索引里有
+   0.5% 的描述子单元落在拟合区间外（最差 `curv00_w32_concave_share`）→
+   **E1 的距离只在这一个语料拟合的尺度内可比**，写进 `claim_limits`。
+2. **E3 的参数方向**：固定 `d(query, candidate)`。反向的代价实测（6 对被查）
+   median 0.0071 / max 0.0113，因此 `e3_direction_probe` 随产物发布，不靠读者记住约定。
+3. **E1 的 `orientation`**：固定 `canonical`。`raw` 是另一个方法（正多边形/星形上两者
+   结论不同），不作默认。
+
+E3 的 `sample` 与 `canonical` 两档都按 §11 的要求 **报告耗时而不是隐藏**，比值见下面的
+`e3 cost` 行；正式四臂评价用 `sample`（论文定义的那一档），耗时因此进入指标表最后一列。
+
+运行规模与墙钟：18 查询 × 4 臂 × 3 设置 = 216 次全库评分；库行数 T1 19–35、
+T2 177–178、T3 1016–1017。行数不是常数，因为每个设置按 §13.3 的规则剔除不同的行
+（T1 的库 **包含** 查询自己那一行，只是它被 `exclude_from_metrics` 挡在指标之外；
+T2 去掉自身、刚性副本与 §8 的 9 对近重复）。
+
+```
+what this report reads, and the inputs it was computed from
+command        scripts/evaluate_perceptual_methods.py --top 10
+git_commit     05c50b695b6a6937ee4a4d0b6df465a43bc7a7b4
+wall_seconds   1151.1
+gallery_version  1.0
+sha256 gallery.jsonl        15be97ae5ae583ce
+sha256 labels.json          26e444ce2299c414
+sha256 index/features.npy   b7255ede076922e9
+sha256 index/metadata.parquet e18c3f95039f3f8d
+sha256 index/shapes.npy     fbaf4933e1e1585b
+e1 normalizer  minmax on 179 rows x 91 descriptors, orientation=canonical, degenerate=7
+e1 off-corpus  0.005 of 76,349 descriptor cells leave the fitted interval (worst curv00_w32_concave_share)
+e3 direction   d(query, candidate) fixed; reverse order differs on 6 pairs: median 0.0071 max 0.0113
+e3 cost        T1: 0.75s sample / 0.04s canonical (x18.9, 19 rows)  T2: 6.95s sample / 0.36s canonical (x19.4, 177 rows)  T3: 39.66s sample / 2.12s canonical (x18.7, 1016 rows)
+```
+
+**确定性证据（缺陷修复前后两次完整运行）**：把 `results.csv` 的评分列
+（`setting,arm,query_id,rank,candidate_id,distance,relevant,in_top_k` + 四列臂内附加列）
+取出来比对，**3 601 行逐字节相同**。两列刻意 **不** 参与比对：`arm_seconds_for_query`
+（墙钟，`wall_seconds` 1247.8 → 1151.1，每臂 `sec/q` 同步下降约 8–12%）与
+`align_indistinguishable_from_query` —— 后者正是 `05c50b6` 要修的那一列，它的变化是
+**预期结果**而不是测量抖动（修复后 E0 在 T2/T3 各 11 行带标记，与 E1/E3 是同一批候选，
+只是原先晚于 CSV 写出而没印上）。21 张 `comparison_*.png` 的 sha256 亦相同；
+3 张 overview 图 **确实变了字节**，原因可解释：它们把 `sec/query` 印在表里，
+表内的命中率 / ap / 排名逐位未变。→ 结论：**分数可复现，时延不可**。
+> 一条容易读错的地方：两次运行各自的 `metrics.json.git_commit` 是 `669f429`（前一次：当时
+> runner 还没提交，工作区里的代码就是后来 `48ec6fc` 的内容）与 `05c50b6`（后一次）。
+> 所以"字段里的 commit 不同"**不等于**"跑的代码不同"——比较时以 CSV/产物为准。
+
+### 13.2 指标表（原样贴出，不得手抄）
+
+生成命令：
+
+```bash
+python experiments/p0_perceptual_probe/report_checkpoint_c.py
+```
+
+```
+setting T1 - query's own family only (exact target present, excluded from the metrics)
+arm       hit@1    hit@3    hit@5   hit@10      mrr       ap  ndcg@10  1stRel    sec/q      rows
+E0        0.889    0.944    1.000    1.000    0.928    0.723    0.892     1.3     0.00     19-35
+E1        1.000    1.000    1.000    1.000    1.000    0.792    0.931     1.0     0.22     19-35
+E2        0.778    0.944    1.000    1.000    0.872    0.748    0.882     1.4     0.16     19-35
+E3        0.889    1.000    1.000    1.000    0.944    0.761    0.906     1.1     1.02     19-35
+
+setting T1 - what occupied the first k slots of those 18 queries, counted by label, not by score
+arm   relevant  same-fam-neg  other-fam  landform  top1-lookalike  mean-indist
+E0         0.62          0.28       0.00      0.00            0.00           0.0
+E1         0.68          0.21       0.00      0.00            0.00           0.0
+E2         0.66          0.24       0.00      0.00            0.00           0.0
+E3         0.67          0.23       0.00      0.00            0.00           0.0
+
+setting T1 - Top-1 per arm (R=relevant, x=label lookalike, -=label miss); in T1 the query's own row is skipped here, see exact_target_self_rank below
+ph-circle-fill          E0 - ph-hexagon-fill        E1 R syn-blob-e2            E2 R syn-blob-e2            E3 R syn-blob-e2            
+ph-heart-fill           E0 R syn-heart-shallow      E1 R syn-heart-bean         E2 R syn-heart-bean         E3 R syn-heart-shallow      
+ph-lightning-fill       E0 - qd-band-circle-01      E1 R qd-lightning-05        E2 R qd-lightning-06        E3 R qd-lightning-05        
+ph-moon-fill            E0 R syn-crescent-fat       E1 R qd-moon-07             E2 R qd-moon-02             E3 R syn-crescent-fat       
+ph-star-fill            E0 R syn-star-inner-055     E1 R syn-star-inner-055     E2 R syn-star-soft          E3 R syn-star-soft          
+ph-tree-structure-fill  E0 R qd-tree-01             E1 R qd-palm-03             E2 - syn-forked-query       E3 - syn-forked-query       
+qd-circle-query-01      E0 R qd-blob-circle-03      E1 R qd-blob-circle-03      E2 R qd-blob-circle-04      E3 - syn-blob-query         
+qd-cloud-query-01       E0 R qd-irregular-cloud-03  E1 R qd-irregular-cloud-03  E2 R qd-irregular-cloud-05  E3 R qd-irregular-cloud-02  
+qd-lightning-query-01   E0 R qd-lightning-04        E1 R qd-lightning-02        E2 R qd-lightning-03        E3 R qd-lightning-02        
+qd-star-query-01        E0 R syn-star-jitter        E1 R qd-star-07             E2 R qd-star-08             E3 R syn-star-jitter        
+qd-tree-query-01        E0 R qd-tree-03             E1 R qd-tree-03             E2 - qd-fork-01             E3 R qd-tree-04             
+syn-band-query          E0 R syn-band-tight         E1 R syn-band-loose         E2 - syn-ellipse-band       E3 R syn-band-tight         
+syn-blob-query          E0 R qd-blob-circle-03      E1 R syn-blob-e2            E2 - ph-circle-fill         E3 R qd-blob-circle-03      
+syn-crescent-query      E0 R syn-crescent-turn      E1 R syn-crescent-turn      E2 R syn-crescent-deformed  E3 R syn-crescent-deformed  
+syn-forked-query        E0 R syn-forked-uneven      E1 R syn-forked-uneven      E2 R syn-forked-uneven      E3 R syn-forked-uneven      
+syn-heart-query         E0 R syn-heart-point        E1 R syn-heart-round        E2 R syn-heart-wide         E3 R syn-heart-point        
+syn-irregular-query     E0 R syn-irregular-a        E1 R syn-irregular-a        E2 R syn-irregular-c        E3 R syn-irregular-a        
+syn-star-query          E0 R syn-star-rounded       E1 R syn-star-inner-030     E2 R syn-star-rounded       E3 R syn-star-rounded       
+
+setting T2 - whole controlled gallery (exact target absent)
+arm       hit@1    hit@3    hit@5   hit@10      mrr       ap  ndcg@10  1stRel    sec/q      rows
+E0        0.667    0.667    0.833    0.889    0.718    0.353    0.665     4.6     0.01   177-178
+E1        0.611    0.833    0.833    0.944    0.724    0.435    0.721     2.7     1.45   177-178
+E2        0.556    0.667    0.778    0.944    0.657    0.376    0.662     3.2     0.78   177-178
+E3        0.667    0.778    0.889    1.000    0.752    0.449    0.733     2.3     7.01   177-178
+
+setting T2 - what occupied the first k slots of those 18 queries, counted by label, not by score
+arm   relevant  same-fam-neg  other-fam  landform  top1-lookalike  mean-indist
+E0         0.32          0.06       0.57      0.00            0.22           0.6
+E1         0.43          0.06       0.48      0.00            0.22           0.6
+E2         0.35          0.07       0.56      0.00            0.11           0.6
+E3         0.43          0.05       0.46      0.00            0.22           0.6
+
+setting T2 - Top-1 per arm (R=relevant, x=label lookalike, -=label miss)
+ph-circle-fill          E0 x syn-circle             E1 x syn-circle             E2 - syn-band-loose         E3 x syn-circle             
+ph-heart-fill           E0 R syn-heart-shallow      E1 - qd-circle-02           E2 - qd-band-circle-03      E3 R syn-heart-shallow      
+ph-lightning-fill       E0 - qd-diamond-01          E1 - qd-diamond-03          E2 R qd-lightning-06        E3 - syn-forked-four        
+ph-moon-fill            E0 R syn-crescent-fat       E1 R qd-moon-07             E2 R qd-moon-02             E3 R syn-crescent-fat       
+ph-star-fill            E0 R syn-star-inner-055     E1 R syn-star-inner-055     E2 R syn-star-soft          E3 R syn-star-soft          
+ph-tree-structure-fill  E0 - syn-band-tight         E1 R qd-palm-03             E2 - qd-irregular-cloud-03  E3 - syn-forked-query       
+qd-circle-query-01      E0 x qd-band-circle-01      E1 x qd-band-circle-01      E2 x qd-band-circle-01      E3 x qd-band-circle-01      
+qd-cloud-query-01       E0 x qd-cloud-01            E1 x qd-cloud-01            E2 x qd-cloud-01            E3 x qd-cloud-01            
+qd-lightning-query-01   E0 R qd-lightning-04        E1 R qd-lightning-02        E2 R qd-lightning-03        E3 R qd-lightning-02        
+qd-star-query-01        E0 R syn-star-jitter        E1 R qd-star-07             E2 R qd-star-08             E3 R syn-star-jitter        
+qd-tree-query-01        E0 R qd-tree-03             E1 R qd-tree-03             E2 - qd-fork-01             E3 R qd-tree-04             
+syn-band-query          E0 R syn-band-tight         E1 R syn-band-loose         E2 - syn-ellipse-band       E3 R syn-band-tight         
+syn-blob-query          E0 x syn-egg                E1 x syn-egg                E2 - ph-circle-fill         E3 x syn-egg                
+syn-crescent-query      E0 R syn-crescent-turn      E1 R syn-crescent-turn      E2 R syn-crescent-deformed  E3 R syn-crescent-deformed  
+syn-forked-query        E0 R syn-forked-uneven      E1 R syn-forked-uneven      E2 R syn-forked-uneven      E3 R syn-forked-uneven      
+syn-heart-query         E0 R syn-heart-point        E1 R syn-heart-round        E2 R syn-heart-wide         E3 R syn-heart-point        
+syn-irregular-query     E0 R syn-irregular-a        E1 R syn-irregular-a        E2 R syn-irregular-c        E3 R syn-irregular-a        
+syn-star-query          E0 R syn-star-rounded       E1 - syn-blob-star5         E2 R syn-star-rounded       E3 R syn-star-rounded       
+
+setting T3 - gallery + 839 real landform rows (landforms carry no relevance label)
+arm       hit@1    hit@3    hit@5   hit@10      mrr       ap  ndcg@10  1stRel    sec/q      rows
+E0        0.556    0.556    0.722    0.722    0.609    0.239    0.547    23.2     0.08 1016-1017
+E1        0.389    0.556    0.667    0.778    0.503    0.259    0.552    19.8     8.30 1016-1017
+E2        0.444    0.667    0.722    0.722    0.557    0.277    0.554    12.5     4.59 1016-1017
+E3        0.667    0.722    0.778    0.889    0.729    0.322    0.636     5.7    40.32 1016-1017
+
+setting T3 - what occupied the first k slots of those 18 queries, counted by label, not by score
+arm   relevant  same-fam-neg  other-fam  landform  top1-lookalike  mean-indist
+E0         0.24          0.03       0.26      0.43            0.22           0.6
+E1         0.28          0.03       0.12      0.55            0.22           0.6
+E2         0.27          0.04       0.26      0.41            0.11           0.6
+E3         0.33          0.03       0.19      0.41            0.22           0.6
+
+setting T3 - Top-1 per arm (R=relevant, x=label lookalike, -=label miss)
+ph-circle-fill          E0 x syn-circle                            E1 x syn-circle                            E2 - syn-band-loose                        E3 x syn-circle                            
+ph-heart-fill           E0 R syn-heart-shallow                     E1 - 1da7c515-eb3a-30b2-a6c0-43774ce4e996  E2 - 499ea1cb-3a4b-3278-ad85-b9558d3dab07  E3 R syn-heart-shallow                     
+ph-lightning-fill       E0 - qd-diamond-01                         E1 - 526733eb-d25c-3d54-9c89-c0696ac432cf  E2 - d90df46c-9dc9-3175-944f-89d6d996d39e  E3 - 918be20f-c36a-3763-b41e-fb5df192288c  
+ph-moon-fill            E0 - e709f179-c8bd-3049-b453-f2077d786ec3  E1 - 48e13726-e0b1-3453-ac46-531aa78ee3f0  E2 R qd-moon-02                            E3 R syn-crescent-fat                      
+ph-star-fill            E0 R syn-star-inner-055                    E1 R syn-star-inner-055                    E2 R syn-star-soft                         E3 R syn-star-soft                         
+ph-tree-structure-fill  E0 - 6eb02eb1-105e-3c62-a96f-035b7b4961ce  E1 - 6eb02eb1-105e-3c62-a96f-035b7b4961ce  E2 - ffc02e38-3394-35cf-bdb4-94a9888a291b  E3 - syn-forked-query                      
+qd-circle-query-01      E0 x qd-band-circle-01                     E1 x qd-band-circle-01                     E2 x qd-band-circle-01                     E3 x qd-band-circle-01                     
+qd-cloud-query-01       E0 x qd-cloud-01                           E1 x qd-cloud-01                           E2 x qd-cloud-01                           E3 x qd-cloud-01                           
+qd-lightning-query-01   E0 R qd-lightning-04                       E1 R qd-lightning-02                       E2 R qd-lightning-03                       E3 R qd-lightning-02                       
+qd-star-query-01        E0 R syn-star-jitter                       E1 R qd-star-07                            E2 R qd-star-08                            E3 R syn-star-jitter                       
+qd-tree-query-01        E0 - 981b0f52-aed7-3d96-af8e-cb20d247bde6  E1 - 0bebdfe4-96f3-3cce-b651-9ed98eb9c7db  E2 - c8085b59-cd53-3972-a281-78cca5d942f5  E3 R qd-tree-04                            
+syn-band-query          E0 R syn-band-tight                        E1 - 1c8772e1-d7b5-3d4e-b4fc-de7e8f65ea3d  E2 - syn-ellipse-band                      E3 R syn-band-tight                        
+syn-blob-query          E0 x syn-egg                               E1 x syn-egg                               E2 - ph-circle-fill                        E3 x syn-egg                               
+syn-crescent-query      E0 R syn-crescent-turn                     E1 R syn-crescent-turn                     E2 R syn-crescent-deformed                 E3 R syn-crescent-deformed                 
+syn-forked-query        E0 R syn-forked-uneven                     E1 R syn-forked-uneven                     E2 R syn-forked-uneven                     E3 R syn-forked-uneven                     
+syn-heart-query         E0 R syn-heart-point                       E1 R syn-heart-round                       E2 R syn-heart-wide                        E3 R syn-heart-point                       
+syn-irregular-query     E0 R syn-irregular-a                       E1 R syn-irregular-a                       E2 - 5a8c9f94-3439-38b6-9135-13e07f7b9402  E3 R syn-irregular-a                       
+syn-star-query          E0 R syn-star-rounded                      E1 - syn-blob-star5                        E2 R syn-star-rounded                      E3 R syn-star-rounded                      
+
+T1 exact_target_self_rank - the query's own contour is a library row; rank 1 means the arm is invariant on its own input
+E0     rank1 18/18  median   1  max   1
+E1     rank1 18/18  median   1  max   1
+E2     rank1 17/18  median   1  max   4
+E3     rank1 18/18  median   1  max   1
+
+claim limits (copied from metrics.json, not paraphrased):
+  - no human judgement is involved anywhere in this file; these are not accuracy numbers against perceived similarity
+  - labels.json relevance is the generator's design intent (same family, role=variant), not a human ground truth
+  - T1 is an implementation sanity check: the query's own contour is in the library, so exact_target_self_rank measures invariance, while its relevance metrics reuse the family's variants
+  - T3 real landform candidates carry no relevance label: a pond cannot belong to the star family, so a landform in the Top-k is not a false positive in any human sense. T3 measures how far the labelled variants survive being mixed with 839 unlabelled shapes, and nothing more
+  - E1's distances are only comparable inside this one corpus-fitted normalizer; they are not comparable to a Checkpoint B self-fitted number
+  - E3's score is asymmetric; the run fixes d(query, candidate) and e3_direction_probe measures what the other order would have cost
+  - timings are this machine's wall clock and will not reproduce elsewhere; the scores will
+```
+
+读这几张表时要注意四件事：
+
+- `hit@k` / `mrr` / `ap` / `ndcg@10` 的相关集合来自 **冻结标签的设计意图**（同族 variant），
+  不是人工真值；`first_relevant_rank` 是"第一个该出现的东西排在哪"。
+- `aggregate` 是 **18 个查询的等权算术平均**（`summarise`），不是按族加权；
+  `top_slots` 的份额分母固定为 k（本次 `--top 10`），所以 `landform_share=0.43` 读作
+  "平均每个查询的前 10 名里 4.3 个是真实地貌候选"。
+- `ap` 比 `hit@k` 诚实：T1 的 hit@1 在 0.78–1.00 之间，而 ap 只有 0.72–0.79，
+  因为族内困难负例被排进了前列。
+- `sec/q` 是本机墙钟，**不可跨机复现**；`scores`（`rank`/`distance`）可复现。
+
+### 13.3 三个设置各自在测什么——以及不能测什么
+
+| 设置 | 库 | 精确目标在库里吗 | 测什么 | 不能测什么 |
+|------|----|------------------|--------|------------|
+| T1 | 查询自己的族（19–35 行） | **在**，但被 `exclude_from_metrics` 从指标中剔除 | 实现自洽性 + 族内变体的排序质量 | 判别性（库太小，同族负例有限） |
+| T2 | 整个受控图库（177–178 行，已去刚性副本与 §8 的 9 对近重复） | 不在 | **判别性主设置**：变体 vs 困难负例 vs 外族 | 真实地貌干扰 |
+| T3 | 图库 + 839 真实地貌候选（1016–1017 行，逐候选 provenance） | 不在 | 有标签的变体能扛多少无标签形状混入 | 任何"地理匹配质量"（地貌无相关性标签） |
+
+T1 还有一个别的设置没有的量：查询自身的轮廓就在库里，所以
+`exact_target_self_rank` 直接测 **臂对自己输入的不变性**（rank 1 = 把自己的形状认回第一）。
+`git_commit` 那一行的表显示 E0/E1/E3 都是 18/18，**E2 是 17/18、最差 rank 4**。
+这一条 C 只记录不解释：还没定位到是哪个尺度/事件代价造成的，留给 D，
+在此之前 **不得** 写"四臂都通过自测"。
+
+### 13.4 标签与人眼的分裂：Top-1 表里的 `x` 不是失败
+
+`labels.json` 把圆盘类形状故意标成星族/新月族的 **困难负例**，而 E0 的对齐距离能小到
+1e-4 量级（`syn-circle` 相对 `ph-circle-fill` 的距离 `7.28316078840726e-05`，
+阈值 `near_max_align = 0.02`）。这类候选：
+
+- 图上看着 **正确**（形状确实重合），标签上算 **miss**；
+- 在 `results.csv` 里由 `align_indistinguishable_from_query=1` 单独标出，
+  且只在 **非相关** 行上标 1（相关行不需要这个解释）；
+- 在表里由 Top-1 的 `x` 记号与 `top1-lookalike` 比例计数：T2 是 E0/E1/E3 各 0.22、
+  E2 0.11，T3 同分布，`mean-indist` 每查询约 0.6 行。
+
+所以读指标时 `hit@1` 低的臂不一定"更差"，读 `x` 与 `top1-lookalike` 才能把
+"标签不同意" 与 "眼睛不同意" 分开。**两者都不等于人类判断**——人类判断在 D。
+
+### 13.5 产物清单与每个文件的读法
+
+列出下列文件的字节数与 sha256（这条命令直接打印，不用手抄）：
+
+```bash
+python experiments/p0_perceptual_probe/report_checkpoint_c.py --files
+```
+
+| 文件 | 里面是什么 | 怎么读 | 不能读成什么 |
+|------|------------|--------|--------------|
+| `results.csv`（20 列，3 601 行：E0 926 / E1 889 / E2 906 / E3 880，~0.9 MB，**UTF-8 无 BOM**） | 每次 (setting, arm, query) 评分的 **Top-10 行 + 全部带相关标签的行**，按 rank 升序 | `rank` 是该臂自己的顺序；`relevant` 只答标签；`distance` 是臂内部无量纲代价；`theta_deg`/`shift` **只有 E0 有值**（它真的返回了姿态，926 行全填）；`query_events`/`candidate_events`/`pairs` **只有 E2 有值**（906 行）；`mirrored` 每行都写，本轮恒 `False`（`--allow-mirror` 默认关闭，与产品链路一致） | 不是全库导出（全库行数在 `metrics.json` 的 `n_scored`）；`distance` **不能跨臂比较**，E0 的 0.02 与 E1 的 0.02 毫无关系；`arm_seconds_for_query` 是整次评分的墙钟，不是该行的耗时；**Excel 双击打开会乱码**（无 BOM），用"数据 → 从文本/CSV"并选 UTF-8 |
+| `metrics.json` | 冻结输入哈希、`protocol`、三条固定口径（`e1_normalizer` / `e3_direction_probe` / `e3_orientation_cost`）、`results[setting][arm]`（`aggregate` / `top_slots` / `label_pressure` / `per_query` / `timing` / `exact_target_self_rank` / `top1`）、`claim_limits` | 一切汇总数字的唯一来源。口径细节：`ap` 是 **全 ranking** 的平均精度（无截断），`ndcg@10` 截到 10，`hit@k` 只问前 k 里有没有；`per_query[q].top1_is_label_lookalike` 是 §13.4 的 `x`；`n_scored` 才是该次评分真正打过多少行 | 不含任何人类评分；`hit@k` 不是准确率；`aggregate` 是 18 个查询的算术平均，不是加权按族 |
+| `method_status.json` | 四臂的模块、参数、`contract`、每臂 POLICY（含 `invariance` / `cost` / `known_limitations` / `measurements`） | 回答"这一臂到底是怎么算的、它自己声明的局限是什么" | 不是实验结果，改代码前不必读，读它不能得到任何命中率 |
+| `figures_manifest.json` | `checkpoint` / `built_at_utc` / `reproduce.git_commit` + 3 条命令 / `inputs`（gallery、labels、manifest、results.csv、metrics.json 的 sha256+字节） / `outputs`（24 张 PNG 的 sha256+字节） | 图与数据的绑定凭证：图上的每个数字都能回溯到 `inputs` 里那两个哈希 | 不是指标表；`outputs` 的哈希只对 **当前** 磁盘文件有效，重跑即变 |
+| `comparison_<family>_<setting>.png`（7 族 × 3 设置） | 一个结构族的全部查询：一行 = (查询, 臂)，最左 `QUERY` 格，右侧 5 格是 **该臂自己的 Top-5** | 每格三行：`#名次 id`、`V/N/Q 族名`（或 `landform (unlabelled)`）、`d=… [REL]`；E0 格另有 `th±° s起点头`，E2 格另有 `查询事件数/候选事件数 ev`。**绿实心环 = E0 实际拟合到的姿态**；**红虚线环 = 标准器坐标里的查询本身，没做任何变换**（E1/E2/E3 不返回逐候选姿态，画成"已对齐"就是造假） | 不是"匹配成功"的清单；是这一库里最接近的候选。REL 只表示标签认为相关。无人核验过任何一格（盲评在 D） |
+| `perception_comparison_overview_<setting>.png`（3 张） | 顶部一张由 `metrics.json` **打印** 的汇总表（hit@1/3/5、mrr、ap、ndcg@10、sec/query + 槽位构成 + Top1-lookalike），下面每个查询 × 每臂的 **Top-1** 叠加图 | 先看表再看图；表里的数字与 notes.md 必须一字不差，因为两者都由脚本打印 | 表是标签口径；图上的 Top-1 可能正是 §13.4 的 `x` |
+| `control_gallery.png` | 数据集构建器的 22×14 全测试集一览（"非真实地理景观"标注） | 确认查询/变体/负例长什么样 | **不属于 C**：C 只读它，不重画（见 §13.7） |
+
+### 13.6 本轮修掉的三个真实缺陷（都不是排版问题）
+
+1. **`relevant` 列的索引口径**：`score_library` 的 `flags` 与 **排名位置** 对齐，不与库行对齐。
+   按库行索引会把 REL 标到错误的候选上并静默污染相关性列。已修
+   （[`scripts/evaluate_perceptual_methods.py:474`](../../scripts/evaluate_perceptual_methods.py)）。
+2. **`align_indistinguishable_from_query` 在 E0 自己的行上全空**：
+   E0 的 lookalike 集合原本在该行写出之后才构造 → 只有后跑的臂带标记
+   （缺陷期产物实测：T2/T3 各 E1 11 / E2 8 / E3 11 行有标记，**E0 一行都没有**）。
+   修法是 E0 先跑、集合先建再写行（`arm_order`），回归测试
+   `test_the_lookalike_column_is_filled_for_e0_whatever_arms_are_asked_for`
+   （在修复前的提交上 **确实失败**）。修复后的正式产物：T2 与 T3 各 **E0 11 / E1 11 / E2 8 /
+   E3 11** 行被标记，四臂一致地反映了同一批候选；T1 全臂为 0，因为族内库里没有任何
+   落在 0.02 内的非相关行（表里 `mean-indist` 那一列 T1 就是 0.0）。
+3. **Top-1 表的列宽碰撞**：T3 的 Top-1 常是 36 字符的地貌 feature id，固定 27 列宽会让两臂
+   粘连（`…4ce4e996E2 - …`）。列宽改为按最长 id 动态计算，并加了对齐测试。
+
+顺序值得记一句：发现缺陷 2 时已经有一份完整产物，但那份 CSV 的 E0 行是错的，
+所以 **整个正式运行被作废重跑**（评分本身不变，标签解释列变），产物只保留最后一次运行。
+
+### 13.7 `control_gallery.png` 的所有权（一个静默改字节的坑）
+
+可视化脚本原本无条件重画 `control_gallery.png`，结果把构建器的产物换成了 **不同字节**
+（`585ffb28…` → `e294997d…`）。根因不是随机性：已发布的 `gallery.jsonl` 里轮廓四舍五入到
+6 位小数，重画用的是这份有损数据。**已恢复原文件**，并把重画改成显式选项
+（`--with-control` / `--control-only`），C 的默认命令序列不再有权改动数据集产物。
+教训：谁生成一个二进制，只有它能重生成那个二进制；下游脚本默认只读。
+
+### 13.8 本轮 **不允许** 的主张
+
+1. 无人工评分 → 任何 `hit@k`/`mrr`/`ap`/`ndcg` **都不是**"人眼匹配准确率"。
+2. E1 是 ShapeComp-inspired 自实现，不得称原始 ShapeComp，也不得把它的近邻当人类相似度真值。
+3. E1 距离只在 179 成员语料拟合的尺度内可比，不得与 B 的自拟合数字比大小。
+4. T3 的地貌候选无标签：地貌进 Top-k **不是假阳性**，只能说变体被挤出前列。
+5. `sec/q` 是本机墙钟；可复现的是分数与排名，不是时延。
+6. E2 的 `exact_target_self_rank` 有 1 个查询 rank 4，**未解释** → 不得写"四臂通过自测"。
+7. 未做 P0-5 扰动强度分级曲线，未做真人手绘（≥10 属 P0-6，未获授权），未做 Web 产品开发。
+8. 未重建/扩容 `data/index`（仍 `77b083c9`）；T3 的混库只发生在评价脚本内。
+
+### 13.9 复现（三条命令，顺序有意义）
+
+```bash
+python scripts/prepare_perceptual_dataset.py --offline --force          # 数据集（构建器产物）
+python scripts/evaluate_perceptual_methods.py --top 10                  # 四臂 × T1/T2/T3，约 21 分钟
+python scripts/visualize_perceptual.py --settings all --top 5           # 24 张图 + figures_manifest
+python experiments/p0_perceptual_probe/report_checkpoint_c.py           # 本节所有表格
+python experiments/p0_perceptual_probe/report_checkpoint_c.py --files   # 产物哈希与字节数
+```
+
+前置：`gallery.jsonl` / `labels.json` 必须与 §13.1 表头里的两个 sha256 一致，
+否则 runner 会以 `FrozenInputError` 退出而不是静默换库。门：`pytest -o addopts="" -q` /
+`ruff check .` / `mypy`。
