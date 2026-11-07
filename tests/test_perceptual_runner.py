@@ -411,6 +411,40 @@ def _lookalike_dataset(tmp_path: Path) -> Path:
     return tmp_path
 
 
+def test_the_top1_table_widens_its_cells_for_36_character_landform_ids() -> None:
+    """T3 Top-1 is often a feature UUID; a fixed cell width let two arms run into each other."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "report_checkpoint_c_width",
+        Path("experiments/p0_perceptual_probe/report_checkpoint_c.py"),
+    )
+    assert spec is not None and spec.loader is not None
+    reporter = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(reporter)
+
+    long_id = "1da7c515-eb3a-30b2-a6c0-43774ce4e996"
+    metrics = {
+        "results": {
+            "T3": {
+                arm: {
+                    "per_query": {
+                        "q": {
+                            "top1_id": long_id if arm == "E1" else "syn-egg",
+                            "top1_relevant": False,
+                            "top1_is_label_lookalike": False,
+                        }
+                    }
+                }
+                for arm in ("E0", "E1", "E2", "E3")
+            }
+        }
+    }
+    line = reporter.top1_table(metrics, "T3").splitlines()[1]
+    assert f"{long_id}  E2 " in line, line
+    assert f"{long_id}E2" not in line, line
+
+
 def test_the_lookalike_column_is_filled_for_e0_whatever_arms_are_asked_for(
     tmp_path: Path,
 ) -> None:

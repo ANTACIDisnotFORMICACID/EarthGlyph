@@ -98,6 +98,12 @@ def top1_table(metrics: dict[str, Any], setting: str) -> str:
     arms = _arms(table)
     per_query = {arm: table[arm]["per_query"] for arm in arms}
     query_ids = sorted(set().union(*(set(per_query[arm]) for arm in arms)))
+    # T3's Top-1 is often a 36-character landform feature id, so a hand-picked cell width
+    # makes two arms run into each other and the table stops being readable. Size it here.
+    cell_width = max(
+        27,
+        max((len(r["top1_id"]) for arm in arms for r in per_query[arm].values()), default=0) + 7,
+    )
     lines = [
         f"setting {setting} - Top-1 per arm (R=relevant, x=label lookalike, -=label miss)"
         + (
@@ -112,14 +118,14 @@ def top1_table(metrics: dict[str, Any], setting: str) -> str:
         for arm in arms:
             record = per_query[arm].get(query_id)
             if record is None:
-                cells.append(f"{arm} (not run)".ljust(27))
+                cells.append(f"{arm} (not run)".ljust(cell_width))
                 continue
             mark = "-"
             if record["top1_relevant"]:
                 mark = "R"
             elif record["top1_is_label_lookalike"]:
                 mark = "x"
-            cells.append(f"{arm} {mark} {record['top1_id']}".ljust(27))
+            cells.append(f"{arm} {mark} {record['top1_id']}".ljust(cell_width))
         lines.append(f"{query_id:24}" + "".join(cells))
     return "\n".join(lines)
 
