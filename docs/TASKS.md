@@ -375,7 +375,7 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 
 验证：`pytest -q` → **744 passed**；`ruff check .` 全过；`mypy` 36 文件无问题。
 
-### Checkpoint 3：真实 Top-10 检索 + 对比图 ✅（commit 见 Checkpoint 4 记录）
+### Checkpoint 3：真实 Top-10 检索 + 对比图 ✅（`5e84530`）
 
 - **D2 去真目标检索**（MPEG-7 1398 形状 / 70 类，6 查询，T0–T3）：平均 class-recall@10
   T2/T3 = **E0 0.717 / E1 0.833 / E3 0.917**；E0 在 `tree-1` 上 Top-3 返回 flatfish/jar，
@@ -404,7 +404,34 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 验证：`pytest -q` → **777 passed**；`ruff check .` 全过；`mypy` 38 文件无问题。
 复现：`run_shape_benchmark.py --stage d2 d3 d4` → `--stage summary` → `plot_shape_benchmark.py --figure all`。
 
-### Checkpoint 4：人类评分相关性 + 工程结论（待做）
+### Checkpoint 4：人类评分相关性 + 工程结论 ✅（sha 见收尾 docs 提交）
+
+十问逐条回答在 [`notes.md` Checkpoint 4](../experiments/shape_perception_benchmark/notes.md)，此处摘要：
+
+1. **官方本地跑了吗？没有。** 三个分发 host 全阻断、无 MATLAB/Octave/TF、未装商业软件未买许可、
+   未写 109 维移植；本地只跑 E0/E1/E3。
+2. **S0 是哪个变体？** `S0-MDS-precomputed`（作者发布 22 维坐标，H1 500 + H2 15）；
+   `S0-descriptor` 不可用；MatNet/KerNet1/KerNet2 仅 `outputs_only`（Figure 8 / H2），从未执行网络。
+3. **可核验人类相似度只有 H1**（250 对 × 14 被试逐列矩阵）；H2 是数字化辅助目标。
+4. **仅类别/结构/模型分数**：MPEG-7 类别、D3 构造角色、Fig3 命名任务（拒）、2D Shape Structure（未获取）、
+   Figure 8 网络（模型对模型）、H2（数字化）。均不当人类真值。
+5. **谁与人类评分更相关？** S0 0.911 > E3 0.839 > E1 0.782 > E0 0.683；配对两级 bootstrap 六差全排除 0。
+   可跑臂中 **E3** 最佳，且接近人类留一噪声上限 0.779。
+6. **真实闭合轮廓 Top-10 谁更合理？** E3（T2/T3 recall@10 0.917 vs 0.833 / 0.717）；
+   overview 图可见 E0 对 tree 查询返回 flatfish/jar。类别召回≠人类相似度，但与 D1 排序一致。
+7. **角/缺口/分支更稳吗？** 部分是，且仅为几何假设：D3 全过但裕量有别；D4 局部形变降 overlap；
+   无独立人类偏好记录。枝状/细长 GAN 轮廓恰是 E3 与人类分歧最大处（failure_cases 217/96/189/247/18）。
+8. **三臂强弱**：E0 快但不镜像不变、人类相关最弱；E1 耐变换、压干扰最强、中等人类相关；
+   E3 人类相关与类别召回最佳但 58 s/查询、15° 网格离格损失、对枝状系统性地"判得更近"。
+9. **官方 footprint 适合 EarthGlyph 吗？不适合现成接入**：新形状投影需描述子引擎 + 25,712 语料 +
+   MDS/Procrustes，或 MATLAB/TF + 权重；皆不可得；发布坐标路线查询期免费但**不能打分新形状**。
+10. **值得做移植/近似/混合吗？值得做有界研究，暂不整合**：E3→S0 的 +0.072 是头部空间。
+    下一步两项：Figure 8 检索臂（998 可加载形状 × 四条发布坐标路线，模型对模型、披露预处理混淆）；
+    小回归器从 E1/E3 特征逼近发布 22 维坐标、在留出 H1 对上检验是否缩小 D1 差距。
+    **不改正式默认、不跨 P0 门禁**；是否整合由用户决定。
+
+遗留：官方代码/权重仍不可得；T3 干扰物太粗需换_part structure_ 匹配集；H2 与 Figure 8 永不并入 H1；
+E0 镜像、E3 旋转网格为已测缺陷。验证：`pytest -q` 777 passed、`ruff` 全过、`mypy` 38 文件无问题。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 

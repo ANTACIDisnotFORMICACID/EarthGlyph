@@ -426,3 +426,90 @@ All PNGs are < 0.5 MB. Figures re-rank nothing: they read the stored CSV/JSON.
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
 .venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure all
 ```
+
+## Checkpoint 4 — the ten acceptance questions, answered from the artefacts (2026-11-07)
+
+Every answer below cites a file in this directory. Nothing is asserted that was not run or read.
+
+**1. Did official ShapeComp actually run on this machine?**
+**No.** The MATLAB toolbox, Demo 1/2, the 109-descriptor engine and every network weight live only
+on `sites.google.com` / `dropbox.com` / `drive.google.com`, all network-blocked (exact curl evidence
+in `official_shapecomp_status.json → A1_resource_probes`). No MATLAB, no Octave, no TensorFlow is
+installed; nothing commercial was installed and no licence was bought. `official_demo_run = false`,
+`python_reimplementation_written = false`. What ran locally is EarthGlyph's E0/E1/E3 only.
+
+**2. Which model variant is "S0" here?**
+`S0-MDS-precomputed`: Euclidean distance between the authors' **published** 22-D coordinates
+(H1's 500 stimuli, H2's 15). Verified `dist == ‖SC1−SC2‖` to 4.44e-16. It is not a local execution
+and cannot score a new shape. Recorded separately: `S0-descriptor` unavailable; `S0-MatNet` and
+`S0-KerNet1` **outputs_only** on the Figure 8 1000-shape set (corrected this checkpoint, F20);
+`S0-KerNet2` outputs_only on H2 and Figure 8. No neural variant was executed anywhere.
+
+**3. Which public data carries verifiable human similarity?**
+**H1 only**: 250 pairs × a 250×14 per-observer rating matrix, 0 NaN, 500/500 unique contours
+(Zenodo 4730985, CC-BY-4.0). H2 is **auxiliary**: its "human" target is an MDS arrangement digitised
+from Li et al. Fig 7D with `getpts`, not raw per-trial ratings, and is never pooled with H1.
+
+**4. Which sources are only category / structure / model scores?**
+MPEG-7 (object **categories**), the D3 probes (**constructed** variant/distractor roles),
+Figure 3 `GANlabels.mat` (free-text **naming**, rejected), 2D Shape Structure (**not acquired**;
+structure annotations would not be similarity anyway), the Figure 8 networks (**model-vs-model**,
+no ratings), and H2 (digitised arrangement). None is treated as human pairwise truth.
+
+**5. Which algorithm correlates higher with independent human ratings?**
+On H1, agreement ρ (positive = better): **S0 0.911 [0.856,0.918] > E3 0.839 [0.762,0.868] >
+E1 0.782 [0.703,0.819] > E0 0.683 [0.589,0.736]**. Marginal CIs overlap, so the ordering rests on
+the **paired** two-level bootstrap: all six differences exclude zero (weakest E3−E1 = +0.057
+[+0.006,+0.107]). Human consistency on the same pairs: observer-vs-observer median 0.601,
+leave-one-out median 0.779 — S0 exceeds a single observer's consistency, E3 approaches it.
+Among *runnable* arms, **E3** is the best human predictor. (`human_metrics.json`, scatter figure.)
+
+**6. Which returns more sensible Top-10 on real closed contours?**
+**E3**, on the category-recall sanity metric: T2/T3 mean recall@10 = 0.917 vs E1 0.833, E0 0.717.
+The overview figure shows E0 answering a `tree-1` query with `flatfish-14, jar-20, jar-2` while
+E1/E3 return trees. Caveat: category recall is not human similarity; the human-validated ordering
+is question 5's, and the two agree on E3 > E1 > E0.
+
+**7. Are corners / notches / branches matched more reliably?**
+Partially, and only as a geometric hypothesis. D3: every arm ranks a structural variant above every
+gross distractor in all five families, but margins differ (E3 best on heart/forked, distractor rank
+33/478; E1 suppresses distractors hardest yet drops one star variant to rank 65). D4: moderate local
+deformation cuts Top-10 overlap to 0.67 (E0) / 0.82 (E1,E3). There is **no independent human
+preference record for these probes**, so "more reliably" is not validated truth. Notably the shapes
+where E3 disagrees most with humans are exactly elongated/branchy GAN outlines (pairs 217, 96, 189,
+247, 18 in `failure_cases.csv`) — branchiness is a shared weakness, not a strength.
+
+**8. E0 / E1 / E3 strengths and failures.**
+E0: 0.1 s/query, exact rigid alignment, but **not mirror-invariant** (Top-10 overlap 0.00; self-match
+rank 246/163) and weakest human correlation. E1: most transform-tolerant, strongest gross-distractor
+suppression, mid human correlation, 12 s/query; drops a star variant from Top-10. E3: best runnable
+human correlation and best category recall, but 58 s/query, its 15° rotation grid halves overlap at
+37°/191°, and it systematically calls elongated/branchy pairs closer than humans do.
+
+**9. Is ShapeComp's compute / dependency footprint suitable for EarthGlyph?**
+**Not as-is.** Exact projection of a new shape needs the 109-descriptor engine + the 25,712-shape
+reference corpus + MDS re-fit + Procrustes; the fast route needs MATLAB+Neural-Network-Toolbox
+(MatNet) or Keras/TensorFlow (KerNet1/2) plus weights. None is obtainable here, TF is not installed,
+and no GPU was used. The published-coordinate route costs nothing at query time but **cannot score
+new shapes**, which is fatal for live retrieval. So official ShapeComp cannot be dropped in.
+
+**10. Is a Python port / model approximation / hybrid worth pursuing?**
+**Yes as an investigation, not as an integration yet.** The published ShapeComp space beats every
+runnable arm on human ratings with paired CIs excluding zero, and E3 already sits near the human
+noise ceiling; the E3→S0 gap (+0.072) is the headroom an approximated ShapeComp-like embedding could
+target. Two concrete, bounded next steps: (a) run the Figure 8 retrieval arm on the 998 loadable
+shapes against all four published coordinate routes to measure end-to-end ranking disagreement
+(model-vs-model, preprocessing confound disclosed); (b) test whether a small regressor from E1/E3
+features onto the published 22-D coordinates closes the D1 gap on held-out H1 pairs. **Do not change
+production retrieval defaults and do not cross the P0 gate on this evidence.** A full 109-descriptor
+port remains forbidden by the brief and was not attempted.
+
+### Blockers and open items carried out of P0-4.6
+
+- Official code/weights remain unobtainable from this network; any future "reproduction" claim must
+  first show the toolbox or weights actually downloaded and executed.
+- T3's hard distractors were too gross to discriminate (F19); a part-structure-matched distractor
+  set is needed before claiming hard-distractor robustness.
+- H2's digitised target and the Figure 8 model-vs-model set must never be merged into H1's human
+  truth; both are labelled auxiliary wherever they appear.
+- E0 mirror-invariance and E3 rotation-grid resolution are known, measured defects, not surprises.

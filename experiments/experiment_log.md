@@ -558,3 +558,51 @@ mypy                             # Success: no issues found in 32 source files
   两级结构未在浏览器 Worker / 1–10 万候选上测过延迟。**P0 门禁仍未通过 → 不进入 P1 Web 开发。**
   正式检索默认算法**未改**（仍是 `method="fourier_align"`、`shortlist_size=200`）；
   是否改用 E3 精排或两级结构，留给用户审查 D4 的表之后决定。
+
+## shape_perception_benchmark 复现命令（P0-4.6 · 独立形状感知基准，Checkpoint 1–4）
+
+目录 [`experiments/shape_perception_benchmark/`](shape_perception_benchmark/README.md)；
+逐条证据与十问回答在 [`notes.md`](shape_perception_benchmark/notes.md)。
+**完全排除 Overture / 水体 / 经纬度；不改正式检索默认；不覆盖 P0-4 / P0-4.5 产物。**
+
+```bash
+# 1 来源：HTTP Range 只读 ZIP 中央目录 + 所需成员（12.3 MB / 存档 308 MB），MPEG-7 3.4 MB
+.venv/Scripts/python.exe scripts/fetch_shape_benchmark_sources.py
+# 2 人类评分预测（H1 250 对 × 14 被试；S0 仅用作者发布的 22 维坐标，自动追加）
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3
+# 3 检索三阶段（~25 min；E3 约 58 s/全库查询）
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3
+# 4 汇总表 + 官方网络审计（秒级，模型对模型，无人类评分）
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
+.venv/Scripts/python.exe scripts/audit_figure8_networks.py
+# 5 图（只读已存排名，不重新排名）
+.venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure all
+```
+
+- **官方 ShapeComp 本地没跑成**：Dropbox / Drive / Sites 全阻断，无 MATLAB / Octave / TF，
+  未装商业软件、未买许可、未写 109 维移植。S0 只能是**发布的预计算坐标**（H1 500 + H2 15），
+  `dist == ‖SC1−SC2‖` 残差 4.44e-16；不能给新形状打分，故缺席一切检索阶段。
+- **D1（主真值 H1）**：agreement ρ = S0 0.911 / E3 0.839 / E1 0.782 / E0 0.683；
+  边际 CI 重叠，改用**配对**两级 bootstrap（对 + 被试），六个差值全部排除 0
+  （最弱 E3−E1 = +0.057 [+0.006,+0.107]）。人类自身一致性：被试间中位 0.601、留一中位 0.779。
+  H2 为数字化辅助目标，单独报、永不合并。
+- **D2**：T2/T3 平均 class-recall@10 = E0 0.717 / E1 0.833 / E3 0.917（类别≠人类相似度）。
+  **T3 无区分度**：异类硬干扰物 0/6 进入任何臂 Top-10 → 诚实负结果，干扰物太"粗"不算硬。
+  完整排名存 `d2_full_rankings.npz`，排除台账 `excluded_candidates.csv`。
+- **公平性缺陷出数前修复**：`Gallery` 扩集时继承 E1 minmax 归一化器（否则"加干扰"与"重缩放"
+  同变量）；反事实实测重拟合会动 27/91 尺度、最大偏移 22.1%；2 个回归测试守住。
+- **D3**：五族全部结构变体排在粗干扰之上；裕量差异 E1 压干扰最深但丢一个 star 变体出 Top-10，
+  E0 保变体却放干扰到 rank 23。**角色是构造假设，非人类真值**，图上明示。
+- **D4**：**E0 不镜像不变**（Top-10 overlap 0.00，自匹配 rank 246/163）；**E3 的 15° 旋转网格**
+  使 37°/191° overlap 减半；E1 最耐变换但镜像仍丢 2/3。单查询成本 E0 0.1 s / E1 12 s / E3 58 s。
+- **Checkpoint 1 错误纠正**：`Figure8NetComparison.mat` **带刺激**（1000 个 384×2 轮廓 + 25 维
+  GAN latent）与 MatNet/KerNet1/KerNet2 官方坐标；原"刺激不在成员内"撤回。从原始数组复算
+  Figure 8D：r = 0.928/0.945/0.910（论文 0.93/0.94/0.91）；`SC` 是 40 维 MDS（前 22 列仅 88.76%
+  方差，**不**等于规范 22 维空间）。该 1000 形状无人类评分、与 H1 不相交、2 个自交 → 仅模型对模型，
+  **未跑其检索臂**，列为下一步选项。
+- Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 见 `docs/TASKS.md`。
+  验证：`pytest -q` 777 passed；`ruff check .` 全过；`mypy` 38 文件无问题。
+- **结论与边界**：官方 ShapeComp 现成 footprint 不适合 EarthGlyph（新形状投影不可得）；
+  但发布空间在人类评分上显著胜过所有可跑臂，E3→S0 的 +0.072 是近似/混合方案的头部空间。
+  建议下一步做 Figure 8 检索臂 + 小回归器逼近发布 22 维坐标两项**有界**实验；
+  **不改正式默认、不跨 P0 门禁**，是否整合由用户决定。
