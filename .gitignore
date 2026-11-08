@@ -70,3 +70,8 @@ experiments/**/gallery.jsonl
 # earthglyph/shape_benchmark/shapecomp_port.py reads it from this path; only our own
 # translation code, validation results and metadata are committed.
 shapeComp_17_12_2024/
+# Belt and braces for the same rule: the weights and the toolbox archive must stay out
+# even if someone copies them somewhere friendlier-looking. The repository's version of
+# these binaries is the SHA256 manifest, not the bytes.
+*.h5
+shapeComp_*.zip

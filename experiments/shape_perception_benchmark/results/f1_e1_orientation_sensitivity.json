@@ -1,0 +1,483 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark/f1/1",
+  "task": "P0-4.6 Checkpoint 7-D, item F1",
+  "seed": 20261107,
+  "angles": [
+    0.0,
+    15.0,
+    37.0,
+    45.0,
+    75.0,
+    90.0,
+    135.0,
+    180.0,
+    191.0,
+    247.5,
+    270.0,
+    333.0
+  ],
+  "descriptor_width": 91,
+  "python": "3.12.10",
+  "numpy": "2.5.4",
+  "git_commit": "103bde49a8c35b6be3bde0a2dd935eca03ed9875",
+  "reproduce": "measure_e1_orientation_sensitivity.py --angles 0 15 37 45 75 90 135 180 191 247.5 270 333",
+  "baseline_untouched": "This script only reads perceptual_features. E1's arm in the benchmark, the production default retriever and every committed result file are unchanged; the rotation-search variant below is measured as a SEPARATE scheme so a later decision compares two real arms rather than one arm and a guess.",
+  "by_probe": {
+    "circle": {
+      "family": "degenerate: exact circle",
+      "statuses": [
+        "isotropic-fallback"
+      ],
+      "fallback_share": 1.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 8.296976897275838e-18,
+      "abs_eta03_median": 2.9789108844675953e-18,
+      "axis_ratio": 1.0,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 63.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.01697819129576246,
+      "all_drift_median": 0.004833472720180935,
+      "all_drift_raw_frame_max": 0.01697819129576246,
+      "histogram_drift_max": 0.28280745104350724,
+      "fourier_drift_max": 7.465047549414837e-16,
+      "moments_drift_max": 2.2255094519020145e-15,
+      "curvature_drift_max": 7.552038225371951e-15,
+      "global_drift_max": 5.286503308057152e-10,
+      "rotation_vs_other_shape_max": 0.1182937775805085,
+      "nearest_other_probe_distance_units": 2.149704853986517
+    },
+    "ellipse": {
+      "family": "control: anisotropic, front-to-back symmetric",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 1.4023519967606843e-17,
+      "abs_eta03_median": 5.199307600651094e-19,
+      "axis_ratio": 0.08999999999999998,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 90.0,
+      "canonical_poses_off_the_major_axis": 2,
+      "drift_mean_axis_aligned_pose": 0.0002344508167590935,
+      "drift_mean_axis_lost_pose": 0.018623608010471814,
+      "frame_angle_residual_jump_deg_max": 90.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.018625219885852633,
+      "all_drift_median": 0.0002450300330630029,
+      "all_drift_raw_frame_max": 0.0188670224000264,
+      "histogram_drift_max": 0.6326944890365447,
+      "fourier_drift_max": 8.214903768372144e-16,
+      "moments_drift_max": 1.4855504214247075e-14,
+      "curvature_drift_max": 9.508709613176146e-15,
+      "global_drift_max": 9.881078171905233e-15,
+      "rotation_vs_other_shape_max": 0.06107763436334152,
+      "nearest_other_probe_distance_units": 6.875140748350655
+    },
+    "elongated": {
+      "family": "control: anisotropic and asymmetric",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "eta03",
+        "eta30"
+      ],
+      "any_pose_above_flip_tolerance": true,
+      "abs_eta30_median": 0.01589383787229981,
+      "abs_eta03_median": 1.7864392611188197e-18,
+      "axis_ratio": 0.11980499999999998,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 90.0,
+      "canonical_poses_off_the_major_axis": 2,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": 0.014235963906453517,
+      "frame_angle_residual_jump_deg_max": 90.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.014251283766978387,
+      "all_drift_median": 0.0002335021314056706,
+      "all_drift_raw_frame_max": 0.01491857525383659,
+      "histogram_drift_max": 0.5108574017306055,
+      "fourier_drift_max": 3.362950640377882e-16,
+      "moments_drift_max": 7.134151857757384e-15,
+      "curvature_drift_max": 2.2705201043019177e-14,
+      "global_drift_max": 1.1412836790824865e-14,
+      "rotation_vs_other_shape_max": 0.033253558045319175,
+      "nearest_other_probe_distance_units": 10.139115037344427
+    },
+    "heart": {
+      "family": "control: asymmetric ring",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "eta03",
+        "eta30"
+      ],
+      "any_pose_above_flip_tolerance": true,
+      "abs_eta30_median": 1.081889395215414e-17,
+      "abs_eta03_median": 0.0038534258631505664,
+      "axis_ratio": 0.6124580000000001,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 90.0,
+      "canonical_poses_off_the_major_axis": 2,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": 0.004469527906632089,
+      "frame_angle_residual_jump_deg_max": 90.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.004469527906632089,
+      "all_drift_median": 0.0001016326894850088,
+      "all_drift_raw_frame_max": 0.004813356792499122,
+      "histogram_drift_max": 0.3334205406087682,
+      "fourier_drift_max": 8.992561198698257e-10,
+      "moments_drift_max": 8.254612496550101e-16,
+      "curvature_drift_max": 4.115492097549269e-15,
+      "global_drift_max": 1.7179528596662546e-15,
+      "rotation_vs_other_shape_max": 0.006903793069225474,
+      "nearest_other_probe_distance_units": 35.189694929205764
+    },
+    "hexagon": {
+      "family": "degenerate: regular polygon",
+      "statuses": [
+        "isotropic-fallback"
+      ],
+      "fallback_share": 1.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 7.070852709390606e-18,
+      "abs_eta03_median": 4.371512826263157e-18,
+      "axis_ratio": 1.0,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 63.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.019414959849248417,
+      "all_drift_median": 0.0062428896729632335,
+      "all_drift_raw_frame_max": 0.019414959849248417,
+      "histogram_drift_max": 0.4485327794192724,
+      "fourier_drift_max": 5.470319939823972e-16,
+      "moments_drift_max": 1.6760969057519595e-15,
+      "curvature_drift_max": 1.852701233813668e-15,
+      "global_drift_max": 1.9992734015939792e-09,
+      "rotation_vs_other_shape_max": 0.058132462287946905,
+      "nearest_other_probe_distance_units": 6.761756239423314
+    },
+    "near_circle": {
+      "family": "degenerate: r = 1 + 0.02 cos(7t)",
+      "statuses": [
+        "isotropic-fallback"
+      ],
+      "fallback_share": 1.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 1.5485848626375344e-17,
+      "abs_eta03_median": 4.949109937799617e-18,
+      "axis_ratio": 1.0,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 63.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.012212025176693554,
+      "all_drift_median": 0.009261510525630647,
+      "all_drift_raw_frame_max": 0.012212025176693554,
+      "histogram_drift_max": 0.21598152700066203,
+      "fourier_drift_max": 7.315711231213031e-16,
+      "moments_drift_max": 2.365627676347002e-15,
+      "curvature_drift_max": 1.7625368809124158e-14,
+      "global_drift_max": 1.4330530306598662e-09,
+      "rotation_vs_other_shape_max": 0.08653717681952812,
+      "nearest_other_probe_distance_units": 2.149704853986517
+    },
+    "noisy_symmetric": {
+      "family": "degenerate: symmetric ring + 1% radial noise",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "eta30"
+      ],
+      "any_pose_above_flip_tolerance": true,
+      "abs_eta30_median": 4.391525059793768e-05,
+      "abs_eta03_median": 7.324074991338785e-07,
+      "axis_ratio": 0.28486300000000003,
+      "axis_gap_deg_max": 0.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 0.0,
+      "frame_angle_residual_spread_deg": 0.0,
+      "all_drift_max": 3.710478511609149e-13,
+      "all_drift_median": 2.1298274003794616e-13,
+      "all_drift_raw_frame_max": 0.011939074166783527,
+      "histogram_drift_max": 0.0,
+      "fourier_drift_max": 7.405284246342676e-16,
+      "moments_drift_max": 5.062321883033252e-13,
+      "curvature_drift_max": 3.1302596423767533e-15,
+      "global_drift_max": 2.460856585612703e-15,
+      "rotation_vs_other_shape_max": 1.0629940284175482e-12,
+      "nearest_other_probe_distance_units": 11.22011058258417
+    },
+    "square": {
+      "family": "degenerate: regular polygon",
+      "statuses": [
+        "isotropic-fallback"
+      ],
+      "fallback_share": 1.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 7.569132586822512e-18,
+      "abs_eta03_median": 4.787655954397263e-18,
+      "axis_ratio": 1.0,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 63.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.024216196706149447,
+      "all_drift_median": 0.013244579298531668,
+      "all_drift_raw_frame_max": 0.024216196706149447,
+      "histogram_drift_max": 0.6825240662168837,
+      "fourier_drift_max": 8.379060980419e-16,
+      "moments_drift_max": 1.284070059220512e-15,
+      "curvature_drift_max": 0.00041410958412882345,
+      "global_drift_max": 1.080337860762565e-09,
+      "rotation_vs_other_shape_max": 0.09314376492632837,
+      "nearest_other_probe_distance_units": 6.761756239423314
+    },
+    "star5": {
+      "family": "degenerate: 5-fold symmetry",
+      "statuses": [
+        "isotropic-fallback"
+      ],
+      "fallback_share": 1.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 2.4878221713657323e-17,
+      "abs_eta03_median": 1.3292210449848531e-17,
+      "axis_ratio": 1.0,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 0.0,
+      "canonical_poses_off_the_major_axis": 0,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": null,
+      "frame_angle_residual_jump_deg_max": 63.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.007972523420382112,
+      "all_drift_median": 0.006382156736359843,
+      "all_drift_raw_frame_max": 0.007972523420382112,
+      "histogram_drift_max": 0.6259233047989752,
+      "fourier_drift_max": 5.360965612444536e-16,
+      "moments_drift_max": 4.9191581205142e-15,
+      "curvature_drift_max": 3.1106851797808917e-16,
+      "global_drift_max": 3.3201345631527395e-10,
+      "rotation_vs_other_shape_max": 0.013410631878336705,
+      "nearest_other_probe_distance_units": 33.12552134092536
+    },
+    "teardrop": {
+      "family": "control: one-sided bulge",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "eta03",
+        "eta30"
+      ],
+      "any_pose_above_flip_tolerance": true,
+      "abs_eta30_median": 3.685109518849651e-17,
+      "abs_eta03_median": 0.0006901506931880589,
+      "axis_ratio": 0.8393259999999999,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 90.0,
+      "canonical_poses_off_the_major_axis": 2,
+      "drift_mean_axis_aligned_pose": null,
+      "drift_mean_axis_lost_pose": 0.0001128107970417394,
+      "frame_angle_residual_jump_deg_max": 90.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.00819102720656591,
+      "all_drift_median": 0.008184810107221144,
+      "all_drift_raw_frame_max": 0.009462667564582333,
+      "histogram_drift_max": 0.2521218770265547,
+      "fourier_drift_max": 5.927574699495347e-16,
+      "moments_drift_max": 1.7172334554401543e-14,
+      "curvature_drift_max": 2.0125294143719394e-14,
+      "global_drift_max": 2.0101761201562723e-15,
+      "rotation_vs_other_shape_max": 0.017874569894108076,
+      "nearest_other_probe_distance_units": 11.22011058258417
+    },
+    "two_lobed": {
+      "family": "degenerate: centrosymmetric ring",
+      "statuses": [
+        "canonical"
+      ],
+      "fallback_share": 0.0,
+      "flip_decided_by": [
+        "neither"
+      ],
+      "any_pose_above_flip_tolerance": false,
+      "abs_eta30_median": 1.5310350950579222e-17,
+      "abs_eta03_median": 2.476790624040796e-18,
+      "axis_ratio": 0.28486700000000004,
+      "axis_gap_deg_max": 90.0,
+      "axis_gap_deg_max_when_canonical": 90.0,
+      "canonical_poses_off_the_major_axis": 2,
+      "drift_mean_axis_aligned_pose": 0.00021902809940886739,
+      "drift_mean_axis_lost_pose": 0.019475089938435594,
+      "frame_angle_residual_jump_deg_max": 90.0,
+      "frame_angle_residual_spread_deg": 90.0,
+      "all_drift_max": 0.019475089938435594,
+      "all_drift_median": 0.0003790709657440916,
+      "all_drift_raw_frame_max": 0.02284466268286421,
+      "histogram_drift_max": 0.4837071525294488,
+      "fourier_drift_max": 1.0357996665507168e-15,
+      "moments_drift_max": 2.7478394628305806e-15,
+      "curvature_drift_max": 7.785537726573298e-15,
+      "global_drift_max": 2.8277079399701238e-15,
+      "rotation_vs_other_shape_max": 0.0857474780080033,
+      "nearest_other_probe_distance_units": 3.9953820761414662
+    }
+  },
+  "mechanism_attribution": {
+    "isotropic_fallback": {
+      "probes": [
+        "circle",
+        "hexagon",
+        "near_circle",
+        "square",
+        "star5"
+      ],
+      "documented_in_policy": true,
+      "worst_all_drift": 0.024216196706149447,
+      "mechanism": "no axis exists to align to, so the 42-column tangent block is measured against static bin edges in the drawing's own frame and is not rotation invariant"
+    },
+    "degenerate_eigenvector_fallback": {
+      "probes": [
+        "ellipse",
+        "elongated",
+        "heart",
+        "teardrop",
+        "two_lobed"
+      ],
+      "documented_in_policy": false,
+      "worst_axis_gap_deg": 90.0,
+      "mechanism": "principal_frame builds the major eigenvector as (top - cov[1,1], cov[0,1]) and falls back to +x when that pair underflows. The pair underflows exactly when the covariance is diagonal AND the larger variance sits on y, so the delivered frame is 90 degrees away from the shape's own major axis while the status still reads 'canonical'. The status word does not mean the axis was found.",
+      "mean_drift_at_affected_poses": 0.011383400111806951
+    },
+    "sign_coin_toss_on_a_correct_axis": {
+      "probes": [
+        "circle",
+        "ellipse",
+        "hexagon",
+        "near_circle",
+        "square",
+        "star5",
+        "two_lobed"
+      ],
+      "documented_in_policy": true,
+      "mean_drift_at_affected_poses": 0.00022673945808398044,
+      "mechanism": "both third moments vanish, so FLIP_TIE_TOLERANCE=1e-9 is compared against floating-point residue and the 180-degree sign is decided by noise. The tangent bins span 0..2pi, so a flip permutes them by half a turn - but on a genuinely centrosymmetric contour the tangent multiset is itself symmetric, which is why the measured drift on those poses stays far below the drift of a pose that lost the axis. That contrast is this row's evidence: the sign is unstable, the cost is not."
+    }
+  },
+  "block_widths": {
+    "global": 10,
+    "moments": 6,
+    "curvature": 18,
+    "fourier": 15,
+    "histogram": 42,
+    "all": 91
+  },
+  "orientation_api": {
+    "isotropy_max": 0.98,
+    "flip_tie_tolerance": 1e-09,
+    "statuses": [
+      "canonical",
+      "isotropic-fallback",
+      "raw"
+    ],
+    "note": "E1 decides the 180-degree sign on AREA moments with a 1e-9 tolerance; the R2 wrapper of rotation_methods decides on contour-ring moments with 1e-3. The two tolerances are not interchangeable and are listed next to the measured residues so neither convention can be called 'the' canonicalisation."
+  },
+  "independent_rotation_search_scheme": {
+    "contract": "query-side min over 24 poses of 15 degrees, gallery scored once",
+    "descriptor_extractions_per_query": 24,
+    "seconds_per_query_single_extraction": 0.01161786001175642,
+    "seconds_per_query_24_pose_search": 0.27866430003196,
+    "mean_self_distance_no_wrapper": 0.1327163733083422,
+    "mean_self_distance_with_24_pose_min": 0.016690229424129874,
+    "benefit_share_of_rotation_displacement_removed": 0.8742413689578965,
+    "mean_other_shape_distance_ratio_after_min": 0.9998861334362038,
+    "worst_other_shape_distance_ratio_after_min": 1.0,
+    "risk_note": "ratio = (distance to a DIFFERENT shape after the same 24-pose min) / (distance to that shape without the min). 1.0 = the search costs nothing in separation; a value well below 1.0 means the wrapper pulls different shapes together, which is exactly the wrong-shape attraction the checkpoint warns about.",
+    "verdict": "Costed, not adopted: the current E1 arm is unchanged by this script. A scheme whose benefit and whose separation loss are of the same size is not an improvement."
+  },
+  "headline": {
+    "probes_with_a_non_canonical_frame_at_every_pose": [
+      "circle",
+      "hexagon",
+      "near_circle",
+      "square",
+      "star5"
+    ],
+    "probes_whose_frame_rule_is_decided_by_residue_at_some_pose": [
+      "circle",
+      "ellipse",
+      "hexagon",
+      "near_circle",
+      "square",
+      "star5",
+      "two_lobed"
+    ],
+    "probes_whose_frame_moves_by_more_than_45_deg_between_poses": [
+      "circle",
+      "ellipse",
+      "elongated",
+      "heart",
+      "hexagon",
+      "near_circle",
+      "square",
+      "star5",
+      "teardrop",
+      "two_lobed"
+    ],
+    "probes_with_a_canonical_frame_that_is_not_the_major_axis": [
+      "ellipse",
+      "elongated",
+      "heart",
+      "teardrop",
+      "two_lobed"
+    ],
+    "probes_whose_rotation_moves_further_than_the_nearest_other_shape": [],
+    "worst_all_drift": 0.024216196706149447,
+    "worst_histogram_drift": 0.6825240662168837
+  }
+}

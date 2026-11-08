@@ -12,7 +12,8 @@ Examples:
         --exclude q.png --output results.csv
 
 No geographic data is read. ``--gallery mpeg7`` and ``--gallery h1`` use the cache built by
-``scripts/fetch_shape_benchmark_sources.py``.
+``scripts/fetch_shape_benchmark_sources.py``. ``--allow-mirror`` is a capability of the EarthGlyph
+arms only; the official arms raise instead of accepting a switch they would ignore.
 """
 
 from __future__ import annotations
@@ -32,7 +33,12 @@ from earthglyph.shape_benchmark.datasets import (
     load_h1,
     load_mpeg7,
 )
-from earthglyph.shape_benchmark.retrieval import ALL_METHODS, Gallery, search_shape
+from earthglyph.shape_benchmark.retrieval import (
+    ALL_METHODS,
+    MIRROR_AWARE_METHODS,
+    Gallery,
+    search_shape,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 DEFAULT_CACHE = REPO / "experiments" / "shape_perception_benchmark" / "cache"
@@ -99,7 +105,12 @@ def main() -> None:
     parser.add_argument("--gallery", default="mpeg7", help="'mpeg7', 'h1', or an image directory")
     parser.add_argument("--method", default="E3", choices=ALL_METHODS)
     parser.add_argument("--top-k", type=int, default=10)
-    parser.add_argument("--allow-mirror", action="store_true")
+    parser.add_argument(
+        "--allow-mirror",
+        action="store_true",
+        help=f"score the reflected candidate too; implemented only for "
+        f"{list(MIRROR_AWARE_METHODS)} and refused for the official arms",
+    )
     parser.add_argument(
         "--exclude", nargs="*", default=[], help="shape_ids to remove from candidates"
     )

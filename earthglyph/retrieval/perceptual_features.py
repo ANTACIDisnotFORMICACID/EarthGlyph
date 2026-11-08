@@ -229,6 +229,10 @@ DistanceKind = Literal["euclidean", "cityblock"]
 OrientationMode = Literal["canonical", "raw"]
 
 _AREA_EPS = 1e-9
+#: Relative floor for a fitted corpus range: a column whose spread is at this level carries no
+#: information, only rounding, and dividing by it would turn that rounding into a distance. See
+#: :func:`fit_normalizer` for the measured corpora this was checked against.
+_SPREAD_FLOOR_RELATIVE = 1e-12
 _CACHE_ENTRIES = 4
 #: Below this magnitude a Hu invariant is reported as exactly 0.0 (see
 #: :func:`hu_invariants`); it is the epsilon of the project-wide signed-log form.
@@ -508,6 +512,22 @@ def principal_frame(prep: PreparedContour, *, mode: str = "canonical") -> Orient
     centrosymmetric to third order and the flip leaves the tangent histogram fixed.
     When the second moments are near-isotropic there is no axis to align to and the
     input frame is kept — see the module docstring for what that costs.
+
+    .. warning::
+
+       **Measured defect, deliberately NOT fixed here (P0-4.6 Checkpoint 7-D, item F1).** The
+       status ``"canonical"`` does not guarantee the *major* axis. The hand-built eigenvector
+       ``(top - cov[1,1], cov[0,1])`` below is one of two algebraically valid forms and it
+       underflows exactly when the covariance is diagonal with the larger variance on ``y``,
+       at which point the documented ``+x`` fallback delivers a frame 90 degrees off the shape's
+       own major axis while still reporting ``"canonical"``. Measured on the twelve poses of
+       ``scripts/measure_e1_orientation_sensitivity.py`` (seed 20261107): five of eleven probes
+       (ellipse, elongated, heart, teardrop, two_lobed) hit it, two poses each, and descriptor
+       drift on those poses runs ~80x the drift of the poses where the axis was found (ellipse
+       0.0186 against 0.00023). Fixing it means re-running every committed E1 number, which the
+       checkpoint forbids doing silently, so the defect is recorded instead. The measurement
+       reports the reference axis from ``numpy.linalg.eigh`` on the same covariance, so the gap
+       is a measured quantity rather than an argument.
     """
     check_orientation(mode)
     mu = prep.central_moments
@@ -1017,8 +1037,10 @@ def fit_normalizer(
     ``center`` being the corpus minimum and ``scale`` the corpus range, so the fitted
     corpus maps exactly onto [0, 1] per column.  ``robust`` uses median and IQR
     instead, which keeps the bulk of a column spread out when a single outlier owns
-    the range — at the cost of values outside [0, 1].  A constant column is recorded
-    in ``degenerate`` and divided by 1.0 rather than by 0.
+    the range — at the cost of values outside [0, 1].  A constant column is recorded in
+    ``degenerate`` and divided by 1.0: "constant" means exactly constant OR constant to within
+    floating-point residue, because dividing by a range of 1e-17 amplifies that residue into a
+    distance of order 1 and silently invents a difference the corpus does not have.
 
     ShapeComp divides each *pairwise descriptor distance* by the corpus maximum
     pairwise distance; dividing each *descriptor value* by the corpus range is the same
@@ -1053,7 +1075,13 @@ def fit_normalizer(
         if names is not None
         else tuple(f"descriptor_{index:03d}" for index in range(array.shape[1]))
     )
-    flat = scale <= 0.0
+    # A column whose corpus range is negligible next to its own magnitude carries no spread: it
+    # is floating-point residue, and dividing by it turns that residue into a distance. Measured,
+    # the smallest genuine range on the two corpora the benchmark fits is 2.46e-4 (H1, 500 shapes)
+    # and 2.09e-3 (MPEG-7, 1,398) — six orders of magnitude above this floor — so widening the
+    # test from "exactly zero" to "at the rounding floor" cannot move a fitted corpus number.
+    floor = _SPREAD_FLOOR_RELATIVE * np.maximum(np.abs(center), 1.0)
+    flat = scale <= floor
     degenerate = tuple(label for label, flag in zip(labels, flat, strict=True) if bool(flag))
     safe = np.where(flat, 1.0, scale)
     return FeatureNormalizer(

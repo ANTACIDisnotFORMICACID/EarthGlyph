@@ -154,7 +154,7 @@
   },
   "h1_approximation_to_original_shapecomp": {
     "reference": "Fig5B_shapeStim4RatingExpt.mat shape1SC/shape2SC",
-    "reference_semantics": "ORIGINAL 91-descriptor ShapeComp 22-D MDS coordinates, NOT a Keras network output (view_rating_expt_stim_and_resp.m line 21). This measures how well the neural approximation tracks the original model — explicitly NOT port faithfulness.",
+    "reference_semantics": "ORIGINAL ShapeComp 22-D MDS coordinates (the MDS projection of the authors' 109 descriptors), NOT a Keras network output (view_rating_expt_stim_and_resp.m line 21). This measures how well the neural approximation tracks the original model — explicitly NOT port faithfulness.",
     "is_faithfulness_test": false,
     "kernet1": {
       "n_shapes": 500,

@@ -180,6 +180,29 @@ def test_minmax_maps_the_corpus_onto_unit_columns(corpus: dict[str, np.ndarray])
             assert column.max() == pytest.approx(1.0, abs=1e-12), name
 
 
+def test_a_column_that_varies_only_by_rounding_is_called_degenerate() -> None:
+    """Checkpoint 7-D F2: dividing by a residue invents a distance the corpus does not have.
+
+    Measured on the H1 corpus, six E1 columns have a whole-corpus range of 5e-17 to 4e-16 — the
+    floating-point residue of a feature that is mathematically constant. Fitted minmax turned that
+    residue into a full [0, 1] axis, so the mirrored descriptor of the query's OWN reflection came
+    out ~8 units away instead of ~0 and ``allow_mirror`` could never beat the direct match.
+    The floor is RELATIVE, so a spread of 2e-4 under a value of 1e9 is residue too; on both real
+    corpora the smallest genuine range is 2.46e-4 under a value near 1, five orders of magnitude
+    clear of it, which is why no fitted number in any committed result moved.
+    """
+    matrix = np.array([[0.0, 1.0], [1e-17, 2.0], [3e-17, 3.0]])
+    fitted = e1.fit_normalizer(matrix, names=("residue", "real"))
+    assert fitted.degenerate == ("residue",)
+    scaled = fitted.transform(matrix)
+    assert float(scaled[:, 0].max() - scaled[:, 0].min()) < 1e-15
+    assert scaled[:, 1].min() == pytest.approx(0.0)
+    assert scaled[1, 1] == pytest.approx(0.5)
+    assert scaled[:, 1].max() == pytest.approx(1.0)
+    relative = e1.fit_normalizer(np.array([[1e9, 1.0], [1e9 + 1e-4, 2.0], [1e9 + 2e-4, 3.0]]))
+    assert relative.degenerate == ("descriptor_000",)
+
+
 def test_robust_method_uses_median_and_iqr(corpus: dict[str, np.ndarray]) -> None:
     rows = np.stack([corpus[name] for name in sorted(corpus)])
     matrix = e1.features_for_library(rows)

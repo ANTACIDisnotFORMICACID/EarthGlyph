@@ -307,6 +307,40 @@ def test_cache_equivalence_reports_zero_difference(hyb: Any, stub: StubFrozen) -
     assert report["max_abs_difference"] == 0.0
 
 
+def test_a_mirror_capable_cache_still_obeys_the_query_flag(hyb: Any, stub: StubFrozen) -> None:
+    """Checkpoint 7-D F2, cached E3 path: holding mirrors is not the same as using them.
+
+    ``build_library_descriptors(allow_mirror=True)`` doubles the cache, and until this test the
+    scoring loop read that array whenever it existed, so ``allow_mirror=False`` on such a cache
+    scored mirrored candidates anyway — a switch that looked effective and was not, in the
+    opposite direction from the one the checkpoint names.
+    """
+    import earthglyph.retrieval.shape_context_baseline as e3
+
+    base = hyb.e0_pass(stub, "T2", "q-circle")
+    rows = list(base["library"].rows)
+    plain = e3.build_library_descriptors(rows, orientation=hyb.E3_ORIENTATION)
+    with_mirrors = e3.build_library_descriptors(
+        rows, allow_mirror=True, orientation=hyb.E3_ORIENTATION
+    )
+    assert with_mirrors.mirror_contexts is not None
+    refused = e3.score_library_from_descriptors(
+        base["query"], with_mirrors, allow_mirror=False, orientation=hyb.E3_ORIENTATION
+    )[0]
+    plain_distances = e3.score_library_from_descriptors(
+        base["query"], plain, orientation=hyb.E3_ORIENTATION
+    )[0]
+    assert np.array_equal(refused, plain_distances), (
+        "the mirror-holding cache disagrees with the mirror-free one on allow_mirror=False"
+    )
+    allowed = e3.score_library_from_descriptors(
+        base["query"], with_mirrors, allow_mirror=True, orientation=hyb.E3_ORIENTATION
+    )[0]
+    # Mirroring can only ever find a better match, and here it does.
+    assert np.all(allowed <= plain_distances + 1e-12)
+    assert np.any(allowed < plain_distances)
+
+
 # ---------------------------------------------------------------- windows
 
 

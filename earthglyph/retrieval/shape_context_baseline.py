@@ -747,9 +747,11 @@ def score_library_from_descriptors(
     scores = np.empty(len(rows), dtype=float)
     details: list[dict[str, Any]] = []
     for position, row in enumerate(rows):
-        mirror = (
-            cached.mirror_contexts[row] if cached.mirror_contexts is not None else None
-        )
+        # ``allow_mirror`` gates the scoring, not just the error above: a cache that HOLDS
+        # reflected contexts must not quietly opt every query into them. ``POLICY`` promises
+        # "mirror: only when allow_mirror=True", and the uncached path honours it per call.
+        held = cached.mirror_contexts
+        mirror = held[row] if allow_mirror and held is not None else None
         cost, detail = _score_pair(
             query_contexts,
             angles,

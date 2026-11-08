@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from earthglyph.retrieval.alignment import mirror_points
 from earthglyph.shape_benchmark import remote_zip
 from earthglyph.shape_benchmark.datasets import (
     BenchmarkShape,
@@ -191,6 +192,59 @@ def test_s0_requires_published_coordinates() -> None:
     gallery = make_gallery()
     with pytest.raises(ValueError, match="published official 22-D coordinates"):
         search_shape(gallery.shapes[0], gallery, "S0")
+
+
+# --- the mirror switch: a branch or a refusal, never decoration ---------------------------
+
+
+def chiral_ring() -> np.ndarray:
+    """A ring with no mirror symmetry: the harmonic phases are deliberately uneven."""
+    theta = np.linspace(0.0, 2.0 * np.pi, 128, endpoint=False)
+    radius = (
+        1.0 + 0.45 * np.cos(theta) + 0.22 * np.cos(2.0 * theta + 0.7) + 0.12 * np.sin(3.0 * theta)
+    )
+    return np.column_stack([radius * np.cos(theta), radius * np.sin(theta)])
+
+
+@pytest.mark.parametrize("method", ["E0", "E1", "E3"])
+def test_allow_mirror_changes_the_score_on_a_chiral_pair(method: str) -> None:
+    """Checkpoint 7-D F2, the other half: where the switch is implemented it must bite."""
+    ring = chiral_ring()
+    # E3's reflected branch reads mirrored candidate contexts out of its cache, and the cache
+    # refuses to pretend: it has to be built with allow_mirror, which the arm reports as its own
+    # precompute cost instead of hiding it behind the query.
+    gallery = Gallery(
+        [
+            shape("self", standardize(ring), "chiral"),
+            shape("twin", standardize(mirror_points(ring)), "chiral"),
+        ],
+        name="mirror",
+        e3_params={"allow_mirror": True} if method == "E3" else None,
+    )
+    off = search_shape(gallery.shapes[0], gallery, method, top_k=2, allow_mirror=False)
+    on = search_shape(gallery.shapes[0], gallery, method, top_k=2, allow_mirror=True)
+    twin = gallery.index_of("twin")
+    assert on.distances[twin] < off.distances[twin], (method, off.distances, on.distances)
+    # The query's own copy is already at distance ~0; the reflected branch cannot improve on it.
+    assert on.distances[0] == pytest.approx(off.distances[0], abs=1e-9)
+
+
+@pytest.mark.parametrize("method", ["S0", "S0K1", "S0K2"])
+def test_allow_mirror_is_refused_on_arms_without_a_reflected_branch(method: str) -> None:
+    """Checkpoint 7-D F2: an arm that would ignore the switch has to refuse it instead.
+
+    The refusal fires before any weight is loaded, so it holds with or without the official
+    toolbox installed — which is also the point: the parameter's effect must never depend on
+    what happens to be on disk.
+    """
+    gallery = make_gallery()
+    with pytest.raises(ValueError, match="not implemented for"):
+        search_shape(gallery.shapes[0], gallery, method, top_k=3, allow_mirror=True)
+    with pytest.raises(ValueError, match="not implemented for"):
+        pair_distance(gallery.shapes[0], gallery.shapes[1], method, allow_mirror=True)
+    if method == "S0":
+        with pytest.raises(ValueError, match="published official 22-D coordinates"):
+            search_shape(gallery.shapes[0], gallery, method, top_k=3)
 
 
 def test_s0_uses_published_coordinates_when_present() -> None:

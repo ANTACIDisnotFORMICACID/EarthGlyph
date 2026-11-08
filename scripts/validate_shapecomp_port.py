@@ -16,8 +16,9 @@ Three references, three different meanings — kept strictly apart:
   authors fed the network (see audit_figure8_networks.py), so a small residual is expected
   and is an input-provenance effect, not a port bug.
 * **H1 / original ShapeComp** (``Fig5B_shapeStim4RatingExpt.mat``): ``shape1SC``/``shape2SC``
-  are the ORIGINAL 91-descriptor model's 22-D MDS coordinates (view_rating_expt_stim_and_resp.m
-  line 21 calls ``dist`` the "original ShapeComp distance"), NOT a Keras network output.
+  are the ORIGINAL model's 22-D MDS coordinates — the MDS projection of the authors' 109
+  descriptors (view_rating_expt_stim_and_resp.m line 21 calls ``dist`` the "original ShapeComp
+  distance"), NOT a Keras network output.
   Comparing our KerNet ports to these measures how well the neural approximation tracks the
   original model — explicitly NOT a faithfulness test, and reported separately as such.
 
@@ -180,7 +181,8 @@ def _h1(cache: Path, nets: ShapeCompNets) -> dict[str, Any]:
     out: dict[str, Any] = {
         "reference": "Fig5B_shapeStim4RatingExpt.mat shape1SC/shape2SC",
         "reference_semantics": (
-            "ORIGINAL 91-descriptor ShapeComp 22-D MDS coordinates, NOT a Keras network "
+            "ORIGINAL ShapeComp 22-D MDS coordinates (the MDS projection of the authors' 109 "
+            "descriptors), NOT a Keras network "
             "output (view_rating_expt_stim_and_resp.m line 21). This measures how well the "
             "neural approximation tracks the original model — explicitly NOT port faithfulness."
         ),

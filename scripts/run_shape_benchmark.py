@@ -9,6 +9,10 @@ Stages:
         identical rotation stress (human agreement + retrieval stability)
     d5b re-analysis of d5 (a): the rated stimulus pair, not the 1750 angle-rows, is the
         sampling unit; reads the committed d5 outputs and writes new grouped artefacts
+    d6  rotation WRAPPERS for the official port (naive / R0 24-step / R1 36-72-step /
+        R2 canonicalisation / R3 bilateral multi-direction) versus the EarthGlyph arms, under
+        a frozen random-angle design on both goals at once: H1 human agreement (grouped
+        bootstrap) and MPEG-7 T0/T1/T2 discriminative retrieval (T2 primary)
 
 Every stage writes real distances and timings. S0 appears only where the authors published
 official coordinates; it is never fabricated for MPEG-7.
@@ -16,6 +20,7 @@ official coordinates; it is never fabricated for MPEG-7.
 Usage:
     python scripts/run_shape_benchmark.py --stage d1
     python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3
+    python scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2
 """
 
 from __future__ import annotations
@@ -25,6 +30,7 @@ import csv
 import itertools
 import json
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -33,7 +39,11 @@ import numpy as np
 from scipy.stats import rankdata
 
 from earthglyph.retrieval import perceptual_features as e1
+from earthglyph.retrieval import perceptual_methods as pm
+from earthglyph.retrieval import shape_context_baseline as e3
 from earthglyph.shape_benchmark import metrics
+from earthglyph.shape_benchmark import rotation_methods as rm
+from earthglyph.shape_benchmark import shapecomp_port as port
 from earthglyph.shape_benchmark.datasets import (
     BenchmarkShape,
     load_h1,
@@ -51,9 +61,13 @@ from earthglyph.shape_benchmark.retrieval import (
     EARTHGLYPH_METHODS,
     SHAPECOMP_RUN_METHODS,
     Gallery,
+    _scorer_for,
     kernet_rotation_frames,
     pair_distance,
     search_shape,
+)
+from earthglyph.shape_benchmark.retrieval import (
+    KERNET_ROTATION_STEPS as ROTATION_STEPS,
 )
 
 REPO = Path(__file__).resolve().parents[1]
@@ -1193,6 +1207,686 @@ def _d5_grouped_rows(
     return rows
 
 
+# --------------------------------------------------------------------------- D6
+
+#: CP7-C Task 3 + Task 4, frozen BEFORE the run. Twelve real MPEG-7 queries spanning every
+#: shape family the brief names, five stress angles each, three candidate conditions. Redrawing
+#: an angle or swapping a query after seeing a failure would make the headline unfalsifiable, so
+#: the design is written into the artefact and never edited in place.
+D6_QUERIES: tuple[tuple[str, str], ...] = (
+    ("ray-1", "star-like (spokes)"),
+    ("octopus-1", "star-like / natural (radiating limbs)"),
+    ("Heart-1", "heart"),
+    ("horseshoe-1", "crescent (concave U)"),
+    ("fork-1", "forked"),
+    ("tree-1", "forked / natural"),
+    ("bat-1", "elongated (thin branches)"),
+    ("sea_snake-1", "elongated"),
+    ("Comma-1", "elongated curve"),
+    ("HCircle-1", "near-circle"),
+    ("device2-1", "near-circle (isotropic second moments)"),
+    ("brick-01", "symmetric multi-solution (rectangle)"),
+)
+#: One on-grid angle (a multiple of the 15-degree step, never 0), two grid MIDPOINTS — the case
+#: CP6 showed the 24-step grid cannot land on — and two angles that are neither.
+D6_ANGLE_SLOTS: tuple[str, ...] = ("on_grid", "mid_grid", "mid_grid", "random", "random")
+D6_CONDITIONS: tuple[str, ...] = ("T0", "T1", "T2")
+#: Task 4 names T2 — exact target AND rigid near-duplicates removed — as this stage's primary.
+D6_PRIMARY_CONDITION = "T2"
+#: An "arbitrary" angle must sit this far from both the 15-degree grid and its midpoints,
+#: otherwise the slot labels would not mean what they claim.
+D6_OFF_GRID_MARGIN_DEG = 2.0
+#: Rated H1 pairs re-scored through the public ``pair_distance`` path to prove the cached route
+#: used by (a) is the same arithmetic CP6 documented.
+D6_VERIFICATION_PAIRS = 20
+D6_STRATEGIES: tuple[str, ...] = ("naive", "R0", "R1_36", "R1_72", "R2", "R3")
+
+
+@dataclass(frozen=True)
+class D6Arm:
+    """One arm of the rotation-method comparison: an encoder plus its rotation wrapper."""
+
+    label: str
+    method: str
+    strategy: str | None = None
+    """``rotation_methods`` wrapper name, for the official-network arms."""
+    orientation: str | None = None
+    """E3's own orientation policy: ``sample`` is its R0 analogue, ``canonical`` its R2."""
+
+    @property
+    def is_port(self) -> bool:
+        return self.strategy is not None
+
+    def gallery(self, plain: Gallery, canonical: Gallery) -> Gallery:
+        return canonical if self.orientation == "canonical" else plain
+
+    def search(self, query: BenchmarkShape, gallery: Gallery, top_k: int) -> Any:
+        return search_shape(
+            query, gallery, self.method, top_k=top_k, rotation_strategy=self.strategy
+        )
+
+    def description(self) -> str:
+        if self.is_port:
+            return rm.describe(str(self.strategy))
+        if self.method == "E3":
+            return f"Shape Context with E3's own orientation policy {self.orientation!r}"
+        return f"EarthGlyph arm {self.method}, rotation handled by construction"
+
+
+def _d6_arms(methods: list[str]) -> list[D6Arm]:
+    """The arm table: every EarthGlyph reference plus every wrapper on every official network.
+
+    Nothing is dropped for cost reasons — an arm that skipped the hard cases would not be
+    comparable with the arms that ran.
+    """
+    arms = [
+        D6Arm("E0", "E0"),
+        D6Arm("E1", "E1"),
+        D6Arm("E3/sample", "E3", orientation="sample"),
+        D6Arm("E3/canonical", "E3", orientation="canonical"),
+    ]
+    arms = [arm for arm in arms if arm.method in methods]
+    for network in SHAPECOMP_RUN_METHODS:
+        if network not in methods:
+            continue
+        for strategy in D6_STRATEGIES:
+            arms.append(D6Arm(f"{network}/{strategy}", network, strategy=strategy))
+    if not arms:
+        raise ValueError("--methods selected no d6 arm")
+    return arms
+
+
+def _d6_off_grid_angle(rng: np.random.Generator, step: float) -> float:
+    """A pose at least ``D6_OFF_GRID_MARGIN_DEG`` from the grid AND from its midpoints."""
+    for _ in range(1000):
+        deg = float(rng.uniform(0.0, 360.0))
+        for offset in (0.0, step / 2.0):
+            residue = min(abs((deg - offset) % step), step - abs((deg - offset) % step))
+            if residue <= D6_OFF_GRID_MARGIN_DEG:
+                break
+        else:
+            return deg
+    raise RuntimeError("could not draw an off-grid angle")
+
+
+def _d6_angles(seed: int = SEED) -> list[dict[str, Any]]:
+    """The frozen 12 x 5 stress-angle design, drawn from one deterministic rng stream."""
+    rng = np.random.default_rng(seed)
+    step = 360.0 / float(ROTATION_STEPS)
+    rows: list[dict[str, Any]] = []
+    for stem, family in D6_QUERIES:
+        for slot in D6_ANGLE_SLOTS:
+            if slot == "on_grid":
+                deg = float(int(rng.integers(1, ROTATION_STEPS)) * step)
+            elif slot == "mid_grid":
+                deg = float(int(rng.integers(0, ROTATION_STEPS)) * step + step / 2.0)
+            else:
+                deg = _d6_off_grid_angle(rng, step)
+            rows.append({"stem": stem, "family": family, "slot": slot, "angle_deg": deg})
+    return rows
+
+
+def _d6_rank(distances: np.ndarray, gallery: Gallery, drop: Sequence[str]) -> np.ndarray:
+    """Rank the kept candidates with the tie-break ``search_shape`` itself uses."""
+    excluded = set(drop)
+    indices = np.flatnonzero(
+        np.array([shape.shape_id not in excluded for shape in gallery.shapes])
+    )
+    if not indices.size:
+        raise ValueError("a candidate condition dropped the entire gallery")
+    return indices[np.asarray(pm.rank_order(distances[indices]), dtype=int)]
+
+
+def _d6_condition_row(
+    arm: D6Arm,
+    condition: str,
+    stem: str,
+    angle_row: dict[str, Any],
+    distances: np.ndarray,
+    gallery: Gallery,
+    target_index: int,
+    query_category: str,
+    drop: Sequence[str],
+    ref_order: np.ndarray,
+    k: int,
+    elapsed: float,
+) -> dict[str, Any]:
+    """Every Task 4 metric for one (arm, condition, query, angle) cell."""
+    order = _d6_rank(distances, gallery, drop)
+    positions = {int(index): rank for rank, index in enumerate(order, start=1)}
+    categories = [str(gallery.shapes[int(index)].category) for index in order]
+    relevant = [1 if category == query_category else 0 for category in categories]
+    target_rank = positions.get(int(target_index))
+    first_relevant = next((rank for rank, flag in enumerate(relevant, start=1) if flag), None)
+    top1 = gallery.shapes[int(order[0])].shape_id
+    wrong = np.array(
+        [
+            float(distances[int(index)])
+            for index in range(len(gallery))
+            if str(gallery.shapes[int(index)].category) != query_category
+            and np.isfinite(distances[int(index)])
+        ]
+    )
+    displacement = metrics.rank_displacement(ref_order, order)
+    return {
+        "arm": arm.label,
+        "method": arm.method,
+        "rotation_strategy": arm.strategy,
+        "orientation": arm.orientation,
+        "condition": condition,
+        "query_id": f"mpeg7_{stem}",
+        "family": angle_row["family"],
+        "slot": angle_row["slot"],
+        "angle_deg": angle_row["angle_deg"],
+        "n_kept": int(len(order)),
+        "n_same_class_kept": int(sum(relevant)),
+        "top1": top1,
+        "top1_is_target": int(top1 == gallery.shapes[int(target_index)].shape_id),
+        "top1_is_same_class": int(categories[0] == query_category),
+        "top1_matches_unrotated": int(top1 == gallery.shapes[int(ref_order[0])].shape_id),
+        "target_rank": target_rank,
+        "self_distance": float(distances[int(target_index)]),
+        "best_wrong_class_distance": float(wrong.min()) if wrong.size else None,
+        "class_recall_at_k": metrics.class_recall_at_k(categories, query_category, k),
+        "first_relevant_rank": first_relevant,
+        "ndcg_at_k": metrics.ndcg_at_k(relevant, k) if first_relevant else None,
+        "top_k_overlap_vs_unrotated": metrics.top_k_overlap(ref_order, order, k),
+        "mean_abs_rank_shift": displacement["mean_abs_shift"],
+        "max_abs_rank_shift": float(displacement["max_abs_shift"]),
+        "spearman_between_rankings": displacement["spearman_between_rankings"],
+        "elapsed_seconds": elapsed,
+    }
+
+
+def _d6_mean(values: list[Any]) -> float | None:
+    finite = [float(value) for value in values if value is not None and np.isfinite(float(value))]
+    return float(np.mean(finite)) if finite else None
+
+
+def _d6_summarise(rows: list[dict[str, Any]], k: int) -> dict[str, Any]:
+    """Collapse the tidy cells into the per-arm, per-condition headline."""
+    out: dict[str, Any] = {}
+    for condition in D6_CONDITIONS:
+        cells = [row for row in rows if row["condition"] == condition]
+        if not cells:
+            continue
+        ranks = [int(row["target_rank"]) for row in cells if row["target_rank"]]
+        out[condition] = {
+            "n_cells": len(cells),
+            "exact_target_present": condition == "T0",
+            "top1_accuracy": _d6_mean([row["top1_is_target"] for row in cells]),
+            "top1_same_class_accuracy": _d6_mean([row["top1_is_same_class"] for row in cells]),
+            "top1_stability_vs_unrotated": _d6_mean(
+                [row["top1_matches_unrotated"] for row in cells]
+            ),
+            "target_rank_mean": _d6_mean(ranks),
+            "target_rank_median": float(np.median(ranks)) if ranks else None,
+            "target_rank_worst": int(max(ranks)) if ranks else None,
+            "self_distance_mean": _d6_mean([row["self_distance"] for row in cells]),
+            "self_distance_max": float(max(row["self_distance"] for row in cells)),
+            "attraction_gap_mean": _d6_mean(
+                [
+                    row["best_wrong_class_distance"] - row["self_distance"]
+                    for row in cells
+                    if row["best_wrong_class_distance"] is not None
+                ]
+            ),
+            "class_recall_at_k": _d6_mean([row["class_recall_at_k"] for row in cells]),
+            "class_mrr": metrics.mean_reciprocal_rank(
+                [row["first_relevant_rank"] for row in cells]
+            ),
+            f"ndcg_at_{k}": _d6_mean([row["ndcg_at_k"] for row in cells]),
+            f"top_{k}_overlap_vs_unrotated": _d6_mean(
+                [row["top_k_overlap_vs_unrotated"] for row in cells]
+            ),
+            "top_k_overlap_min": float(min(row["top_k_overlap_vs_unrotated"] for row in cells)),
+            "mean_abs_rank_shift": _d6_mean([row["mean_abs_rank_shift"] for row in cells]),
+            "max_abs_rank_shift": float(max(row["max_abs_rank_shift"] for row in cells)),
+            "seconds_per_query_mean": _d6_mean([row["elapsed_seconds"] for row in cells]),
+            "seconds_per_query_max": float(max(row["elapsed_seconds"] for row in cells)),
+        }
+    return out
+
+
+def _d6_orientation_diagnostics(gallery: Gallery, queries: list[BenchmarkShape]) -> dict[str, Any]:
+    """Line up the three orientation conventions EarthGlyph now owns on the same contours.
+
+    ``rotation_methods`` (this stage's R2, contour point moments), E1's ``principal_frame``
+    (AREA moments) and E3's ``canonical_frame`` (point covariance with a different tolerance)
+    are NOT the same rule. Listing them side by side is what keeps a claim of
+    "canonicalisation" checkable instead of becoming a label.
+    """
+    contours = [shape.display_points for shape in gallery.shapes] + [
+        shape.display_points for shape in queries
+    ]
+    statuses: dict[str, int] = {}
+    margins: list[float] = []
+    ratios: list[float] = []
+    e3_degenerate = 0
+    e3_ambiguous = 0
+    disagreement: list[float] = []
+    for contour in contours:
+        frame = rm.canonical_frame(contour)
+        statuses[frame.status] = statuses.get(frame.status, 0) + 1
+        margins.append(abs(frame.sign_margin))
+        ratios.append(frame.axis_ratio)
+        _, provenance = e3.canonical_frame(contour)
+        e3_degenerate += int(bool(provenance["axes_degenerate"]))
+        e3_ambiguous += int(bool(provenance["sign_ambiguous"]))
+        if frame.status != "isotropic-fallback" and not provenance["axes_degenerate"]:
+            difference = abs(frame.angle_deg - float(provenance["axis_deg"])) % 360.0
+            disagreement.append(min(difference, 360.0 - difference))
+    return {
+        "n_contours": len(contours),
+        "rotation_methods_status_counts": statuses,
+        "isotropy_max": rm.ISOTROPY_MAX,
+        "sign_tie_tolerance": rm.SIGN_TIE_TOLERANCE,
+        "axis_ratio_min": float(min(ratios)),
+        "axis_ratio_median": float(np.median(ratios)),
+        "sign_margin_median": float(np.median(margins)),
+        "sign_margin_min": float(min(margins)),
+        "e3_axes_degenerate": e3_degenerate,
+        "e3_sign_ambiguous": e3_ambiguous,
+        "angle_disagreement_vs_e3": {
+            "n_compared": len(disagreement),
+            "median_deg": float(np.median(disagreement)) if disagreement else None,
+            "max_deg": float(max(disagreement)) if disagreement else None,
+        },
+        "note": (
+            "Statuses are the R2 wrapper's own evidence: 'isotropic-fallback' means no principal "
+            "axis exists to align to, so R2 silently leaves that shape in its stored pose and is "
+            "rotation-blind on it; 'sign-tie' means an axis exists but its 180-degree flip is "
+            "decided by floating-point noise. E3's two counters use E3's own thresholds, which "
+            "are NOT the same rule, and the disagreement column quantifies how far apart the two "
+            "conventions actually put the same contour."
+        ),
+    }
+
+
+def _d6_image_axis_check(queries: list[BenchmarkShape]) -> dict[str, Any]:
+    """Does R2's contour-space convention survive KerNet2's rasterisation and ``flipud``?
+
+    D59 made the raster single-pixel-flip cost 18.5% of the embedding norm, so an axis
+    convention decided on contours has to be checked where the image network actually looks.
+    The major axis is pinned to +x precisely because ``flipud`` leaves that direction alone.
+    """
+    deviations: dict[str, float] = {}
+    for shape in queries:
+        canonical, frame = rm.canonicalise(shape.display_points)
+        mask = port.kernet2_input(canonical)[..., 0]
+        rows, columns = np.nonzero(mask)
+        if len(rows) < 3:
+            deviations[shape.shape_id] = float("nan")
+            continue
+        # Pixel row 0 is the TOP after flipud, so math-convention y is -row.
+        points = np.stack([columns.astype(float), -rows.astype(float)], axis=1)
+        deviations[shape.shape_id] = abs(rm.canonical_frame(points).angle_deg)
+    finite = [value for value in deviations.values() if np.isfinite(value)]
+    return {
+        "deviation_deg_by_query": deviations,
+        "max_abs_deviation_deg": float(max(finite)) if finite else None,
+        "note": (
+            "Angle of the RASTERISED mask's major axis after R2 canonicalised the CONTOUR. Small "
+            "values mean one axis convention serves both networks; a large value means the 40x40 "
+            "grid re-introduces an orientation the contour decision did not predict."
+        ),
+    }
+
+
+def run_d6(methods: list[str], top_k: int) -> dict[str, Any]:
+    """Compare rotation WRAPPERS for the official port under random rotation, then decide.
+
+    Two studies, one frozen design, shared ground truths, never mixed:
+
+    * **(a) human agreement** — one member of each rated H1 pair is turned by a stress angle and
+      every wrapper must still recover the published dissimilarity. Intervals use the CP7-B
+      grouped bootstrap: the 250 rated pairs are the sampling unit, not the 1750 angle rows.
+    * **(b) discriminative retrieval** — the rotated query is ranked against the D4 stratified
+      gallery under T0 (exact present), T1 (exact removed) and T2 (exact + rigid near-duplicates
+      removed). T2 is the primary condition. Class labels are relevance proxies, not perception.
+
+    Goal A (perceptual agreement) and goal B (retrieval under unknown rotation) are reported
+    separately, so a high Spearman cannot cover a collapsed Top-10 and a perfect self-match
+    cannot cover a lost human ordering.
+    """
+    arms = _d6_arms(methods)
+    design = _d6_angles()
+
+    shapes, _ = load_mpeg7(CACHE)
+    per_class: dict[str, list[BenchmarkShape]] = {}
+    for shape in shapes:
+        per_class.setdefault(str(shape.category), []).append(shape)
+    subset = [
+        members[i]
+        for _, members in sorted(per_class.items())
+        for i in range(min(D4_GALLERY_PER_CLASS, len(members)))
+    ]
+    precompute: dict[str, float] = {}
+    started = time.perf_counter()
+    gallery = Gallery(subset, name="mpeg7_stratified")
+    precompute["gallery_mpeg7"] = time.perf_counter() - started
+    started = time.perf_counter()
+    canonical_gallery = Gallery(
+        subset,
+        name="mpeg7_stratified_canonical",
+        e3_params={"orientation": "canonical"},
+        e1_normalizer=gallery.e1_normalizer,
+    )
+    precompute["gallery_mpeg7_e3_canonical"] = time.perf_counter() - started
+    by_stem = {shape.shape_id.removeprefix("mpeg7_"): shape for shape in subset}
+    missing = [stem for stem, _ in D6_QUERIES if stem not in by_stem]
+    if missing:
+        raise RuntimeError(f"frozen d6 queries absent from the stratified gallery: {missing}")
+
+    # One pose-embedding cache per network: a 1750-row sweep then costs one pass per
+    # (shape, pose, wrapper) instead of one per row.
+    pose_cache: dict[tuple[str, str, str, float, str], np.ndarray] = {}
+
+    def embed(network: str, strategy: str, shape: BenchmarkShape, degrees: float, role: str):
+        key = (network, strategy, shape.shape_id, float(degrees), role)
+        if key not in pose_cache:
+            contour = rotate(shape.display_points, degrees) if degrees else shape.display_points
+            pose_cache[key] = rm.pose_embedding(
+                _scorer_for(_RUN_NETWORK[network]), contour, strategy, role
+            )
+        return pose_cache[key]
+
+    for network in SHAPECOMP_RUN_METHODS:
+        if network not in methods:
+            continue
+        started = time.perf_counter()
+        for strategy in D6_STRATEGIES:
+            gallery.pose_embeddings(_RUN_NETWORK[network], strategy)
+        precompute[f"gallery_pose_embeddings_{network}"] = time.perf_counter() - started
+
+    # ---------------------------------------------------------------- (b) retrieval
+    retrieval_rows: list[dict[str, Any]] = []
+    hit_rows: list[dict[str, Any]] = []
+    angles_by_stem: dict[str, list[dict[str, Any]]] = {}
+    for row in design:
+        angles_by_stem.setdefault(str(row["stem"]), []).append(row)
+    for stem, angle_rows in sorted(angles_by_stem.items()):
+        base = by_stem[stem]
+        target_index = int(gallery.index_of(base.shape_id))
+        query_category = str(base.category)
+        # E0 defines the rigid near-duplicate set, once per query and identically for every arm
+        # (as in D2), so no arm is handed a candidate list chosen around its own weaknesses.
+        e0_full = search_shape(base, gallery, "E0", top_k=len(gallery))
+        near = [
+            gallery.shapes[int(index)].shape_id
+            for index in e0_full.order
+            if e0_full.distances[int(index)] < T2_THRESHOLD
+            and gallery.shapes[int(index)].shape_id != base.shape_id
+        ]
+        drops = {"T0": [], "T1": [base.shape_id], "T2": [base.shape_id, *near]}
+        print(f"  {stem} ({query_category}) near-duplicates={len(near)}", flush=True)
+        for arm in arms:
+            gal = arm.gallery(gallery, canonical_gallery)
+            reference = arm.search(base, gal, len(gal))
+            ref_orders = {
+                condition: _d6_rank(reference.distances, gal, drop)
+                for condition, drop in drops.items()
+            }
+            poses: list[tuple[str, dict[str, Any], BenchmarkShape]] = [
+                ("unrotated", {"family": "", "slot": "control", "angle_deg": 0.0}, base)
+            ] + [
+                (f"rotate_{row['angle_deg']:g}", row, _rotated(base, float(row["angle_deg"])))
+                for row in angle_rows
+            ]
+            for pose_label, angle_row, query in poses:
+                result = arm.search(query, gal, len(gal))
+                for condition, drop in drops.items():
+                    retrieval_rows.append(
+                        _d6_condition_row(
+                            arm,
+                            condition,
+                            stem,
+                            angle_row,
+                            result.distances,
+                            gal,
+                            target_index,
+                            query_category,
+                            drop,
+                            ref_orders[condition],
+                            top_k,
+                            result.elapsed_seconds,
+                        )
+                    )
+                for rank, index in enumerate(
+                    _d6_rank(result.distances, gal, drops[D6_PRIMARY_CONDITION])[:top_k], start=1
+                ):
+                    hit_rows.append(
+                        {
+                            "query_id": base.shape_id,
+                            "family": angle_rows[0]["family"],
+                            "arm": arm.label,
+                            "condition": D6_PRIMARY_CONDITION,
+                            "pose": pose_label,
+                            "rank": rank,
+                            "shape_id": gal.shapes[int(index)].shape_id,
+                            "category": gal.shapes[int(index)].category,
+                            "distance": float(result.distances[int(index)]),
+                            "is_same_class": int(
+                                str(gal.shapes[int(index)].category) == query_category
+                            ),
+                        }
+                    )
+            rotated = [
+                row
+                for row in retrieval_rows
+                if row["arm"] == arm.label
+                and row["condition"] == D6_PRIMARY_CONDITION
+                and row["slot"] != "control"
+            ]
+            # Under T2 the exact target is gone by construction, so the worst case that means
+            # anything here is the pose that pushed the first same-class candidate furthest down
+            # while disturbing the head of the list most.
+            worst = max(rotated, key=lambda row: (row["first_relevant_rank"] or 10_000))
+            print(
+                f"    {arm.label:16s} {D6_PRIMARY_CONDITION} worst first-same-class rank="
+                f"{worst['first_relevant_rank']} at {worst['angle_deg']:g}deg "
+                f"overlap={worst['top_k_overlap_vs_unrotated']:.2f} "
+                f"{worst['elapsed_seconds']:.2f}s/query",
+                flush=True,
+            )
+    retrieval_by_arm = {
+        arm.label: _d6_summarise([row for row in retrieval_rows if row["arm"] == arm.label], top_k)
+        for arm in arms
+    }
+
+    # ---------------------------------------------------------------- (a) agreement
+    h1 = load_h1(CACHE)
+    h1_gallery = Gallery(list(h1.shapes.values()), official_coords=h1.official_coords, name="h1")
+    ratings = h1.pair_matrix()
+    mean_rating = ratings.mean(axis=1)
+    stress_angles = [angle for angle in D5_ANGLES if angle != 0.0]
+    slot = {pair.pair_id: index for index, pair in enumerate(h1.pairs)}
+    agreement_rows: list[dict[str, Any]] = []
+    distances_by_arm: dict[str, np.ndarray] = {}
+    curves: dict[str, dict[str, float]] = {}
+    for arm in arms:
+        values = np.empty(len(stress_angles) * len(h1.pairs))
+        per_angle: dict[str, float] = {}
+        for index_angle, phi in enumerate(stress_angles):
+            for pair in h1.pairs:
+                left = h1.shapes[pair.left]
+                right = h1.shapes[pair.right]
+                if arm.is_port:
+                    strategy = rm.resolve_strategy(str(arm.strategy))
+                    rows_left = embed(arm.method, strategy.name, left, 0.0, "query")
+                    rows_right = embed(arm.method, strategy.name, right, float(phi), "gallery")
+                    distance = float(rm.pose_pair_distance(rows_left, rows_right))
+                else:
+                    distance = pair_distance(
+                        left,
+                        _rotated(right, float(phi)),
+                        arm.method,
+                        normalizer=h1_gallery.e1_normalizer,
+                        orientation=arm.orientation,
+                    )
+                values[index_angle * len(h1.pairs) + slot[pair.pair_id]] = distance
+                agreement_rows.append(
+                    {
+                        "study": "agreement",
+                        "arm": arm.label,
+                        "method": arm.method,
+                        "rotation_strategy": arm.strategy,
+                        "orientation": arm.orientation,
+                        "stress_deg": phi,
+                        "pair_id": pair.pair_id,
+                        "model_distance": distance,
+                        "human_mean_similarity": float(mean_rating[slot[pair.pair_id]]),
+                    }
+                )
+            block = values[index_angle * len(h1.pairs) : (index_angle + 1) * len(h1.pairs)]
+            per_angle[f"rotate_{phi:g}"] = -float(metrics.correlate(block, mean_rating).spearman)
+        distances_by_arm[arm.label] = values
+        curves[arm.label] = per_angle
+        line = " ".join(f"{key}={value:+.3f}" for key, value in per_angle.items())
+        print(f"  (a) {arm.label:16s} {line}", flush=True)
+
+    # The cached sweep and the public pairwise path must be the same arithmetic, not a re-run of
+    # it: a deterministic sample of rated pairs goes through ``pair_distance`` instead.
+    sample_rng = np.random.default_rng(SEED)
+    checked = [
+        h1.pairs[int(index)]
+        for index in sample_rng.choice(len(h1.pairs), size=D6_VERIFICATION_PAIRS, replace=False)
+    ]
+    verification: list[dict[str, Any]] = []
+    for arm in arms:
+        if not arm.is_port:
+            continue
+        deviations = [
+            abs(
+                pair_distance(
+                    h1.shapes[pair.left],
+                    _rotated(h1.shapes[pair.right], float(phi)),
+                    arm.method,
+                    rotation_strategy=arm.strategy,
+                )
+                - distances_by_arm[arm.label][
+                    stress_angles.index(phi) * len(h1.pairs) + slot[pair.pair_id]
+                ]
+            )
+            for pair in checked
+            for phi in stress_angles[:2]
+        ]
+        verification.append(
+            {
+                "arm": arm.label,
+                "n_checked": len(deviations),
+                "max_abs_deviation": float(max(deviations)),
+            }
+        )
+    max_deviation = max((item["max_abs_deviation"] for item in verification), default=0.0)
+
+    pair_ids = np.array([slot[pair.pair_id] for pair in h1.pairs], dtype=int)
+    group_ids = np.tile(pair_ids, len(stress_angles))
+    condition_ids = np.repeat(np.asarray(stress_angles, dtype=float), len(h1.pairs))
+    stress_matrix = np.tile(ratings, (len(stress_angles), 1))
+    grouped = metrics.bootstrap_grouped_two_level(
+        distances_by_arm, stress_matrix, group_ids, n_boot=N_BOOT, seed=SEED
+    )
+    grouped_randomised = metrics.bootstrap_grouped_two_level(
+        distances_by_arm,
+        stress_matrix,
+        group_ids,
+        condition_ids=condition_ids,
+        resample_conditions=True,
+        n_boot=N_BOOT,
+        seed=SEED,
+    )
+    agreement_by_arm: dict[str, Any] = {}
+    for arm in arms:
+        block = grouped["per_arm"][arm.label]
+        randomised = grouped_randomised["per_arm"][arm.label]
+        pooled = metrics.correlate(distances_by_arm[arm.label], stress_matrix.mean(axis=1))
+        agreement_by_arm[arm.label] = {
+            "agreement_pooled": -float(pooled.spearman),
+            "ci_low_grouped": -float(block["spearman_ci_high"]),
+            "ci_high_grouped": -float(block["spearman_ci_low"]),
+            "ci_low_angle_randomised": -float(randomised["spearman_ci_high"]),
+            "ci_high_angle_randomised": -float(randomised["spearman_ci_low"]),
+            "n_rows": int(len(distances_by_arm[arm.label])),
+            "curve_by_angle": curves[arm.label],
+        }
+
+    queries = [by_stem[stem] for stem, _ in D6_QUERIES]
+    summary: dict[str, Any] = {
+        "schema": "earthglyph.shape_perception_benchmark/d6/1",
+        "seed": SEED,
+        "n_boot": N_BOOT,
+        "design": {
+            "n_queries": len(D6_QUERIES),
+            "queries": [
+                {"stem": stem, "family": family, "shape_id": f"mpeg7_{stem}"}
+                for stem, family in D6_QUERIES
+            ],
+            "angles_per_query": len(D6_ANGLE_SLOTS),
+            "angle_slots": list(D6_ANGLE_SLOTS),
+            "n_query_angle_rows": len(design),
+            "conditions": list(D6_CONDITIONS),
+            "primary_condition": D6_PRIMARY_CONDITION,
+            "t2_threshold_e0": T2_THRESHOLD,
+            "top_k": top_k,
+            "rotation_step_deg": 360.0 / float(ROTATION_STEPS),
+            "frozen_before_run": True,
+            "note": (
+                "Counts and families were declared before the run. No angle was redrawn and no "
+                "query swapped after seeing a result: an arm that skipped hard cases would not be "
+                "comparable with the arms that ran, so every cell runs for every arm. The "
+                "unrotated pose is carried as a control row (slot='control') and excluded from "
+                "the rotated headline."
+            ),
+        },
+        "arms": [
+            {
+                "label": arm.label,
+                "method": arm.method,
+                "rotation_strategy": arm.strategy,
+                "orientation": arm.orientation,
+                "contract": arm.description(),
+            }
+            for arm in arms
+        ],
+        "angles": design,
+        "precompute_seconds": precompute,
+        "retrieval_by_arm": retrieval_by_arm,
+        "agreement_by_arm": agreement_by_arm,
+        "agreement_bootstrap": {
+            "sampling_unit": (
+                "rated stimulus pair: each H1 pair contributes all of its stress angles as one "
+                "cluster, so 250 pairs are resampled and never the 1750 rows"
+            ),
+            "scheme_fixed_angle": grouped["scheme"],
+            "scheme_angle_randomised": grouped_randomised["scheme"],
+            "n_clusters": grouped["n_clusters"],
+            "rows_per_cluster": grouped["rows_per_cluster"],
+            "n_rows": grouped["n_rows"],
+            "condition_factor": grouped["condition_factor"],
+        },
+        "paired_differences": grouped["differences"],
+        "paired_differences_angle_randomised": grouped_randomised["differences"],
+        "verification_cached_vs_pair_distance": verification,
+        "max_abs_deviation_cached_vs_public": max_deviation,
+        "orientation_diagnostics": _d6_orientation_diagnostics(gallery, queries),
+        "image_axis_convention_check": _d6_image_axis_check(queries),
+        "goal_separation": (
+            "(a) measures whether a representation still tracks HUMAN dissimilarity once the "
+            "stimulus is turned; (b) measures whether the HEAD of a real retrieval list survives "
+            "an unknown rotation. Neither implies the other and the report keeps them apart: a "
+            "high Spearman cannot excuse a collapsed Top-10, and rank-1 self-matching cannot "
+            "excuse losing the human ordering."
+        ),
+        "rows_written": {"retrieval": len(retrieval_rows), "agreement": len(agreement_rows)},
+    }
+    write_csv(RESULTS / "d6_retrieval_results.csv", retrieval_rows)
+    write_csv(RESULTS / "d6_agreement_results.csv", agreement_rows)
+    write_csv(RESULTS / "d6_top10_hits.csv", hit_rows)
+    write_json(RESULTS / "d6_rotation_metrics.json", summary)
+    return summary
+
+
 def write_summary() -> None:
     """Combine whatever stages have run into one headline table with full provenance."""
     import platform
@@ -1202,6 +1896,7 @@ def write_summary() -> None:
     stages["d1"] = RESULTS / "human_metrics.json"
     stages["d5"] = RESULTS / "d5_rotation_metrics.json"
     stages["d5b"] = RESULTS / "d5_grouped_metrics.json"
+    stages["d6"] = RESULTS / "d6_rotation_metrics.json"
     present = {name: read_json(path) for name, path in stages.items() if path.exists()}
     manifest_path = BENCH / "dataset_manifest.json"
     manifest = read_json(manifest_path) if manifest_path.exists() else {}
@@ -1369,6 +2064,44 @@ def write_summary() -> None:
             "assumptions": d5b["assumptions"],
             "audit_relation": d5b["audit_relation"],
         }
+    if "d6" in present:
+        d6 = present["d6"]
+        headline["rotation_wrappers_agreement"] = {
+            "study": (
+                "goal A: one member of every rated H1 pair turned by a frozen random stress "
+                "angle; the wrapper decides the pose, the human ground truth is shared"
+            ),
+            "metric": (
+                "agreement with the published human dissimilarity, restated positive; interval "
+                "resampled by rated pair (CP7-B scheme), never by angle row"
+            ),
+            "sampling_unit": d6["agreement_bootstrap"]["sampling_unit"],
+            "by_arm": d6["agreement_by_arm"],
+            "design": d6["design"],
+            "verification_cached_vs_pair_distance": d6[
+                "verification_cached_vs_pair_distance"
+            ],
+        }
+        headline["rotation_wrappers_retrieval"] = {
+            "study": (
+                "goal B: the rotated MPEG-7 query ranked against the stratified gallery under "
+                "T0 (exact present), T1 (exact removed) and T2 (exact + rigid near-duplicates "
+                "removed). T2 is the primary condition"
+            ),
+            "metric": (
+                "T2 class Recall@10 / MRR / NDCG@10 and Top-10 overlap with the unrotated "
+                "ranking; MPEG-7 categories are relevance proxies, not human similarity"
+            ),
+            "primary_condition": d6["design"]["primary_condition"],
+            "by_arm": {
+                arm: values[d6["design"]["primary_condition"]]
+                for arm, values in d6["retrieval_by_arm"].items()
+            },
+            "all_conditions": d6["retrieval_by_arm"],
+            "precompute_seconds": d6["precompute_seconds"],
+            "orientation_diagnostics": d6["orientation_diagnostics"],
+            "image_axis_convention_check": d6["image_axis_convention_check"],
+        }
 
     payload = {
         "schema": "earthglyph.shape_perception_benchmark/1",
@@ -1390,6 +2123,7 @@ def write_summary() -> None:
             "# d5b re-analyses d5 (a) by stimulus pair; it reads the files above and never "
             "rewrites them",
             "python scripts/run_shape_benchmark.py --stage d5b",
+            "python scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/plot_shape_benchmark.py --figure all",
         ],
         "arm_availability": {
@@ -1398,7 +2132,8 @@ def write_summary() -> None:
             "E3": "all stages",
             "S0": (
                 "H1/H2 pairwise only, from the authors' published 22-D coordinates "
-                "(the ORIGINAL 91-descriptor ShapeComp MDS space). Outputs only: cannot score "
+                "(the MDS projection of the ORIGINAL 109-descriptor ShapeComp space). "
+                "Outputs only: cannot score "
                 "MPEG-7 or any new shape, so S0 is absent from every retrieval stage."
             ),
             "S0K1": (
@@ -1437,7 +2172,7 @@ def main() -> None:
         "--stage",
         nargs="+",
         required=True,
-        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "summary"],
+        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "d6", "summary"],
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
@@ -1459,6 +2194,8 @@ def main() -> None:
             run_d5(args.methods, args.top_k)
         elif stage == "d5b":
             run_d5_grouped()
+        elif stage == "d6":
+            run_d6(args.methods, args.top_k)
         else:
             write_summary()
         print(f"=== {stage} done in {time.perf_counter() - started:.1f}s ===", flush=True)

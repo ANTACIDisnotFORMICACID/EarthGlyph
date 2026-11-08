@@ -426,3 +426,65 @@ def rank_shift(order_a: np.ndarray, order_b: np.ndarray, index: int) -> int | No
     if not len(a) or not len(b):
         return None
     return int(b[0]) - int(a[0])
+
+
+def mean_reciprocal_rank(ranks: Sequence[int | None]) -> float:
+    """Mean of ``1/rank`` over queries; a query whose target is absent contributes 0.
+
+    Relevance here is whatever the caller decided the target is (the exact shape, or the first
+    same-class candidate), so the same helper serves T0 and the class-level T1/T2.
+    """
+    if not len(ranks):
+        raise ValueError("mean reciprocal rank needs at least one query")
+    return float(sum(1.0 / int(rank) for rank in ranks if rank) / len(ranks))
+
+
+def ndcg_at_k(relevance: Sequence[int], k: int) -> float:
+    """Binary-relevance NDCG@K over a ranking given in rank order (best candidate first).
+
+    Raises when the ranking holds nothing relevant: an ideal DCG of zero has no defined ratio,
+    and returning 0.0 there would silently punish a method for a gallery that never contained
+    the class.
+    """
+    if k < 1:
+        raise ValueError("k must be >= 1")
+    flags = np.asarray(list(relevance), dtype=float)
+    if flags.ndim != 1:
+        raise ValueError("relevance must be a 1-D sequence")
+    if flags.size and not set(np.unique(flags).tolist()) <= {0.0, 1.0}:
+        raise ValueError("relevance must be binary")
+    total = float(flags.sum())
+    if total == 0.0:
+        raise ValueError("no relevant candidate in this ranking, so NDCG has no denominator")
+    gains = flags[:k]
+    discounts = np.log2(np.arange(2, len(gains) + 2))
+    ideal = np.ones(min(k, int(total)))
+    ideal_discounts = np.log2(np.arange(2, len(ideal) + 2))
+    return float(np.sum(gains / discounts) / np.sum(ideal / ideal_discounts))
+
+
+def rank_displacement(order_a: np.ndarray, order_b: np.ndarray) -> dict[str, float]:
+    """Full-ranking drift between two orderings of the SAME candidate set.
+
+    Top-K overlap only looks at the head; this reports how far every candidate moved, which is
+    what a wrapper that "shuffles the tail but keeps the head" would otherwise hide.
+    """
+    a = np.asarray(order_a, dtype=int)
+    b = np.asarray(order_b, dtype=int)
+    if len(a) != len(b) or set(a.tolist()) != set(b.tolist()):
+        raise ValueError("rankings must cover exactly the same candidates")
+    size = len(a)
+    # Slots are the shared members sorted by id, NOT range(size): a ranking of a gallery with
+    # candidates removed carries gapped ids, and indexing a dense array by them would spill over
+    # the end or silently compare the wrong members. argsort(order)[j] is the rank position of the
+    # j-th smallest member id, so both sides line up on the same member without a dense lookup.
+    position_a = np.argsort(a)
+    position_b = np.argsort(b)
+    shift = np.abs(position_b - position_a)
+    rho = float(spearmanr(position_a, position_b).statistic) if size > 2 else float("nan")
+    return {
+        "mean_abs_shift": float(shift.mean()),
+        "max_abs_shift": float(shift.max(initial=0)),
+        "spearman_between_rankings": rho,
+        "n_compared": float(size),
+    }

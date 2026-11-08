@@ -1,0 +1,204 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark/r2_invariance/1",
+  "task": "P0-4.6 Checkpoint 7-C, the R2 coordinate check behind D67",
+  "angles": [
+    0.0,
+    37.0,
+    191.0,
+    270.0
+  ],
+  "git_commit": "103bde49a8c35b6be3bde0a2dd935eca03ed9875",
+  "numpy": "2.5.4",
+  "reproduce": "python scripts/verify_r2_pose_invariance.py",
+  "read_only": "scores contours through the port and writes this file; nothing else changes",
+  "by_network": {
+    "S0K1": {
+      "queries": [
+        {
+          "shape_id": "mpeg7_ray-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 0.9331265889206345,
+          "naive_move_max": 1.4698504359361317,
+          "r2_move_max": 1.473981134558327e-14
+        },
+        {
+          "shape_id": "mpeg7_octopus-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.3266726831029971,
+          "naive_move_max": 1.5382764495907453,
+          "r2_move_max": 1.7333973628103452e-14
+        },
+        {
+          "shape_id": "mpeg7_Heart-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.1635779929149979,
+          "naive_move_max": 0.8444643763352571,
+          "r2_move_max": 1.3429595923924256e-14
+        },
+        {
+          "shape_id": "mpeg7_horseshoe-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.194957779875726,
+          "naive_move_max": 2.0388430878993473,
+          "r2_move_max": 2.4909318615355854e-14
+        },
+        {
+          "shape_id": "mpeg7_fork-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.444470333348833,
+          "naive_move_max": 1.8265458194658677,
+          "r2_move_max": 3.111725908432541e-14
+        },
+        {
+          "shape_id": "mpeg7_tree-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 0.8601725851918045,
+          "naive_move_max": 0.917338042423859,
+          "r2_move_max": 6.738523461936336e-15
+        },
+        {
+          "shape_id": "mpeg7_bat-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.1590327344557645,
+          "naive_move_max": 1.4102519753352065,
+          "r2_move_max": 5.10950436371411e-14
+        },
+        {
+          "shape_id": "mpeg7_sea_snake-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.3399997375392931,
+          "naive_move_max": 1.6655453914246303,
+          "r2_move_max": 1.028257219664295e-14
+        },
+        {
+          "shape_id": "mpeg7_Comma-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.4037035799095128,
+          "naive_move_max": 1.631728693031438,
+          "r2_move_max": 2.1153396459866838e-14
+        },
+        {
+          "shape_id": "mpeg7_HCircle-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.5220616168813845,
+          "naive_move_max": 1.0219814653578285,
+          "r2_move_max": 1.3750713452275954e-14
+        },
+        {
+          "shape_id": "mpeg7_device2-1",
+          "frame_status": "isotropic-fallback",
+          "coord_norm_mean": 1.2519420377150485,
+          "naive_move_max": 0.15226438446841495,
+          "r2_move_max": 0.15226438446841495
+        },
+        {
+          "shape_id": "mpeg7_brick-01",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.1014705549934374,
+          "naive_move_max": 1.657047465430389,
+          "r2_move_max": 1.9577733471459695e-14
+        }
+      ],
+      "naive_move_max": 2.0388430878993473,
+      "naive_move_median": 1.5040634427634385,
+      "r2_move_max": 0.15226438446841495,
+      "coordinate_norm_median": 1.2234499087953874,
+      "worst_r2_move_as_share_of_norm": 0.12162255110972756,
+      "note": "naive_move_max is how far the 22-D coordinates of ONE contour move when only its pose changes; r2_move_max is the same quantity with R2 applied. R2 holding at floating-point residue while naive moves by a large fraction of the coordinate norm distinguishes true un-rotation from simply discarding the pose."
+    },
+    "S0K2": {
+      "queries": [
+        {
+          "shape_id": "mpeg7_ray-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 0.9359636939799925,
+          "naive_move_max": 1.7107798802793315,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_octopus-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.4685383055252346,
+          "naive_move_max": 1.7225159635393257,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_Heart-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.3093654254706244,
+          "naive_move_max": 0.614856377178576,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_horseshoe-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.0966355768660812,
+          "naive_move_max": 1.048962623374243,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_fork-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.395795141348315,
+          "naive_move_max": 1.7561730991224616,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_tree-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 0.9263771382178222,
+          "naive_move_max": 1.165952978151012,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_bat-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.1074075308999136,
+          "naive_move_max": 1.5051832599695638,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_sea_snake-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.03633397868431,
+          "naive_move_max": 1.4587739437504457,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_Comma-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.6178097383279035,
+          "naive_move_max": 1.916667891832733,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_HCircle-1",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.4373682053872046,
+          "naive_move_max": 1.1120629034063496,
+          "r2_move_max": 0.0
+        },
+        {
+          "shape_id": "mpeg7_device2-1",
+          "frame_status": "isotropic-fallback",
+          "coord_norm_mean": 1.2074599654185105,
+          "naive_move_max": 0.43359517044284024,
+          "r2_move_max": 0.43359517044284024
+        },
+        {
+          "shape_id": "mpeg7_brick-01",
+          "frame_status": "ok",
+          "coord_norm_mean": 1.205843839557204,
+          "naive_move_max": 1.8750048819010348,
+          "r2_move_max": 0.0
+        }
+      ],
+      "naive_move_max": 1.916667891832733,
+      "naive_move_median": 1.4819786018600047,
+      "r2_move_max": 0.43359517044284024,
+      "coordinate_norm_median": 1.2066519024878573,
+      "worst_r2_move_as_share_of_norm": 0.35909693311658114,
+      "note": "naive_move_max is how far the 22-D coordinates of ONE contour move when only its pose changes; r2_move_max is the same quantity with R2 applied. R2 holding at floating-point residue while naive moves by a large fraction of the coordinate norm distinguishes true un-rotation from simply discarding the pose."
+    }
+  }
+}
