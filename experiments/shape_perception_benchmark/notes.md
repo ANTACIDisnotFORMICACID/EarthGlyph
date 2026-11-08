@@ -799,3 +799,132 @@ Git checkpoint: CP6 work commit `e43f587` (`feat: add rotation search to ShapeCo
 identical rotation (P0-4.6 CP6)`), pushed to `origin main` (ssh.github.com:443); verified
 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` ==
 `e43f587107faa4bb7bed9666338464c680febd3d`, author `ANTACIDisnotFORMICACID`. CP1–CP5 shas are above.
+
+## Checkpoint 7 — CP7-A: line-by-line fidelity audit of the port, hashes, and input contract (2026-11-09)
+
+**Project goal this checkpoint:** before any further method work, establish whether the Python port is
+*arithmetically* the official network, and make that claim checkable rather than narrative. This checkpoint
+changes no experiment and no production default; it audits.
+
+### A1. Function-by-function correspondence (official MATLAB -> `shapecomp_port.py`)
+
+Read from the toolbox in `shapeComp_17_12_2024/` (gitignored), not from earlier prose. "exact" below means the
+Python branch reproduces the MATLAB branch's *choice*, including its tie-breaks.
+
+| official (file:line) | what it does | port (`shapecomp_port.py:line`) | status |
+|---|---|---|---|
+| `getShapeComp22netkeras.m:10-13` | run `clockwise(test_shape')`, flip if `-1` | `_is_clockwise` :129 + flip in `kernet1_input` :167 | exact |
+| `misc/clockwise.m:11` | `c_index = min(find(P(2,:)==max(P(2,:))))` -> **first** topmost vertex | `np.argmax(y)` :137 (also first occurrence) | exact |
+| `misc/clockwise.m:12-21` | wrap `c_index==1 -> a=len`, `c_index==len -> b=1` | `(c-1) % n`, `(c+1) % n` :138-139 | exact |
+| `misc/clockwise.m:58-86` | turn test at C, incl. `xa==xc` -> `-1`, else slope compare `Ka>Kb` | :143-155, same branch order and comparison | exact (denominators cannot be 0 on the reachable branches) |
+| `getShapeComp22netkeras.m:15` | `test_shape - centroid(test_shape)` | `_centroid` :72 | exact |
+| `geom2d/geom2d/centroid.m:70-72` | no mass argument -> `mean(pts)` over **rows** | `pts.mean(axis=0)` :74 | exact — the **point** mean, not the area centroid |
+| `getShapeComp22netkeras.m:16` | `resamplePolygon(adjustContourPos(x),1000)` | :169 | exact |
+| inline `adjustContourPos` `:26-27` | `- min(contour(:))`, then `./ max(contour(:))` **on the shifted array** | `_adjust_contour_pos` :116-126 | exact: divisor is `orig_max - orig_min`, min/max taken over **both columns together**, never per axis |
+| `getShapeComp22netkeras.m:17` | `Points1(1:end-1,:)` (drop the sealed duplicate) | `[:-1]` :169 | exact |
+| `getShapeComp22netkeras.m:18-19` | `id = find(x==min(x))`, `circshift(Points1,-[id(1)]+1)` | `np.argmin` + `np.roll(p1,-start)` :170-171 | exact (both pick the first leftmost vertex) |
+| `getShapeComp22netkeras.m:20` | `points(end+1,:) = points(1,:)` | `np.vstack([points, points[:1]])` :172 | exact |
+| `getShapeComp22netkeras.m:21` | `adjustContourPos(resamplePolygon(points,384))` | :173 | exact |
+| `getShapeComp22netkeras.m:22` | `predict(net2, points(:)')` -> **column-major** 768 vector | `np.ravel(points, order="F")` :174 | exact; ordering confirmed independently by ablation (see A4) |
+| `polygons2d/resamplePolygon.m:31-32` | `resamplePolyline(poly([1:end 1],:), n+1)`, delete last row | `_resample_polygon` :110-113 | exact |
+| `polygons2d/parametrize.m:73` | `par = [0 ; cumsum(hypot(diff x, diff y))]` | `_parametrize` :77-81 | exact |
+| `polygons2d/resamplePolyline.m:31-32` | `Lmax = s(end)`, `pos = linspace(0,Lmax,n)` | :95-96 | exact |
+| `resamplePolyline.m:37-38` | `ind0 = find(s<=pos,1,'last')`, `ind1 = find(s>=pos,1,'first')` | `searchsorted(s,pos,'right')-1`, `searchsorted(s,pos,'left')` :98-99 | exact **including ties**, which duplicated vertices actually produce — `test_vectorised_resample_is_bit_equal_to_the_matlab_loop` compares against the literal loop and matches on every row of 40 random rings (~9 000 sampled positions) |
+| `resamplePolyline.m:40-44` | `ind0 == ind1` -> copy that vertex | `out = poly[ind0]` default, `interp = ind0 != ind1` :103-105 | exact |
+| `resamplePolyline.m:55-60` | interpolate only if `l0+l1 > Lmax*1e-12`, else take `pt0` | `interp &= span > total*1e-12` :104 | exact |
+| `getShapeComp22netimagekeras.m:10-13` | drop-last / leftmost lines are **commented out** | `kernet2_points` :177-182 omits both | exact — the two routes really do differ |
+| `getShapeComp22netimagekeras.m:17-18` | `[x y]=meshgrid(linspace(0,1,40))`, `B = inpolygon(x(:),y(:),p(:,1),p(:,2))` | `_grid_points` :185-189 (`ravel order="F"`) + `inpolygon` :192-232 | exact; the fill is the documented MATLAB primitive (even-odd crossing, boundary counts as inside), not a GEOS predicate |
+| `getShapeComp22netimagekeras.m:19` | `bw = flipud(reshape(B,[size(x,1) size(x,2)]))` | `np.flipud(np.reshape(..., (40,40), order="F"))` :232 | exact |
+| `getShapeComp22netimagekeras.m:21` | `predict(net2, double(bw))` | `kernet2_input` :235-243 -> conv stack | exact |
+| `net/keras/shape2sc22a.h5` `model_config` | 7 `Dense`: 2048/1024/512/256/128/64/22, ReLU on all but the last | `_k1_dense` + `_dense_forward` :357-366 | architecture read from the file, not from prose |
+| `net/keras/im2sc22d.h5` `model_config` | `conv2d_4/5/6` (16/32/64, 3x3, `same`) each -> ReLU -> `max_pooling2d_1/2/3` (2x2), `flatten_2` -> `dense_3(128,relu)` -> `dropout_1` -> `dense_4(22,linear)` | `_conv2d_same` / `_maxpool2d` / `_k2_conv` / `_k2_dense` :372-383 | read from the file; `dropout_1` is identity at inference (no RNG) |
+| weights | h5py `model_weights/<layer>/<layer>:{kernel,bias}`, stored float32 | cast to float64 before the product | documented precision difference measured at 3.9e-08 max |
+
+Deliberate additions with no MATLAB counterpart: `_validate_contour` :47-69 (MATLAB has no guard — see A3) and
+the divide-by-zero raise inside `_adjust_contour_pos` :124-125. Both refuse instead of emitting NaN.
+
+### A2. Provenance: SHA256 manifest of the sources actually read
+
+`scripts/hash_shapecomp_toolbox.py` (new) -> `results/official_toolbox_hashes.json`. 24 files hashed, 0 missing:
+the loader `loadShapeComp.m`, the 6 translated `ShapeComp_src` files, `misc/clockwise.m`, the 4 geom2d helpers
+(`centroid`, `parametrize`, `resamplePolygon`, `resamplePolyline`) and all 11 `net/` binaries. Toolbox inventory:
+2340 files, 333 `.m`, 3 `.h5`. The two weights used by the port:
+
+* `net/keras/shape2sc22a.h5` — `a6fd1f06cee40626…`, 52 505 208 bytes, 7 weighted + 1 weight-free layer
+* `net/keras/im2sc22d.h5` — `035f655b5c9af13b…`, 2 811 864 bytes, 5 weighted + 5 weight-free layers
+
+Runtime: Python 3.12.10, numpy 2.5.4, h5py 3.16.0, `tensorflow_used: false`, `matlab_used: false`. The
+`KerNet1.mat` / `KerNet2.mat` exports are MATLAB v7 **classdef** handles that scipy cannot decode; they are
+hashed for provenance and never parsed. Nothing is fetched by any script in this repository — the toolbox is the
+user's manual download. **Weights and official MATLAB stay gitignored**; CC BY-4.0 covers the paper and the
+Zenodo deposit, not re-publication of the toolbox binaries, and the manifest says so in a `redistribution` field.
+
+### A3. Input contract: what the port accepts, refuses, and why
+
+`scripts/validate_shapecomp_port.py` `cp7a_input_edge_cases` + 19 new committed test cases
+(`tests/test_shapecomp_port.py`, now 34 port tests, 13 s). Legal classes — all reach **finite, non-empty** inputs on
+both routes and finite non-zero 22-D coordinates: clockwise ring, counter-clockwise ring, duplicated first/last
+vertex, consecutive duplicate vertices, near-circle, five-point star, thin forked contour, and
+**self-intersecting rings** (accepted on purpose: `GANinput2shape.m` states GAN shapes "can have
+self-intersections", so they are an official input class, and this is exactly why `inpolygon` is implemented
+directly instead of delegating to GEOS, whose fill rule for an invalid polygon is not defined). Illegal classes
+are refused with `ShapeCompInputError(ValueError)`, never a silent zero vector or NaN: all vertices coincident,
+fewer than 3 vertices, non-finite vertex. The refuse path is *not* a divergence from the official contract —
+MATLAB would emit NaN there, and NaN would later look like a legitimate coordinate.
+
+Determinism: 3 repeat runs of both nets on every legal case are `bit_identical` (max spread 0.0). Dropout is
+inert at inference and no accumulation order varies.
+
+Rasterisation sensitivity (`cp7a_rasterisation_sensitivity_kernet2`, 40 random single-pixel flips of an official
+H2 mask): median L2 shift **0.2887**, p90 0.3474, max 0.4066 = **18.5%** of the coordinate norm (1.561). One
+pixel is worth ~18% of the embedding, so a 1–4% residual is *much smaller than one pixel*, and re-rasterising a
+rotated contour is a near-discontinuous operation. This is the number that bounds what R0/R1/R2 can hope to do.
+
+### A4. Faithfulness measured three ways, kept strictly apart
+
+`results/shapecomp_port_validation.json` (schema `/2`). Headline agreement values are **unchanged** from CP5/CP6:
+H2 KerNet2 pairwise Spearman 0.99894 / per-dim r 0.99823 / **RMSE 0.006496161383207664** (bit-identical to the
+committed value, so the audit caused no precision regression on the verified path); Figure 8 kernet1 0.97979,
+kernet2 0.95661; H1-vs-original-ShapeComp kernet1 0.92663, kernet2 0.92889 — the last pair being
+**approximation quality of the neural nets against the original MDS model, never a port error**.
+
+New in this checkpoint:
+
+* **`cp7a_h2_input_provenance_alignment` — the decisive test.** For each of the 15 H2 shapes, search the
+  deposited contour over cyclic start index, traversal direction, and the two files that store it
+  (`lietal_ShapeCompSolution_keras_mds_image.mat` vs `fig7D_lietal_points_2.mat`). 4 shapes agree to ~1e-7 at
+  their native phase; **8 of 15 reach float-rounding agreement (<1e-6, median 1.5e-07) once aligned**, from a
+  native-phase median of 1.5e-02. Machine-precision agreement on real stimuli pins weight loading, layer order,
+  conv/pool/ReLU order, C-order flatten, `inpolygon`, `flipud` and both resample stages *simultaneously* — it is
+  the strongest faithfulness evidence the deposit allows.
+* **The other 7 shapes are NOT claimed as explained.** After the full search they still sit at 4.8e-3–1.8e-2
+  (indices 3,4,5,7,8,9,10), and the residual is reported as **unattributed input-provenance difference** between
+  the deposited contour and the contour that actually produced the published coordinates. The aligned RMSE bound
+  over all 15 is 1.5e-03 vs the 6.5e-03 headline, so alignment explains the *bulk* but not *all* of it.
+* **`cp7a_kernet1_flatten_order_ablation`** (200 Figure 8 shapes): column-major x-then-y median L2 **0.184** vs
+  row-major interleaved **1.922** vs column-major y-then-x **2.622** -> `published_order_is_best: true`, ~10x
+  separation, so the 768-D contract is confirmed. Honest limit: Figure 8's deposited `c` is a raw display
+  contour and `Figure8.m` never regenerates the network input, so **KerNet1's network-level faithfulness is not
+  pinned to machine precision** and its 0.0597 RMSE is only partly attributed.
+* **`inpolygon` vs GEOS**: pixel-for-pixel identical (0 differing pixels) on all 15 H2 contours plus 60 Figure 8
+  contours *including* the self-intersecting ones — so removing the shapely dependency changed no rasterisation,
+  and the GEOS comparison is retained as a regression test.
+* Extended error reporting on H2: `max_abs_error` 0.04373, all 22 per-dim RMSE values, and the pairwise-distance
+  error distribution (mean −0.00128, std 0.01363, median |e| 0.00626, p95 |e| 0.03279, max |e| 0.04280).
+
+### A5. Verification and artefacts
+
+```bash
+.venv/Scripts/python.exe scripts/hash_shapecomp_toolbox.py      # results/official_toolbox_hashes.json
+.venv/Scripts/python.exe scripts/validate_shapecomp_port.py     # results/shapecomp_port_validation.json
+.venv/Scripts/python.exe -m pytest tests/test_shapecomp_port.py -q   # 34 passed
+.venv/Scripts/python.exe -m ruff check .                        # All checks passed
+.venv/Scripts/python.exe -m mypy                                # no issues
+```
+
+Code changes in CP7-A, all behaviour-preserving on the verified path: `ShapeCompInputError` + `_validate_contour`
+(the three guards MATLAB lacks); the `adjustContourPos` divide-by-zero refusal; `_resample_polyline` vectorised
+against a literal loop translation (bit-equal on ~9 000 sampled positions; ~28x faster per call at n=384, ~2.6x
+faster end-to-end for one `kernet2` score, needed because the rotation sweeps call it per rotated contour); `kernet2_points` / `inpolygon` / `_grid_points` replacing the GEOS fill;
+`kernet1_from_input` / `kernet2_from_mask` split so the ablation and the pixel-perturbation can feed inputs
+directly; `weight_sha256` + `toolbox` on `ShapeCompNets`; shapely import dropped.

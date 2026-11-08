@@ -1,9 +1,13 @@
 {
-  "schema": "earthglyph.shape_perception_benchmark.shapecomp_port_validation/1",
+  "schema": "earthglyph.shape_perception_benchmark.shapecomp_port_validation/2",
   "port": "earthglyph.shape_benchmark.shapecomp_port (h5py + numpy, official weights)",
   "data_doi": "10.5281/zenodo.4730985",
   "paper_doi": "10.1371/journal.pcbi.1008981",
   "no_human_ratings": true,
+  "weights_sha256": {
+    "net/keras/shape2sc22a.h5": "a6fd1f06cee40626d1b548867fac9961a668caa8d30e92026d60f84d7f9b374a",
+    "net/keras/im2sc22d.h5": "035f655b5c9af13b32f889f21c86b27aa6f671fa6238c4d3a9319b85a355a843"
+  },
   "h2_kernet2_faithfulness": {
     "reference": "lietal_ShapeCompSolution_keras_mds_image.mat stim[i].c -> sc[i]",
     "reference_semantics": "published KerNet2 (40x40 binary image route) output, paired with its own input contour in the same file — a clean input->output pair for the ported network",
@@ -16,7 +20,40 @@
       "per_dim_pearson_mean": 0.9982260545967314,
       "per_dim_pearson_min": 0.9948795881419294,
       "rmse_raw": 0.006496161383207664,
-      "rmse_procrustes": 0.004404596639302104
+      "rmse_procrustes": 0.004404596639302104,
+      "max_abs_error": 0.04373105910522335,
+      "per_dim_rmse": [
+        0.013750270629937856,
+        0.01170933271601728,
+        0.008110007690416901,
+        0.009734087430821178,
+        0.007606300280100881,
+        0.005717751226023984,
+        0.006633406869955322,
+        0.005795384912717561,
+        0.00679993272060304,
+        0.002834100150521983,
+        0.006937506032384135,
+        0.002710750379862005,
+        0.0019160472402268314,
+        0.006488049085494614,
+        0.005590482683767428,
+        0.003740937073600452,
+        0.0023133286803536193,
+        0.00450340357392518,
+        0.003852088924793047,
+        0.003891520029138513,
+        0.0010087860376897931,
+        0.004020887338807633
+      ],
+      "pairwise_distance_error": {
+        "mean": -0.0012803672244211348,
+        "std": 0.013626595540550653,
+        "median_abs": 0.006259636983217742,
+        "p95_abs": 0.03278632373276219,
+        "max_abs": 0.04280471709929978,
+        "median_reference_distance": 0.8385142417903765
+      }
     }
   },
   "figure8_network_faithfulness": {
@@ -31,7 +68,40 @@
       "per_dim_pearson_mean": 0.950538577211556,
       "per_dim_pearson_min": 0.8695230293904351,
       "rmse_raw": 0.05965536505570316,
-      "rmse_procrustes": 0.04752166428513874
+      "rmse_procrustes": 0.04752166428513874,
+      "max_abs_error": 1.42911194277371,
+      "per_dim_rmse": [
+        0.05995812117750869,
+        0.0368077906454821,
+        0.04538595374623289,
+        0.06209211706570548,
+        0.09531147308126917,
+        0.12918365897373993,
+        0.09795607955551003,
+        0.08387468461585121,
+        0.07816955013339791,
+        0.059686421952552936,
+        0.06775181829743403,
+        0.05554239351387238,
+        0.04327808900247588,
+        0.02941870606408475,
+        0.03227812543728307,
+        0.022214229910389405,
+        0.03197987953650959,
+        0.01393428938491323,
+        0.02483240614358649,
+        0.023216352734331768,
+        0.022343483579689575,
+        0.023040138466457655
+      ],
+      "pairwise_distance_error": {
+        "mean": -0.017145857592854547,
+        "std": 0.09493036552365297,
+        "median_abs": 0.033674092195001504,
+        "p95_abs": 0.15219354800548443,
+        "max_abs": 2.6861054538530897,
+        "median_reference_distance": 1.3768676598302916
+      }
     },
     "kernet2": {
       "n_shapes": 1000,
@@ -41,7 +111,40 @@
       "per_dim_pearson_mean": 0.9053297191926977,
       "per_dim_pearson_min": 0.8102380333709109,
       "rmse_raw": 0.0747002777445126,
-      "rmse_procrustes": 0.06207936909183727
+      "rmse_procrustes": 0.06207936909183727,
+      "max_abs_error": 0.8177624801420915,
+      "per_dim_rmse": [
+        0.07000750595143615,
+        0.07261292346811354,
+        0.07590026771016382,
+        0.08608833636164119,
+        0.134695971896663,
+        0.1464149392122072,
+        0.12418911508959395,
+        0.09976252151135995,
+        0.08867118175861456,
+        0.06188370746111991,
+        0.07706759787789354,
+        0.05927298430348847,
+        0.059068045413233045,
+        0.043485205607248396,
+        0.03796678740308725,
+        0.031639124463786666,
+        0.030275722121371283,
+        0.030003428776895845,
+        0.0364656438210106,
+        0.02450230904420237,
+        0.03068093030508535,
+        0.028384583919705705
+      ],
+      "pairwise_distance_error": {
+        "mean": -0.02611165108275642,
+        "std": 0.11230412296655098,
+        "median_abs": 0.06707050662710845,
+        "p95_abs": 0.23536376045000157,
+        "max_abs": 0.9140407066390488,
+        "median_reference_distance": 1.40684147514084
+      }
     },
     "orientation": {
       "n_clockwise": 999,
@@ -61,7 +164,40 @@
       "per_dim_pearson_mean": -0.0637877464244578,
       "per_dim_pearson_min": -0.9516573472652039,
       "rmse_raw": 0.37001494105017113,
-      "rmse_procrustes": 0.12709268271890042
+      "rmse_procrustes": 0.12709268271890042,
+      "max_abs_error": 2.414999026230669,
+      "per_dim_rmse": [
+        0.3581710992905939,
+        0.4051998608565257,
+        0.2577120468088317,
+        0.9908788039416537,
+        0.6416584977356639,
+        0.3839890718018437,
+        0.4913103786668596,
+        0.24512048656958235,
+        0.3858007990059702,
+        0.31789054334361844,
+        0.23376450772321297,
+        0.14220802478647096,
+        0.2831431642774493,
+        0.1938718692983326,
+        0.19086729564401042,
+        0.23146536084663746,
+        0.22960413508314872,
+        0.18220220112853625,
+        0.22654728064174784,
+        0.1887024976397195,
+        0.23370642797670416,
+        0.22511128688073176
+      ],
+      "pairwise_distance_error": {
+        "mean": -0.73744506574127,
+        "std": 0.23417513398136205,
+        "median_abs": 0.7259836200471994,
+        "p95_abs": 1.1431971816469668,
+        "max_abs": 1.868921274545634,
+        "median_reference_distance": 2.1005407669068177
+      }
     },
     "kernet2": {
       "n_shapes": 500,
@@ -71,7 +207,365 @@
       "per_dim_pearson_mean": -0.0550303979340407,
       "per_dim_pearson_min": -0.9413606725294795,
       "rmse_raw": 0.3690403813650858,
-      "rmse_procrustes": 0.13741422428450614
+      "rmse_procrustes": 0.13741422428450614,
+      "max_abs_error": 2.5187615818712326,
+      "per_dim_rmse": [
+        0.36990234488866114,
+        0.4352990108499749,
+        0.2076880860214923,
+        1.0081696898528825,
+        0.6437398099673981,
+        0.3776916836483713,
+        0.5032935076195215,
+        0.24793219620972393,
+        0.3796294066293788,
+        0.33197251293732394,
+        0.23420721744589912,
+        0.13636869868688492,
+        0.25727481697079635,
+        0.18649525837791808,
+        0.19134109025700513,
+        0.23091421723656527,
+        0.21619225581073975,
+        0.17170093174931594,
+        0.18877796817436657,
+        0.16158595206845466,
+        0.19805560783510254,
+        0.20651102570731522
+      ],
+      "pairwise_distance_error": {
+        "mean": -0.6978377756388556,
+        "std": 0.21254580306173906,
+        "median_abs": 0.6902639608176818,
+        "p95_abs": 1.0616837678133166,
+        "max_abs": 1.7231443048090018,
+        "median_reference_distance": 2.1005407669068177
+      }
     }
+  },
+  "cp7a_inference_determinism": {
+    "kernet1": {
+      "n_runs": 5,
+      "max_abs_spread": 0.0,
+      "bit_identical": true
+    },
+    "kernet2": {
+      "n_runs": 5,
+      "max_abs_spread": 0.0,
+      "bit_identical": true
+    }
+  },
+  "cp7a_rasterisation_sensitivity_kernet2": {
+    "coordinate_norm": 1.5610161773336908,
+    "flipped_pixels_tested": 40,
+    "median_l2_shift": 0.2886518931326948,
+    "p90_l2_shift": 0.34740043693115474,
+    "max_l2_shift": 0.40663764598040864,
+    "median_shift_share_of_norm": 0.18491281341217713
+  },
+  "cp7a_kernet1_flatten_order_ablation": {
+    "n_shapes": 200,
+    "variants": {
+      "column_major_x_then_y": {
+        "median_l2_error": 0.18403348428364938,
+        "mean_l2_error": 0.2271966446633815
+      },
+      "row_major_interleaved": {
+        "median_l2_error": 1.9215938841317244,
+        "mean_l2_error": 2.226695927720084
+      },
+      "column_major_y_then_x": {
+        "median_l2_error": 2.6217602130379607,
+        "mean_l2_error": 2.663626567568193
+      }
+    },
+    "published_order_is_best": true,
+    "note": "Only the first 200 Figure 8 shapes are scored so the ablation stays cheap; it is an ordering test, not a faithfulness level."
+  },
+  "cp7a_input_edge_cases": {
+    "note": "Self-intersecting rings are accepted on purpose: GANinput2shape.m documents that GAN shapes can self-intersect, so they are an official input class. Only inputs the official chain cannot carry (no extent, <3 vertices, non-finite) are refused.",
+    "cases": [
+      {
+        "case": "clockwise_ring",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "counterclockwise_ring",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "duplicated_first_and_last",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "consecutive_duplicate_vertices",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "near_circle",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "five_point_star",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "thin_forked",
+        "expectation": "accept",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "all_vertices_coincident",
+        "expectation": "reject",
+        "kernet1_input": {
+          "status": "rejected",
+          "reason": "contour is degenerate: all vertices coincide"
+        },
+        "kernet2_input": {
+          "status": "rejected",
+          "reason": "contour is degenerate: all vertices coincide"
+        }
+      },
+      {
+        "case": "self_intersecting",
+        "expectation": "accept (official class)",
+        "kernet1_input": {
+          "status": "ok",
+          "finite_output": true
+        },
+        "kernet2_input": {
+          "status": "ok",
+          "finite_output": true
+        }
+      },
+      {
+        "case": "too_few_vertices",
+        "expectation": "reject",
+        "kernet1_input": {
+          "status": "rejected",
+          "reason": "contour needs at least 3 vertices, got 2"
+        },
+        "kernet2_input": {
+          "status": "rejected",
+          "reason": "contour needs at least 3 vertices, got 2"
+        }
+      },
+      {
+        "case": "nan_vertex",
+        "expectation": "reject",
+        "kernet1_input": {
+          "status": "rejected",
+          "reason": "contour contains NaN or Inf"
+        },
+        "kernet2_input": {
+          "status": "rejected",
+          "reason": "contour contains NaN or Inf"
+        }
+      }
+    ]
+  },
+  "cp7a_h2_input_provenance_alignment": {
+    "question": "Is the headline H2 residual caused by the port, or by re-sampling the deposited contour from a different vertex / direction than the authors used?",
+    "exact_input_tolerance": 1e-06,
+    "n_shapes": 15,
+    "n_exact_at_native_phase": 4,
+    "n_exact_after_alignment": 8,
+    "native_median_l2_error": 0.015287184948982707,
+    "aligned_median_l2_error": 1.5220249546465956e-07,
+    "aligned_max_l2_error": 0.018186291318214157,
+    "aligned_rmse_bound": 0.00154425510528953,
+    "per_shape": [
+      {
+        "shape_index": 0,
+        "stimulus_id": 1,
+        "best_abs_l2_error": 9.494039929947193e-08,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 1,
+        "stimulus_id": 25,
+        "best_abs_l2_error": 7.525752248627496e-08,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 2,
+        "stimulus_id": 49,
+        "best_abs_l2_error": 8.944713575012189e-08,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 3,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 3,
+        "stimulus_id": 73,
+        "best_abs_l2_error": 0.0047837074387919445,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 4,
+        "stimulus_id": 97,
+        "best_abs_l2_error": 0.005244331662789023,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 8,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 5,
+        "stimulus_id": 121,
+        "best_abs_l2_error": 0.018186291318214157,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 6,
+        "stimulus_id": 145,
+        "best_abs_l2_error": 1.4996363296537885e-07,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 7,
+        "stimulus_id": 169,
+        "best_abs_l2_error": 0.009915330654173406,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 114,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 8,
+        "stimulus_id": 193,
+        "best_abs_l2_error": 0.004949537120946367,
+        "best_source": "fig7D_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 45,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 9,
+        "stimulus_id": 217,
+        "best_abs_l2_error": 0.00952793510375488,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 66,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 10,
+        "stimulus_id": 241,
+        "best_abs_l2_error": 0.013864975783302544,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 1,
+        "exact_to_float_rounding": false
+      },
+      {
+        "shape_index": 11,
+        "stimulus_id": 265,
+        "best_abs_l2_error": 1.5220249546465956e-07,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 12,
+        "stimulus_id": 289,
+        "best_abs_l2_error": 1.0254357592205501e-07,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 0,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 13,
+        "stimulus_id": 313,
+        "best_abs_l2_error": 1.2421188365062229e-07,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 1,
+        "exact_to_float_rounding": true
+      },
+      {
+        "shape_index": 14,
+        "stimulus_id": 337,
+        "best_abs_l2_error": 9.775457915435742e-08,
+        "best_source": "keras_file",
+        "best_direction": "as_stored",
+        "best_start_offset": 1,
+        "exact_to_float_rounding": true
+      }
+    ],
+    "reading": "Where alignment brings a shape to ~1e-7, the network and preprocessing are proven exact and the residual at native phase is an input-provenance effect. Shapes that stay above the tolerance after the full search have a genuine geometric difference between the deposited contour and the contour that produced the published coordinates; that part of the residual is NOT explained by the port and is reported as unattributed."
   }
 }

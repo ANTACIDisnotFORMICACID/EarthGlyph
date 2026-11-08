@@ -22,18 +22,51 @@ deliberately NOT replaced by EarthGlyph's 128-point contract.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 
 import h5py
 import numpy as np
-import shapely
 
 DEFAULT_TOOLBOX = Path(__file__).resolve().parents[2] / "shapeComp_17_12_2024"
 _KERNET1_H5 = "net/keras/shape2sc22a.h5"
 _KERNET2_H5 = "net/keras/im2sc22d.h5"
 _IMAGE_SIZE = 40
+#: Smallest contour the official chain can resample. ``resamplePolygon`` needs a ring with
+#: positive total length, so three vertices is the real floor; two distinct points and
+#: coincident rings fail inside MATLAB too.
+_MIN_POINTS = 3
+
+
+class ShapeCompInputError(ValueError):
+    """The contour cannot be fed to the official chain (it would yield NaN or a zero vector)."""
+
+
+def _validate_contour(contour: np.ndarray) -> np.ndarray:
+    """Reject inputs the official preprocessing cannot carry.
+
+    MATLAB has no guard here: ``adjustContourPos`` divides by ``max-min``, so an all-coincident
+    contour yields NaN and a longer ring yields 0/0. Refusing is therefore NOT a divergence
+    from the official contract — it is the only way to keep the port from silently emitting a
+    zero vector, which would then look like a legitimate ShapeComp coordinate.
+
+    Self-intersecting rings are accepted on purpose: ``GANinput2shape.m`` states GAN shapes
+    "can have self-intersections", so they are an official input class, not an error.
+    """
+    pts = np.asarray(contour, dtype=float)
+    if pts.ndim != 2 or pts.shape[1] != 2:
+        raise ShapeCompInputError(f"contour must be (N,2), got {pts.shape}")
+    if len(pts) < _MIN_POINTS:
+        raise ShapeCompInputError(f"contour needs at least {_MIN_POINTS} vertices, got {len(pts)}")
+    if not np.isfinite(pts).all():
+        raise ShapeCompInputError("contour contains NaN or Inf")
+    if np.ptp(pts) <= 0.0:
+        raise ShapeCompInputError("contour is degenerate: all vertices coincide")
+    if float(np.sum(np.hypot(*np.diff(np.vstack([pts, pts[:1]]), axis=0).T))) <= 0.0:
+        raise ShapeCompInputError("contour has zero perimeter")
+    return pts
 
 
 def _centroid(pts: np.ndarray) -> np.ndarray:
@@ -52,25 +85,25 @@ def _resample_polyline(poly: np.ndarray, n: int) -> np.ndarray:
     """geom2d ``resamplePolyline.m``: n points equally spaced by arc length, linear interp.
 
     Replicates the MATLAB ``find(s<=pos,'last')`` / ``find(s>=pos,'first')`` neighbour
-    search and the ``Lmax*1e-12`` guard against coincident neighbours.
+    search and the ``Lmax*1e-12`` guard against coincident neighbours. ``s`` is non-decreasing,
+    so ``searchsorted(..., 'right') - 1`` is the last index with ``s <= pos`` and
+    ``searchsorted(..., 'left')`` is the first with ``s >= pos`` — including the ties a ring
+    with duplicated vertices produces. Vectorised rather than looped because the retrieval
+    sweeps call it once per rotated contour.
     """
     s = _parametrize(poly)
     total = float(s[-1])
     pos = np.linspace(0.0, total, n)
-    out = np.empty((n, poly.shape[1]), dtype=float)
     last = len(s) - 1
-    for i, p in enumerate(pos):
-        ind0 = max(int(np.searchsorted(s, p, side="right")) - 1, 0)
-        ind1 = min(int(np.searchsorted(s, p, side="left")), last)
-        if ind0 == ind1:
-            out[i] = poly[ind0]
-            continue
-        l0 = p - s[ind0]
-        l1 = s[ind1] - p
-        if (l0 + l1) > total * 1e-12:
-            out[i] = (poly[ind0] * l1 + poly[ind1] * l0) / (l0 + l1)
-        else:
-            out[i] = poly[ind0]
+    ind0 = np.clip(np.searchsorted(s, pos, side="right") - 1, 0, last)
+    ind1 = np.clip(np.searchsorted(s, pos, side="left"), 0, last)
+    l0 = pos - s[ind0]
+    l1 = s[ind1] - pos
+    span = l0 + l1
+    out = poly[ind0].astype(float, copy=True)
+    interp = (ind0 != ind1) & (span > total * 1e-12)
+    out[interp] = (poly[ind0[interp]] * l1[interp, None] + poly[ind1[interp]] * l0[interp, None])
+    out[interp] /= span[interp, None]
     return out
 
 
@@ -81,9 +114,15 @@ def _resample_polygon(poly: np.ndarray, n: int) -> np.ndarray:
 
 
 def _adjust_contour_pos(contour: np.ndarray) -> np.ndarray:
-    """Inline ``adjustContourPos``: shift min to 0, then divide by the new max -> [0,1]."""
+    """Inline ``adjustContourPos``: shift min to 0, then divide by the new max -> [0,1].
+
+    MATLAB computes ``max(contour(:))`` on the ALREADY-shifted array, so the divisor is
+    ``orig_max - orig_min``; the min is always taken over both columns together, never per axis.
+    """
     low = float(contour.min())
     high = float(contour.max())
+    if high - low <= 0.0:
+        raise ShapeCompInputError("normalisation would divide by zero: contour has no extent")
     return (contour - low) / (high - low)
 
 
@@ -123,9 +162,7 @@ def kernet1_input(contour: np.ndarray) -> np.ndarray:
     start at leftmost x -> [0,1] -> seal -> resample 384 -> [0,1] -> column-major flatten.
     MATLAB ``points(:)'`` is column-major, so the vector is [x_1..x_384, y_1..y_384].
     """
-    pts = np.asarray(contour, dtype=float)
-    if pts.ndim != 2 or pts.shape[1] != 2:
-        raise ValueError(f"contour must be (N,2), got {pts.shape}")
+    pts = _validate_contour(contour)
     if _is_clockwise(pts) == -1:
         pts = pts[::-1]
     pts = pts - _centroid(pts)
@@ -137,27 +174,72 @@ def kernet1_input(contour: np.ndarray) -> np.ndarray:
     return np.ravel(points, order="F")
 
 
+def kernet2_points(contour: np.ndarray) -> np.ndarray:
+    """The 384x2 normalised ring that ``getShapeComp22netimagekeras.m`` rasterises."""
+    pts = _validate_contour(contour)
+    pts = pts - _centroid(pts)
+    p1 = _resample_polygon(_adjust_contour_pos(pts), 1000)
+    return _adjust_contour_pos(_resample_polygon(p1, 384))
+
+
+def _grid_points() -> tuple[np.ndarray, np.ndarray]:
+    """``[x y] = meshgrid(linspace(0,1,40),...)`` flattened with ``x(:)`` (column-major)."""
+    lv = np.linspace(0.0, 1.0, _IMAGE_SIZE)
+    gx, gy = np.meshgrid(lv, lv)
+    return np.ravel(gx, order="F"), np.ravel(gy, order="F")
+
+
+def inpolygon(points: np.ndarray) -> np.ndarray:
+    """MATLAB ``inpolygon`` on the 40x40 grid: even-odd crossing, boundary counts as inside.
+
+    A direct translation of the documented primitive rather than a GEOS predicate, because
+    ``resamplePolygon`` can emit a self-intersecting ring (GAN shapes may self-intersect) and
+    GEOS gives no guaranteed fill rule for an invalid polygon. Verified pixel-for-pixel against
+    ``shapely.covers`` on every official contour used by the benchmark.
+    """
+    grid_x, grid_y = _grid_points()
+    xv = points[:, 0]
+    yv = points[:, 1]
+    n = len(xv)
+    inside = np.zeros(len(grid_x), dtype=bool)
+    on_boundary = np.zeros(len(grid_x), dtype=bool)
+    for i in range(n):
+        j = (i + 1) % n
+        x0, y0, x1, y1 = xv[i], yv[i], xv[j], yv[j]
+        # A vertex exactly on the ring is inside; the crossing rule itself skips it.
+        on_boundary |= (grid_x == x0) & (grid_y == y0)
+        if y0 == y1:
+            continue
+        # Half-open span [min, max) on the lower side only, so a shared vertex is counted once.
+        rising = y0 < y1
+        lo, hi = (y0, y1) if rising else (y1, y0)
+        sel = (grid_y >= lo) & (grid_y < hi)
+        if not sel.any():
+            continue
+        cross_x = x0 + (grid_y[sel] - y0) * (x1 - x0) / (y1 - y0)
+        inside[sel] ^= grid_x[sel] < cross_x
+        # Exact collinear-and-within test: no tolerance, so this cannot absorb near-misses.
+        dx = x1 - x0
+        dy = y1 - y0
+        cross = (grid_x - x0) * dy - (grid_y - y0) * dx
+        on_boundary |= (
+            (cross == 0.0)
+            & (grid_x >= min(x0, x1))
+            & (grid_x <= max(x0, x1))
+            & (grid_y >= min(y0, y1))
+            & (grid_y <= max(y0, y1))
+        )
+    return np.flipud(np.reshape(inside | on_boundary, (_IMAGE_SIZE, _IMAGE_SIZE), order="F"))
+
+
 def kernet2_input(contour: np.ndarray) -> np.ndarray:
     """``getShapeComp22netimagekeras.m`` preprocessing -> the 40x40x1 binary image.
 
     centre by mean -> [0,1] -> resample 1000 -> resample 384 -> [0,1] -> rasterise with
     ``inpolygon`` on a linspace(0,1,40) meshgrid -> ``flipud``. No clockwise/leftmost step
-    (those lines are commented out in the source). ``shapely.covers`` matches MATLAB
-    ``inpolygon``'s inside-or-on-boundary semantics.
+    (those lines are commented out in the source).
     """
-    pts = np.asarray(contour, dtype=float)
-    if pts.ndim != 2 or pts.shape[1] != 2:
-        raise ValueError(f"contour must be (N,2), got {pts.shape}")
-    pts = pts - _centroid(pts)
-    p1 = _resample_polygon(_adjust_contour_pos(pts), 1000)
-    points = _adjust_contour_pos(_resample_polygon(p1, 384))
-    lv = np.linspace(0.0, 1.0, _IMAGE_SIZE)
-    gx, gy = np.meshgrid(lv, lv)
-    grid_x = np.ravel(gx, order="F")
-    grid_y = np.ravel(gy, order="F")
-    polygon = shapely.Polygon(points)
-    inside = shapely.covers(polygon, shapely.points(grid_x, grid_y))
-    mask = np.flipud(np.asarray(inside, dtype=bool).reshape((_IMAGE_SIZE, _IMAGE_SIZE), order="F"))
+    mask = inpolygon(kernet2_points(contour))
     return mask.astype(np.float32)[..., None]
 
 
@@ -230,6 +312,15 @@ def _read_conv_layers(handle: h5py.File, names: list[str]) -> list[_Conv]:
     return layers
 
 
+def _sha256(path: Path) -> str:
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 class ShapeCompNets:
     """Load the official KerNet1/KerNet2 weights once and score closed contours.
 
@@ -242,28 +333,51 @@ class ShapeCompNets:
     """
 
     def __init__(self, toolbox: Path = DEFAULT_TOOLBOX) -> None:
-        toolbox = Path(toolbox)
-        with h5py.File(toolbox / _KERNET1_H5, "r") as handle:
+        self.toolbox = Path(toolbox)
+        with h5py.File(self.toolbox / _KERNET1_H5, "r") as handle:
             self._k1_dense = _read_dense_layers(
                 handle, [f"dense_{i}" for i in range(1, 8)]
             )
-        with h5py.File(toolbox / _KERNET2_H5, "r") as handle:
+        with h5py.File(self.toolbox / _KERNET2_H5, "r") as handle:
             self._k2_conv = _read_conv_layers(handle, ["conv2d_4", "conv2d_5", "conv2d_6"])
             self._k2_dense = _read_dense_layers(handle, ["dense_3", "dense_4"])
 
+    @property
+    def weight_sha256(self) -> dict[str, str]:
+        """SHA256 of the two official ``.h5`` files actually loaded, for run provenance."""
+        return {
+            _KERNET1_H5: _sha256(self.toolbox / _KERNET1_H5),
+            _KERNET2_H5: _sha256(self.toolbox / _KERNET2_H5),
+        }
+
     def kernet1(self, contour: np.ndarray) -> np.ndarray:
         """Contour (N,2) -> official KerNet1 22-D ShapeComp coordinates."""
-        x = kernet1_input(contour)
+        return self.kernet1_from_input(kernet1_input(contour))
+
+    def kernet1_from_input(self, vector: np.ndarray) -> np.ndarray:
+        """Run the KerNet1 dense chain on an already-built 768-D input vector.
+
+        Exposed separately so the flatten-order ablation can feed a deliberately different
+        ordering of the same 384 points without re-running the preprocessing.
+        """
+        x = np.asarray(vector, dtype=float)
         for layer in self._k1_dense:
             x = _dense_forward(x, layer)
         return np.asarray(x, dtype=float)
 
     def kernet2(self, contour: np.ndarray) -> np.ndarray:
         """Contour (N,2) -> official KerNet2 22-D ShapeComp coordinates (via 40x40 image)."""
-        x = kernet2_input(contour).astype(np.float64)
+        return self.kernet2_from_mask(inpolygon(kernet2_points(contour)))
+
+    def kernet2_from_mask(self, mask: np.ndarray) -> np.ndarray:
+        """Run the KerNet2 conv/dense chain on an already-rasterised 40x40 boolean mask.
+
+        Splitting rasterisation from the forward pass lets the diagnostics perturb a single
+        pixel — KerNet2 is sensitive enough that one flipped pixel is worth measuring.
+        """
+        x = np.asarray(mask, dtype=float)[..., None]
         for conv in self._k2_conv:
-            x = _conv2d_same(x, conv)
-            x = _maxpool2d(x)
+            x = _maxpool2d(_conv2d_same(x, conv))
         x = np.ravel(x, order="C")
         for layer in self._k2_dense:
             x = _dense_forward(x, layer)

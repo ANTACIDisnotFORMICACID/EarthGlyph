@@ -35,8 +35,13 @@ from earthglyph.shape_benchmark.retrieval import (  # noqa: E402
 REPO = Path(__file__).resolve().parents[1]
 CACHE = REPO / "experiments" / "shape_perception_benchmark" / "cache"
 H2_SC_MAT = "shapecomp datashare/Figure 9/data/lietal_ShapeCompSolution_keras_mds_image.mat"
+H2_HUMAN_MAT = "shapecomp datashare/Figure 9/data/fig7D_lietal_points_2.mat"
+FIGURE8_MAT = "shapecomp datashare/Figure 8/data/Figure8NetComparison.mat"
 HAS_TOOLBOX = (port.DEFAULT_TOOLBOX / "net" / "keras" / "shape2sc22a.h5").exists()
 HAS_H2 = (CACHE / ZENODO_SUBDIR / H2_SC_MAT).exists()
+HAS_F8 = (CACHE / ZENODO_SUBDIR / FIGURE8_MAT).exists()
+#: Agreement that can only come from the same arithmetic: float-rounding, not approximation.
+EXACT_INPUT_TOLERANCE = 1e-6
 
 
 def polygon(n: int = 200, *, lobes: int = 0) -> np.ndarray:
@@ -184,3 +189,247 @@ def test_rotation_search_ranks_rotated_query_to_its_own_class(method: str) -> No
     naive = search_shape(query, gallery, method, top_k=4)
     target_idx = gallery.index_of("target")
     assert searched.distances[target_idx] < naive.distances[target_idx]
+
+
+# ------------------------------------------------- CP7-A input contract and faithfulness
+
+#: The contour classes the official chain is documented to carry.
+LEGAL_CONTOURS = [
+    "clockwise_ring",
+    "counterclockwise_ring",
+    "duplicated_first_and_last",
+    "consecutive_duplicate_vertices",
+    "near_circle",
+    "five_point_star",
+    "thin_forked",
+    "self_intersecting",
+]
+#: The contour classes that would make the official chain emit NaN or an all-zero input.
+ILLEGAL_CONTOURS = ["all_vertices_coincident", "too_few_vertices", "nan_vertex"]
+
+#: (shape index, deposited file, traversal, cyclic start offset) that reach float-rounding
+#: agreement with the published KerNet2 coordinates -- the CP7-A exactness evidence.
+H2_EXACT_ALIGNMENTS = [
+    (0, "keras_file", "as_stored", 0),
+    (1, "keras_file", "as_stored", 0),
+    (2, "fig7D_file", "as_stored", 3),
+    (6, "fig7D_file", "as_stored", 0),
+    (11, "keras_file", "as_stored", 0),
+    (12, "keras_file", "as_stored", 0),
+    (13, "keras_file", "as_stored", 1),
+    (14, "keras_file", "as_stored", 1),
+]
+
+
+def edge_contours() -> dict[str, np.ndarray]:
+    theta = np.linspace(0.0, 2.0 * np.pi, 240, endpoint=False)
+    ring = np.column_stack([np.cos(theta), np.sin(theta)])
+    star = np.column_stack(
+        [(1.0 + 0.6 * np.cos(5 * theta)) * np.cos(theta),
+         (1.0 + 0.6 * np.cos(5 * theta)) * np.sin(theta)]
+    )
+    t = np.linspace(0.0, 2.0 * np.pi, 400, endpoint=False)
+    return {
+        "clockwise_ring": ring[::-1],
+        "counterclockwise_ring": ring,
+        "duplicated_first_and_last": np.vstack([star, star[:1]]),
+        "consecutive_duplicate_vertices": np.repeat(star, 2, axis=0),
+        "near_circle": ring,
+        "five_point_star": star,
+        "thin_forked": np.array(
+            [[0, 0], [0, 1], [-0.5, 2], [0, 1.4], [0.5, 2], [0, 1], [1, 0], [0, 0]], float
+        ),
+        "all_vertices_coincident": np.zeros((120, 2)),
+        "self_intersecting": np.column_stack([np.sin(2 * t), np.sin(t)]),
+        "too_few_vertices": np.array([[0.0, 0.0], [1.0, 1.0]]),
+        "nan_vertex": np.vstack([ring, np.array([[np.nan, 0.5]])]),
+    }
+
+
+def _matlab_resample_polyline_loop(poly: np.ndarray, n: int) -> np.ndarray:
+    """The literal transcription of ``resamplePolyline.m`` lines 35-61, loops and all."""
+    s = port._parametrize(poly)
+    total = float(s[-1])
+    out = np.zeros((n, 2))
+    for i, p in enumerate(np.linspace(0.0, total, n)):
+        ind0 = int(np.nonzero(s <= p)[0][-1])  # find(s <= pos, 1, 'last')
+        ind1 = int(np.nonzero(s >= p)[0][0])  # find(s >= pos, 1, 'first')
+        if ind0 == ind1:
+            out[i] = poly[ind0]
+            continue
+        l0, l1 = p - s[ind0], s[ind1] - p
+        out[i] = (
+            poly[ind0]
+            if l0 + l1 <= total * 1e-12
+            else (poly[ind0] * l1 + poly[ind1] * l0) / (l0 + l1)
+        )
+    return out
+
+
+def test_vectorised_resample_is_bit_equal_to_the_matlab_loop() -> None:
+    """The speed-up must not change a single sample, so compare against the loop itself."""
+    rng = np.random.default_rng(7)
+    rows = equal = 0
+    for _ in range(40):
+        poly = rng.normal(size=(int(rng.integers(3, 300)), 2))
+        if rng.random() < 0.5:
+            poly = np.repeat(poly, 2, axis=0)  # duplicated vertices -> ties in s
+        if rng.random() < 0.3:
+            poly = np.vstack([poly, poly[:1]])  # already-sealed rings
+        ring = np.vstack([poly, poly[:1]])
+        n = int(rng.integers(30, 400))
+        rows += n
+        vectorised = port._resample_polyline(ring, n)
+        equal += int(np.array_equal(_matlab_resample_polyline_loop(ring, n), vectorised))
+    assert equal == 40 and rows > 5000
+
+
+@pytest.mark.parametrize("name", LEGAL_CONTOURS)
+def test_legal_contour_classes_reach_both_network_inputs(name: str) -> None:
+    """Legal inputs produce finite, non-empty network inputs -- never a silent zero vector."""
+    contour = edge_contours()[name]
+    vector = port.kernet1_input(contour)
+    image = port.kernet2_input(contour)
+    assert vector.shape == (768,) and image.shape == (40, 40, 1)
+    assert np.isfinite(vector).all() and np.isfinite(image).all()
+    assert vector.max() > 0.0
+    assert image.sum() > 0.0
+
+
+@pytest.mark.parametrize("name", ILLEGAL_CONTOURS)
+def test_illegal_contour_classes_are_refused_not_silently_degraded(name: str) -> None:
+    """Refusal must be explicit: no zero vector, no NaN, and no unexplained error type."""
+    contour = edge_contours()[name]
+    for build in (port.kernet1_input, port.kernet2_input):
+        with pytest.raises(port.ShapeCompInputError):
+            build(contour)
+
+
+def test_input_refusal_is_a_value_error_subclass() -> None:
+    """Callers that only catch ValueError still see the refusal (no new exception hierarchy)."""
+    assert issubclass(port.ShapeCompInputError, ValueError)
+
+
+@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+def test_legal_contours_give_finite_nonzero_22d_on_both_nets() -> None:
+    nets = port.ShapeCompNets()
+    for name in LEGAL_CONTOURS:
+        contour = edge_contours()[name]
+        for fn in (nets.kernet1, nets.kernet2):
+            coords = fn(contour)
+            assert coords.shape == (22,)
+            assert np.isfinite(coords).all(), name
+            assert float(np.linalg.norm(coords)) > 0.0, name
+
+
+@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+def test_forward_pass_is_bit_identical_across_repeats() -> None:
+    """No dropout at inference, no hidden state: the same input must give the same bits."""
+    nets = port.ShapeCompNets()
+    for name, contour in edge_contours().items():
+        if name in ILLEGAL_CONTOURS:
+            continue
+        for fn in (nets.kernet1, nets.kernet2):
+            runs = np.array([fn(contour) for _ in range(3)])
+            assert np.unique(runs, axis=0).shape[0] == 1, name
+
+
+@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+def test_one_raster_pixel_flips_move_kernet2_coordinates_substantially() -> None:
+    """KerNet2's 40x40 input is near-discontinuous: locked in because every re-rasterisation
+    (including rotating a contour before rasterising) inherits this error."""
+    nets = port.ShapeCompNets()
+    mask = port.inpolygon(port.kernet2_points(polygon(lobes=4)))
+    base = nets.kernet2_from_mask(mask)
+    scale = float(np.linalg.norm(base))
+    rng = np.random.default_rng(20261108)
+    flat = mask.ravel()
+    shifts = []
+    for index in rng.choice(flat.size, 24, replace=False):
+        flipped = flat.copy()
+        flipped[index] = ~flipped[index]
+        shifted = nets.kernet2_from_mask(flipped.reshape(mask.shape))
+        shifts.append(float(np.linalg.norm(shifted - base)))
+    assert scale > 0.0
+    assert float(np.median(shifts)) / scale > 0.05
+
+
+def _h2_deposits() -> tuple[dict[str, list[np.ndarray]], np.ndarray]:
+    base = CACHE / ZENODO_SUBDIR
+    keras = sio.loadmat(base / H2_SC_MAT, squeeze_me=True, struct_as_record=False)
+    human = sio.loadmat(base / H2_HUMAN_MAT, squeeze_me=True, struct_as_record=False)
+    return (
+        {
+            "keras_file": [np.asarray(e.c, dtype=float) for e in keras["stim"]],
+            "fig7D_file": [np.asarray(e.c, dtype=float) for e in human["stim"]],
+        },
+        np.asarray(keras["sc"], dtype=float),
+    )
+
+
+@pytest.mark.skipif(not (HAS_TOOLBOX and HAS_H2), reason="toolbox or Zenodo H2 cache absent")
+def test_aligned_h2_inputs_reproduce_published_coordinates_to_float_rounding() -> None:
+    """The strongest faithfulness claim the deposit allows: same input bits -> same output bits.
+
+    Where the deposited contour is rolled to the sampling phase the authors used, the Python
+    KerNet2 output matches the published 22-D coordinates to ~1e-7, which pins the weight
+    loading, conv/pool/ReLU order, C-order flatten, ``inpolygon`` and ``flipud`` together.
+    """
+    sources, ref = _h2_deposits()
+    nets = port.ShapeCompNets()
+    for index, name, direction, phase in H2_EXACT_ALIGNMENTS:
+        contour = sources[name][index]
+        ring = contour if direction == "as_stored" else contour[::-1]
+        error = float(
+            np.linalg.norm(nets.kernet2(np.roll(ring, phase, axis=0)) - ref[index])
+        )
+        assert error < EXACT_INPUT_TOLERANCE, (index, name, direction, phase, error)
+    assert len(H2_EXACT_ALIGNMENTS) >= 8
+
+
+@pytest.mark.skipif(not (HAS_TOOLBOX and HAS_H2), reason="toolbox or Zenodo H2 cache absent")
+def test_unaligned_h2_residuals_are_reported_as_unattributed_not_explained() -> None:
+    """The other seven shapes stay far above float rounding under a bounded phase search, so
+    their residual is *not* claimed as a preprocessing match: it is an input-provenance gap."""
+    sources, ref = _h2_deposits()
+    nets = port.ShapeCompNets()
+    exact = {row[0] for row in H2_EXACT_ALIGNMENTS}
+    for index in range(len(ref)):
+        if index in exact:
+            continue
+        best = float("inf")
+        for name in sources:
+            contour = sources[name][index]
+            for ring in (contour, contour[::-1]):
+                for phase in range(0, len(ring), 12):
+                    rolled = np.roll(ring, phase, axis=0)
+                    best = min(best, float(np.linalg.norm(nets.kernet2(rolled) - ref[index])))
+        assert best > 100 * EXACT_INPUT_TOLERANCE, (index, best)
+
+
+@pytest.mark.skipif(
+    not (HAS_TOOLBOX and HAS_H2 and HAS_F8), reason="toolbox or Zenodo H2/Figure 8 cache absent"
+)
+def test_inpolygon_matches_geos_covers_on_official_contours() -> None:
+    """The hand-translated MATLAB primitive must agree with GEOS pixel-for-pixel on real rings,
+    self-intersecting ones included, so replacing shapely changed no rasterisation."""
+    shapely = pytest.importorskip("shapely")
+    from shapely.geometry import Polygon
+
+    sources, _ = _h2_deposits()
+    raw = sio.loadmat(
+        CACHE / ZENODO_SUBDIR / FIGURE8_MAT, squeeze_me=True, struct_as_record=False
+    )
+    contours = list(sources["keras_file"]) + [
+        np.asarray(entry.c, dtype=float) for entry in raw["shapes"][:60]
+    ]
+    gx, gy = port._grid_points()
+    grid = shapely.points(gx, gy)
+    n_invalid = 0
+    for contour in contours:
+        ring = port.kernet2_points(contour)
+        polygon_geom = Polygon(ring)
+        n_invalid += int(not polygon_geom.is_valid)
+        geos = np.asarray(shapely.covers(polygon_geom, grid)).reshape(40, 40, order="F")
+        assert int((np.flipud(geos) != port.inpolygon(ring)).sum()) == 0
+    assert n_invalid > 0, "Figure 8 was expected to contain at least one self-intersecting ring"

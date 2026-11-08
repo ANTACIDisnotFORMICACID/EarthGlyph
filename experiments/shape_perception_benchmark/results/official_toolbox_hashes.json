@@ -1,0 +1,269 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark.official_toolbox_hashes/1",
+  "toolbox_directory": "shapeComp_17_12_2024",
+  "obtained_by": "manual download by the user from the authors' page; no script in this repository fetches the toolbox",
+  "redistribution": "NOT committed. The .h5 weights and the official MATLAB sources stay outside the repository (gitignored). The paper's CC BY-4.0 licence covers the article and the Zenodo data deposit, not re-publication of the toolbox binaries.",
+  "official_pages": {
+    "tool_page": "https://sites.google.com/view/yanivmorgenstern/home/tools/shapecomp",
+    "toolbox_2024_drive": "https://drive.google.com/file/d/1CfIo-uzqz1RRk6zEibVEDN4_Vu9liQz8/view",
+    "toolbox_2021_dropbox": "https://www.dropbox.com/scl/fi/gdqt4i1ugsj0qs8i1gzix/shapeComp_31_05_2021.zip?rlkey=239gmqds2kjgaynoe0ibbw8ew&dl=0",
+    "paper": "https://doi.org/10.1371/journal.pcbi.1008981",
+    "data_doi": "10.5281/zenodo.4730985"
+  },
+  "citation": "Morgenstern, Y., Schmidt, F., Hartmann, F., Tiedemann, H., Prokott, E., Maiello, G., & Fleming, R. (2021). An image computable model of human visual shape similarity. PLoS Computational Biology. 10.1371/journal.pcbi.1008981",
+  "geom2d_licence": "BSD-3 (INRA, D. Legland) as shipped under misc/geom2d",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "numpy_version": "2.5.4",
+    "h5py_version": "3.16.0",
+    "tensorflow_used": false,
+    "matlab_used": false,
+    "note": "The port reads the Keras HDF5 weights with h5py and runs a numpy forward pass. MATLAB and TensorFlow are not required at run time; the .mat network exports are MATLAB v7 classdef handles that scipy cannot decode, so they are hashed for provenance but never parsed."
+  },
+  "directory_inventory": {
+    "total_files": 2340,
+    "matlab_files": 333,
+    "h5_files": 3
+  },
+  "files": [
+    {
+      "path": "ShapeComp Readme.rtf",
+      "bytes": 51866,
+      "sha256": "7714587cde9ab0ceb440f55ec4008c564613063204accb9befdd04376d296b82",
+      "modified_utc": "2025-02-28T10:54:10Z"
+    },
+    {
+      "path": "loadShapeComp.m",
+      "bytes": 1165,
+      "sha256": "cacca82a98e9c221fc1badad0d22f41adb41f9d71d9bffd55fbb4a3f19f4876b",
+      "modified_utc": "2025-01-28T09:22:16Z"
+    },
+    {
+      "path": "ShapeComp_src/getShapeComp22netkeras.m",
+      "bytes": 2484,
+      "sha256": "71d527f99eba722f9b9e590ca305c6a83775895abf57bcb0b81034930b24a67a",
+      "modified_utc": "2023-01-16T16:23:26Z"
+    },
+    {
+      "path": "ShapeComp_src/getShapeComp22netimagekeras.m",
+      "bytes": 1131,
+      "sha256": "cfc9251d24658589a40a0f8c3f409d0f13745937ba434fc3c6996fdb148c17a1",
+      "modified_utc": "2024-12-17T15:47:42Z"
+    },
+    {
+      "path": "ShapeComp_src/getShapeComp22.m",
+      "bytes": 2596,
+      "sha256": "fc61a8230ce48013f402ae823dba7cbcb98bc5279464d4705cf28e3b676a5f6a",
+      "modified_utc": "2023-01-16T16:21:28Z"
+    },
+    {
+      "path": "ShapeComp_src/adjustContourPos.m",
+      "bytes": 124,
+      "sha256": "71ec9bd5d92122c8b1b8564dc1a5930993a9bd45f556be2fae3e802b6890270c",
+      "modified_utc": "2024-12-17T15:47:42Z"
+    },
+    {
+      "path": "ShapeComp_src/ShapeComp2contour.m",
+      "bytes": 863,
+      "sha256": "dcf73fea7ceedb9462d371827331ae8dd07a21468e791deb1577d4374f7b6819",
+      "modified_utc": "2024-12-17T15:47:42Z"
+    },
+    {
+      "path": "ShapeComp_src/GANinput2shape.m",
+      "bytes": 810,
+      "sha256": "b51aa620196254bdd0d31c8c23cb4374d990c9fd2adebde1c3d4026cfeb8f6d1",
+      "modified_utc": "2025-02-17T16:27:28Z"
+    },
+    {
+      "path": "misc/clockwise.m",
+      "bytes": 1466,
+      "sha256": "e4b6acf01358d69802a07cdb3f46bda49a2ee7810340468bdf81294cb79f27d6",
+      "modified_utc": "2024-12-19T09:50:06Z"
+    },
+    {
+      "path": "misc/geom2d/geom2d/centroid.m",
+      "bytes": 2112,
+      "sha256": "99a424050c676d291afc61ce93549806d2483a4661e0e7c470d2681b1cf1934a",
+      "modified_utc": "2024-12-17T15:47:22Z"
+    },
+    {
+      "path": "misc/geom2d/polygons2d/resamplePolygon.m",
+      "bytes": 1093,
+      "sha256": "382c3e7776e717d3669edddbd8fbcc8322a9c099a7d756292a0ea9540cf28fbc",
+      "modified_utc": "2024-12-17T15:47:27Z"
+    },
+    {
+      "path": "misc/geom2d/polygons2d/resamplePolyline.m",
+      "bytes": 1777,
+      "sha256": "2965fa2d119047ad22da09b4d9c8c680d14a41fe2c4bd844c2c493d8b499ce28",
+      "modified_utc": "2024-12-17T15:47:27Z"
+    },
+    {
+      "path": "misc/geom2d/polygons2d/parametrize.m",
+      "bytes": 2179,
+      "sha256": "edec0360afb44cb88f7860822744e2290bf5e08f0cf3e2c1a60fbc271dbc91a2",
+      "modified_utc": "2024-12-17T15:47:27Z"
+    },
+    {
+      "path": "net/keras/shape2sc22a.h5",
+      "bytes": 52505208,
+      "sha256": "a6fd1f06cee40626d1b548867fac9961a668caa8d30e92026d60f84d7f9b374a",
+      "modified_utc": "2024-12-17T15:47:30Z"
+    },
+    {
+      "path": "net/keras/shape2sc22a.json",
+      "bytes": 3543,
+      "sha256": "4df6402374e1465e40949444a0b7e0c0da11510597b6af5b99615c0dbe8da4a9",
+      "modified_utc": "2024-12-17T15:47:29Z"
+    },
+    {
+      "path": "net/keras/im2sc22d.h5",
+      "bytes": 2811864,
+      "sha256": "035f655b5c9af13b32f889f21c86b27aa6f671fa6238c4d3a9319b85a355a843",
+      "modified_utc": "2024-12-17T15:47:30Z"
+    },
+    {
+      "path": "net/keras/im2sc22d.json",
+      "bytes": 3602,
+      "sha256": "c8909d23c15f580243cbbbeb5f579a90184162a6fac70127ba63fc2a017f6c88",
+      "modified_utc": "2024-12-17T15:47:30Z"
+    },
+    {
+      "path": "net/keras/sc40to25GANc.h5",
+      "bytes": 136232992,
+      "sha256": "b241178dd4046a66354df201e63b8c4f629ab9d8c2fdd5773263d29419eea725",
+      "modified_utc": "2022-02-15T14:02:02Z"
+    },
+    {
+      "path": "net/keras/sc40to25GANc.json",
+      "bytes": 3671,
+      "sha256": "0fed9aa594f9a1630447e56725575a4745bdcd3e226fe1f5662b1ca8b5263925",
+      "modified_utc": "2022-02-15T14:02:02Z"
+    },
+    {
+      "path": "net/keras/KerNet1.mat",
+      "bytes": 16342629,
+      "sha256": "86a9fc765a9ef768c994c97ceb90107ccc865596f754911e4363513152906c04",
+      "modified_utc": "2025-01-28T09:19:52Z"
+    },
+    {
+      "path": "net/keras/KerNet2.mat",
+      "bytes": 871417,
+      "sha256": "602fc658ba1e966b4d1c43227fbd9960c838a2ef4f92172ce3dbdcf3c311d8e2",
+      "modified_utc": "2025-01-28T09:20:14Z"
+    },
+    {
+      "path": "net/keras/netkeras.mat",
+      "bytes": 42796915,
+      "sha256": "e393bf88036f75df24bbfe4dcd0777c1630884168e73d609e6f1797281dce907",
+      "modified_utc": "2025-01-28T09:20:36Z"
+    },
+    {
+      "path": "net/matlab/net_shape2mds_matlab.mat",
+      "bytes": 2106216,
+      "sha256": "6d13fb4a38b3954238e4d89d77bab6f19871225f7df1bbecc13f5dc0b058aff8",
+      "modified_utc": "2024-12-17T15:47:30Z"
+    },
+    {
+      "path": "net/gan/net-epoch-106-MATLAB_DL.mat",
+      "bytes": 63156492,
+      "sha256": "53e924f43e3efa8dd5eadfbc4b1ee46a2abbb11075beccc0741b784cfc7cc1ee",
+      "modified_utc": "2025-02-17T16:13:43Z"
+    }
+  ],
+  "keras_layer_inventory": {
+    "net/keras/shape2sc22a.h5": {
+      "keras_version": "2.1.2",
+      "backend": "tensorflow",
+      "layers": {
+        "dense_1": [
+          "bias(2048,):float32",
+          "kernel(768, 2048):float32"
+        ],
+        "dropout_1": [],
+        "dense_2": [
+          "bias(1024,):float32",
+          "kernel(2048, 1024):float32"
+        ],
+        "dense_3": [
+          "bias(512,):float32",
+          "kernel(1024, 512):float32"
+        ],
+        "dense_4": [
+          "bias(256,):float32",
+          "kernel(512, 256):float32"
+        ],
+        "dense_5": [
+          "bias(128,):float32",
+          "kernel(256, 128):float32"
+        ],
+        "dense_6": [
+          "bias(64,):float32",
+          "kernel(128, 64):float32"
+        ],
+        "dense_7": [
+          "bias(22,):float32",
+          "kernel(64, 22):float32"
+        ]
+      },
+      "weighted_layers": [
+        "dense_1",
+        "dense_2",
+        "dense_3",
+        "dense_4",
+        "dense_5",
+        "dense_6",
+        "dense_7"
+      ],
+      "weight_free_layers": [
+        "dropout_1"
+      ]
+    },
+    "net/keras/im2sc22d.h5": {
+      "keras_version": "2.1.2",
+      "backend": "tensorflow",
+      "layers": {
+        "conv2d_4": [
+          "bias(16,):float32",
+          "kernel(3, 3, 1, 16):float32"
+        ],
+        "max_pooling2d_4": [],
+        "conv2d_5": [
+          "bias(32,):float32",
+          "kernel(3, 3, 16, 32):float32"
+        ],
+        "max_pooling2d_5": [],
+        "conv2d_6": [
+          "bias(64,):float32",
+          "kernel(3, 3, 32, 64):float32"
+        ],
+        "max_pooling2d_6": [],
+        "flatten_2": [],
+        "dense_3": [
+          "bias(128,):float32",
+          "kernel(1600, 128):float32"
+        ],
+        "dropout_1": [],
+        "dense_4": [
+          "bias(22,):float32",
+          "kernel(128, 22):float32"
+        ]
+      },
+      "weighted_layers": [
+        "conv2d_4",
+        "conv2d_5",
+        "conv2d_6",
+        "dense_3",
+        "dense_4"
+      ],
+      "weight_free_layers": [
+        "max_pooling2d_4",
+        "max_pooling2d_5",
+        "max_pooling2d_6",
+        "flatten_2",
+        "dropout_1"
+      ]
+    }
+  }
+}

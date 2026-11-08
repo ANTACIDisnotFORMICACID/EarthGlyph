@@ -519,6 +519,69 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 复现：`validate_shapecomp_port.py` → `--stage d1` → `--stage d2 d3 d4` → **`--stage d5 --methods E0 E1 E3 S0K1 S0K2`**
 → `--stage summary` → `plot_shape_benchmark.py --figure all`（d5 墙钟约 2322 s；需本地工具箱）。
 
+### Checkpoint 7：先证官方复刻正确，再修统计与旋转实验，最后按双目标定夺（2026-11-09，进行中）
+
+> 触发：用户要求把 CP7 拆成四个可复现检查点 —— **CP7-A** 逐函数忠实度审计 + 哈希 + 异常输入测试，
+> **CP7-B** 修 D5 的重复测量 bootstrap，**CP7-C** R0/R1/R2(/R3) 旋转方案 + T0/T1/T2 判别式检索，
+> **CP7-D** 接口/术语/许可修复 + 五图 + 十问报告。全程**不改生产默认检索器、不引入真实水体库、不动官方原件与权重**。
+
+#### CP7-A：官方 MATLAB → Python 逐函数对照 ✅
+
+- **逐函数对照表**（含 MATLAB 文件名:行号 ↔ `shapecomp_port.py:行号`）写入
+  `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7 A1：`centroid`（**点均值**，非面积质心）、
+  `clockwise`（首个最高点处转向检验，`min(find(...))` ↔ `argmax`，含 `xa==xc` 分支）、
+  `adjustContourPos`（**先减 min 再除已平移数组的 max**，且 min/max 跨两列整体取）、
+  `resamplePolygon`（封口 → `n+1` → 丢末行）、`resamplePolyline`（`find(...,'last')`/`find(...,'first')`
+  ↔ `searchsorted right−1`/`left`，含**并列顶点**与 `Lmax*1e-12` 重合守卫）、
+  KerNet1 的 `points(:)'`（**列主序**）、KerNet2 的 `inpolygon` + `flipud(reshape(...,40,40,'F'))`、
+  以及两条路**真实不同**之处（KerNet2 源码里 drop-last / leftmost 三行被注释掉）。
+- **向量化不改数值**：`_resample_polyline` 与 MATLAB 逐行循环版在 40 组随机环（含重复顶点 / 已封口环）
+  的 **~9 000 个采样位置逐位相同**（新回归测试锁定）；单次调用快 ~28×，一次 `kernet2` 打分端到端快 ~2.6×。
+- **来源与哈希入库**：`scripts/hash_shapecomp_toolbox.py` → `results/official_toolbox_hashes.json`（24 文件
+  SHA256 + 字节数、工具箱清单 2340 文件 / 333 `.m` / 3 `.h5`、逐层权重形状与 dtype、
+  `tensorflow_used: false` / `matlab_used: false`、`redistribution` 声明）。
+  权重 `shape2sc22a.h5 a6fd1f06…`（52 505 208 B）、`im2sc22d.h5 035f655b…`（2 811 864 B）；
+  `.mat` 版网络导出是 MATLAB v7 classdef 句柄、scipy 解不了 → **只哈希不解析**。二进制仍 gitignored（D60）。
+- **异常输入契约**：合法 8 类（顺 / 逆时针、首末重复、连续重复顶点、近圆、五角星、细叉、**自交环**）
+  两路均得**有限非空**输入与有限非零 22 维；非法 3 类（全点重合、<3 顶点、含 NaN）
+  一律 `ShapeCompInputError(ValueError)` **显式拒绝**，不再可能悄悄产出 NaN / 零向量。
+  自交环**故意接受**（`GANinput2shape.m` 明示 GAN 形状可自交 ⇒ 官方输入类）。
+- **忠实度归因（本轮最关键）**：搜索"循环起点 × 遍历方向 × 存档两文件"后 **8/15 个 H2 形状与发布坐标差
+  < 1e-6（中位 1.5e-07）** —— 一次性钉死权重、层序、conv/pool/ReLU 序、C-order flatten、`inpolygon`、`flipud`；
+  **其余 7 例仍 4.8e-3–1.8e-2 ⇒ 明确标为"未归因"，不宣称全部残差来自预处理**（D57）。
+  KerNet1 仅确认**输入次序**（消融 0.184 vs 1.922 vs 2.622），**网络级忠实度未钉到机器精度**。
+  H1 与原始 MDS 之差始终是**近似能力**，不是移植错误。
+- **新测得的硬事实**：栅格化**单像素翻转**使 22 维输出移动中位 **0.2887 = 18.5% 坐标范数**（p90 0.3474 / max 0.4066）
+  ⇒ "先旋转再栅格化"是**近不连续**操作，为 CP7-C 的包装设定上界（D59）。
+- **验收（用户写的硬条件）**：H2 头部 **RMSE 逐位不变** = `0.006496161383207664`（Spearman 0.99894 / 逐维 r 0.99823），
+  Figure 8 0.97979 / 0.95661、H1 0.92663 / 0.92889 亦逐位不变 ⇒ **已验证的 KerNet2 路径无未解释的精度退化**。
+- **填充规则替换**：`shapely.covers` → MATLAB `inpolygon` 直译（偶奇交叉数、边界算内部、半开区间去重顶点、
+  无容差的 `cross == 0` 边界判定）；在 15 条 H2 + 60 条 Figure 8（含自交）轮廓上**逐像素 0 差异**，
+  并保留为回归测试（D58）。端口不再依赖 shapely。
+- **测试**：`tests/test_shapecomp_port.py` 由 15 例增至 **34 例**（13 s 全过），新增逐函数对照 / 异常输入 /
+  确定性 / 像素敏感性 / 输入对齐 / GEOS 一致性 / 重采样逐位等价。
+
+#### CP7-B：修 D5 重复测量统计（待做）
+现有 `run_d5` 把 `250 对 × 7 角度 = 1750 行` 当独立观测做 `bootstrap_two_level`；须按 `original_pair_id`
+分组（同一对的全部角度同进同出）+ 被试层重采样，角度是**固定条件**还是**随机抽样**须写明；点估计保留为描述结果、
+CI 重算；**不得覆盖既有 `d5_*`，生成新版本并保留审计关系**；并注明"旋转一个成员后沿用原评分"是
+**假设旋转不影响人类感知**，不是新的人类数据。
+
+#### CP7-C：旋转方案与判别式检索（待做）
+R0 = 现有 24 步查询侧搜索；R1 = 24/36/72 步细网格；R2 = 查询与图库双向朝向规范化（须处理主轴 180° 歧义、
+近圆 / 五角星的不稳定轴、对称多解、噪声跳变、图像与轮廓轴一致；**不得用目标标签选朝向**；是待验证假设）；
+R3 可选双向多方向 min（须预缓存、检查错形状吸引、报告成本，**不把多方向候选当独立图库对象**）。
+检索拆 T0（目标在库）/ T1（移除精确目标）/ **T2（再移除刚性近重复，本阶段主评条件）**，
+固定种子随机角度须在跑前定死查询数与角度数，**不得按失败案例改抽样范围再以同批样本宣布改进**。
+
+#### CP7-D：接口、术语、许可与交付（待做）
+F1 `perceptual_features.principal_frame()` 的 `isotropic-fallback` 仍旋转敏感 ⇒ "E1 天然严格旋转不变"表述不实，
+须补五角星 / 近圆 / 正多边形 / 噪声对称测试实测旋转变化与 rank 影响，优化作为**独立方案**、不改旧基线；
+F2 `search_shape(..., allow_mirror=True)` 在 S0K 分支**惰性无效** ⇒ 要么显式拒绝要么实现可验证镜像搜索；
+F3 术语：官方 109 描述子 vs 自实现 E1 的 91 维 vs KerNet1/2 的 22 维 vs S0 发布坐标 vs 实跑网络，
+须核实没有任何地方声称完整复现 109 维模型；F4 README 说明如何从作者官方渠道取得工具箱、
+**不把论文 CC BY 自动视为权重再分发许可**。产物：`checkpoint7/` 五图 + 十问报告 + 全量 pytest / ruff / mypy + 提交推送。
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**
