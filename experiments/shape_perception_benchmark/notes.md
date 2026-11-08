@@ -928,3 +928,9 @@ against a literal loop translation (bit-equal on ~9 000 sampled positions; ~28x 
 faster end-to-end for one `kernet2` score, needed because the rotation sweeps call it per rotated contour); `kernet2_points` / `inpolygon` / `_grid_points` replacing the GEOS fill;
 `kernet1_from_input` / `kernet2_from_mask` split so the ablation and the pixel-perturbation can feed inputs
 directly; `weight_sha256` + `toolbox` on `ShapeCompNets`; shapely import dropped.
+
+Git checkpoint: CP7-A work commit `82af902db79d6a7b2cce31d75625e7b82710744a`
+(`feat: prove the ShapeComp port exact and audit its input contract (P0-4.6 CP7-A)`), pushed to
+`origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main` ==
+`git rev-parse HEAD` == that sha, author `ANTACIDisnotFORMICACID`. Full suite 811 passed (34 port
+tests), `ruff check .` clean, `mypy` 39 source files no issues.

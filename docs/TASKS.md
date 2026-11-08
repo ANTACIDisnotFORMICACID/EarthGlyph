@@ -525,7 +525,7 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 > **CP7-B** 修 D5 的重复测量 bootstrap，**CP7-C** R0/R1/R2(/R3) 旋转方案 + T0/T1/T2 判别式检索，
 > **CP7-D** 接口/术语/许可修复 + 五图 + 十问报告。全程**不改生产默认检索器、不引入真实水体库、不动官方原件与权重**。
 
-#### CP7-A：官方 MATLAB → Python 逐函数对照 ✅
+#### CP7-A：官方 MATLAB → Python 逐函数对照 ✅（`82af902`，已推送并核验）
 
 - **逐函数对照表**（含 MATLAB 文件名:行号 ↔ `shapecomp_port.py:行号`）写入
   `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7 A1：`centroid`（**点均值**，非面积质心）、
