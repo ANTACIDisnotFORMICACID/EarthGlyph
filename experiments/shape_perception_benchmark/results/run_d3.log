@@ -1,0 +1,7 @@
+=== d3 ===
+  star: E0 variant=1 distractor=23 ok=True, E1 variant=1 distractor=1163 ok=True, E3 variant=1 distractor=207 ok=True
+  heart: E0 variant=1 distractor=36 ok=True, E1 variant=1 distractor=556 ok=True, E3 variant=1 distractor=33 ok=True
+  crescent: E0 variant=1 distractor=893 ok=True, E1 variant=1 distractor=1165 ok=True, E3 variant=1 distractor=799 ok=True
+  forked: E0 variant=1 distractor=46 ok=True, E1 variant=1 distractor=664 ok=True, E3 variant=1 distractor=478 ok=True
+  natural: E0 variant=2 distractor=440 ok=True, E1 variant=2 distractor=1387 ok=True, E3 variant=2 distractor=1283 ok=True
+=== d3 done in 417.8s ===

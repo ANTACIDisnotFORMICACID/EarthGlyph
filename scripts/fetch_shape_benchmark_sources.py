@@ -45,6 +45,10 @@ ZENODO_MEMBERS = [
     "shapecomp datashare/Figure 9/Figure9.m",
     "shapecomp datashare/Figure 3/data/GAN/GANratings.mat",
     "shapecomp datashare/Figure 3/data/GAN/GANlabels.mat",
+    # Figure 8D: the authors' published MatNet/KerNet1/KerNet2 outputs on 1000 held-out
+    # GAN shapes, together with the shapes themselves. Model-vs-model only, no ratings.
+    "shapecomp datashare/Figure 8/Figure8.m",
+    "shapecomp datashare/Figure 8/data/Figure8NetComparison.mat",
     "shapecomp datashare/README.txt",
 ]
 

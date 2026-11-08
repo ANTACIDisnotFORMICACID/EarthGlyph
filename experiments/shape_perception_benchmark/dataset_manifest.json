@@ -10,8 +10,8 @@
     "transfer": {
       "url": "https://zenodo.org/api/records/4730985/files/shapecomp%20datashare.zip/content",
       "archive_size": 307965089,
-      "bytes_fetched": 8072354,
-      "request_count": 9,
+      "bytes_fetched": 12266658,
+      "request_count": 13,
       "member_count": 2010
     },
     "members": {
@@ -54,6 +54,16 @@
         "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 3\\data\\GAN\\GANlabels.mat",
         "bytes": 16699,
         "sha256": "0ef24f95dc1051f16aa722823328ffce28f5fb87841a7b5f7944f3cd3d01e3d7"
+      },
+      "shapecomp datashare/Figure 8/Figure8.m": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 8\\Figure8.m",
+        "bytes": 1054,
+        "sha256": "7ab5c19e632a7d475b9f8e269c980b65dd6ac5b94cca43b0cedeae31e1da8224"
+      },
+      "shapecomp datashare/Figure 8/data/Figure8NetComparison.mat": {
+        "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\Figure 8\\data\\Figure8NetComparison.mat",
+        "bytes": 4008874,
+        "sha256": "7ab665f6108104cf5e2c3b9660dedd3db378a49d72fae49b5f8dd951998ca57e"
       },
       "shapecomp datashare/README.txt": {
         "local_path": "experiments\\shape_perception_benchmark\\cache\\zenodo4730985\\shapecomp datashare\\README.txt",

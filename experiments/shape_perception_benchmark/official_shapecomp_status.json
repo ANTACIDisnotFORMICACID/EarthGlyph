@@ -61,12 +61,12 @@
     "matlab_main_entry": "not_found in any reachable source",
     "demo1_demo2": "not_found in any reachable source",
     "descriptor_implementation_109": "not present as code. The authoritative list is S1 Table of the paper (pcbi.1008981.s004.docx), audited in the earlier P0-4 research log.",
-    "mds_22d": "not present as code, but the RESULTING 22-D coordinates are published for the H1 and H2 stimuli",
+    "mds_22d": "not present as code, but the RESULTING 22-D coordinates are published for the H1 and H2 stimuli. Figure8NetComparison.mat additionally publishes a 40-D MDS solution (`SC`) for 1000 other GAN shapes. Its first 22 columns retain 88.76% of that solution's variance, NOT the 95.05% the paper reports for the 22-D animal-silhouette space, so they are NOT verified to be the canonical ShapeComp space. The authors' Figure8.m correlates against all 40 columns.",
     "new_shape_projection": "not present as code (needs the 109-descriptor engine + the 25,712-shape reference corpus + Procrustes)",
     "precomputed_assets_found": {
       "H1": "shape1SC / shape2SC (22-D) for all 500 stimuli, plus dist for all 250 pairs",
       "H2": "sc (15,22) produced by the KerNet2 image route, plus dist_vect (105,)",
-      "Figure8NetComparison.mat": "SC / matnet / kernet1 / kernet2 coordinate matrices exist (4 MB) but the corresponding stimuli are not in that member, so they cannot be used for retrieval here"
+      "Figure8NetComparison.mat": "SC (1000,40) / matnet (1000,22) / kernet1 (1000,22) / kernet2 (1000,22) PLUS a `shapes` array of 1000 structs each holding `c` (384x2 contour) and `lat` (25-D GAN latent). CORRECTED 2026-11-07: the Checkpoint 1 audit wrongly said the stimuli were absent. See correction_2026_11_07 below and results/figure8_network_audit.json. No human ratings accompany these shapes."
     },
     "matnet_kernet_weights": "not_found - no weight files in either Zenodo record; the distribution point (Google Sites / Drive) is network-blocked",
     "input_contract_from_paper": {
@@ -108,15 +108,40 @@
       "consequence_for_retrieval": "S0 can participate in the H1/H2 pairwise human-prediction experiment, but CANNOT participate in MPEG-7 Top-K retrieval, where no official coordinates exist."
     },
     "S0-descriptor": {"available": false, "reason": "109-descriptor engine not obtainable"},
-    "S0-MatNet": {"available": false, "reason": "MATLAB weights + runtime not obtainable"},
-    "S0-KerNet1": {"available": false, "reason": "Keras weights not obtainable"},
+    "S0-MatNet": {
+      "available": "outputs_only",
+      "reason": "No MATLAB weights or runtime, but the authors' published MatNet 22-D coordinates for 1000 held-out GAN shapes ARE in Figure8NetComparison.mat, together with the 384x2 contours and 25-D GAN latents. Usable as precomputed outputs on that fixed set only; no human ratings accompany it.",
+      "evidence": "results/figure8_network_audit.json"
+    },
+    "S0-KerNet1": {
+      "available": "outputs_only",
+      "reason": "No Keras weights, but published KerNet1 22-D coordinates for the same 1000 held-out GAN shapes are in Figure8NetComparison.mat. Precomputed outputs only; no human ratings.",
+      "evidence": "results/figure8_network_audit.json"
+    },
     "S0-KerNet2": {
       "available": "outputs_only",
-      "reason": "No weights, but the official KerNet2-produced 22-D coordinates for the 15 H2 shapes ARE published (lietal_ShapeCompSolution_keras_mds_image.mat). Usable as precomputed outputs on H2 only."
+      "reason": "No weights, but official KerNet2-produced 22-D coordinates are published twice: for the 15 H2 shapes (lietal_ShapeCompSolution_keras_mds_image.mat) and for the 1000 Figure 8 GAN shapes (Figure8NetComparison.mat). Usable as precomputed outputs on those fixed sets only."
     }
+  },
+  "correction_2026_11_07": {
+    "what_was_wrong": "The Checkpoint 1 audit recorded that Figure8NetComparison.mat holds coordinate matrices 'but the corresponding stimuli are not in that member, so they cannot be used for retrieval here'. That is FALSE.",
+    "what_is_actually_there": "A `shapes` array of 1000 structs, each with `c` (384x2 float64 contour) and `lat` (25-D float32 GAN latent). SC is (1000,40) float64; matnet/kernet1/kernet2 are (1000,22) float32.",
+    "how_it_was_found": "Direct scipy.io.loadmat inspection of the fetched member, after reading Figure8.m.",
+    "consequences": [
+      "S0-MatNet and S0-KerNet1 move from 'unavailable' to 'outputs_only', matching S0-KerNet2.",
+      "The official Figure 8D correlations were recomputed from the raw arrays rather than quoted: pearson r = 0.9276 (MatNet), 0.9452 (KerNet1), 0.9100 (KerNet2) against pdist(SC) over all 40 columns, exactly as Figure8.m does. The paper quotes 0.93 / 0.94 / 0.91.",
+      "SC in this member is a 40-D MDS solution, NOT the 22-D ShapeComp space. Its first 22 columns retain 88.76% of its variance (the paper's animal space retains 95.05% in 22 dims), so they are not verified to be the canonical coordinates. Using only those 22 columns gives r = 0.9372 / 0.9527 / 0.9223 instead. The two bases must not be conflated.",
+      "The 1000 shapes are DISJOINT from the 500 human-rated H1 stimuli (0 exact contour matches; minimum SC-space nearest-neighbour distance 0.54). They carry no human ratings, so any use is model-vs-model, never human validation.",
+      "2 of the 1000 contours (indices 245, 711) are self-intersecting and are refused by standardize(), so a Figure 8 retrieval gallery would hold 998 shapes, not 1000.",
+      "The deposited `c` arrays are raw GAN contours, NOT the paper's min-max-normalised minimum-x-start network input. A retrieval comparison on this gallery would therefore confound descriptor differences with preprocessing differences."
+    ],
+    "not_done": "No Figure 8 retrieval arm was run. It is recorded as a next-step option, not as a result.",
+    "evidence_file": "results/figure8_network_audit.json",
+    "reproduce": ".venv/Scripts/python.exe scripts/audit_figure8_networks.py"
   },
   "reproduction_commands": [
     ".venv/Scripts/python.exe scripts/fetch_shape_benchmark_sources.py",
+    ".venv/Scripts/python.exe scripts/audit_figure8_networks.py",
     "curl -sS -m 25 -o /dev/null -w '%{http_code}' https://sites.google.com/view/yanivmorgenstern/home/tools/shapecomp",
     "curl -sSL -m 45 -o /dev/null -w '%{http_code}' 'https://www.dropbox.com/scl/fi/gdqt4i1ugsj0qs8i1gzix/shapeComp_31_05_2021.zip?rlkey=239gmqds2kjgaynoe0ibbw8ew&dl=1'"
   ]

@@ -219,6 +219,34 @@ def test_gallery_rejects_duplicate_ids() -> None:
         Gallery([shape("same", polygon(64)), shape("same", polygon(64, lobes=3))])
 
 
+def test_inherited_normalizer_keeps_e1_distances_unchanged_when_candidates_are_added() -> None:
+    """Extending a gallery must not silently rescale E1 — that was P0-4.5's defect."""
+    base = make_gallery()
+    extra = shape("extra", polygon(64, lobes=7, radius=0.6))
+    extended = Gallery([*base.shapes, extra], e1_normalizer=base.e1_normalizer)
+    assert extended.e1_normalizer is base.e1_normalizer
+    assert extended.e1_normalizer_inherited
+    assert not base.e1_normalizer_inherited
+
+    query = base.shapes[0]
+    for method in ("E0", "E1", "E3"):
+        before = search_shape(query, base, method, top_k=len(base))
+        after = search_shape(query, extended, method, top_k=len(extended))
+        for i, member in enumerate(base.shapes):
+            assert after.distances[i] == pytest.approx(before.distances[i]), (
+                method, member.shape_id
+            )
+
+
+def test_refitting_normalizer_on_an_extended_gallery_does_move_it() -> None:
+    """The counterfactual: without inheritance the scale changes, which is the confound."""
+    base = make_gallery()
+    extra = shape("extra", polygon(64, lobes=7, radius=0.6))
+    refitted = Gallery([*base.shapes, extra])
+    assert not refitted.e1_normalizer_inherited
+    assert refitted.e1_normalizer.fitted_on != base.e1_normalizer.fitted_on
+
+
 # --------------------------------------------------------------------------- real datasets
 
 

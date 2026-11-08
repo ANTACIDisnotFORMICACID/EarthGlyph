@@ -1,0 +1,554 @@
+{
+  "gallery_size": 350,
+  "gallery_per_class": 5,
+  "note": "A stratified subset is used for the transform sweep so every arm scores the same candidate set at tractable cost. Stability is measured against the untransformed query on this same gallery. E1's normalizer is fitted on this subset, so its absolute distances are not comparable to D2's; only within-D4 ranks are used.",
+  "e1_normalizer": "mpeg7_stratified (350 shapes)",
+  "targets": {
+    "Heart-1": {
+      "rotate_37": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.031488699838519096
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.018447999842464924
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.279756500385702
+        }
+      },
+      "rotate_90": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030259200371801853
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014966200105845928
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 16.062193799763918
+        }
+      },
+      "rotate_191": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.043943800032138824
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01876620016992092
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 15.596060199663043
+        }
+      },
+      "scale_up": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.031077800318598747
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.015267699956893921
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.200608000159264
+        }
+      },
+      "scale_down": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03027499932795763
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.020895199850201607
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.2314089005813
+        }
+      },
+      "translate": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.033568600192666054
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.015183300711214542
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.016869399696589
+        }
+      },
+      "start_shift": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030577699653804302
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01543319970369339
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 15.101123999804258
+        }
+      },
+      "deform_local": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 0.02987620048224926
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 0.015304500237107277
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 15.017815500497818
+        }
+      },
+      "mirror": {
+        "E0": {
+          "original_target_rank": 246,
+          "top1": "mpeg7_pencil-13",
+          "top_k_overlap_with_untransformed": 0.0,
+          "elapsed_seconds": 0.031014599837362766
+        },
+        "E1": {
+          "original_target_rank": 2,
+          "top1": "mpeg7_Heart-11",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 0.016408700495958328
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_Heart-1",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 14.963168299756944
+        }
+      }
+    },
+    "fork-1": {
+      "rotate_37": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03022910002619028
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014875800348818302
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 15.442777499556541
+        }
+      },
+      "rotate_90": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.0304169999435544
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.015600400045514107
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.41893079970032
+        }
+      },
+      "rotate_191": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03286730032414198
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014702199958264828
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 15.542210499756038
+        }
+      },
+      "scale_up": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030947299674153328
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01497379969805479
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.31608060002327
+        }
+      },
+      "scale_down": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03114360012114048
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014263300225138664
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.361143100075424
+        }
+      },
+      "translate": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030742299742996693
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014689499512314796
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.573907700367272
+        }
+      },
+      "start_shift": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.0312304999679327
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014398900792002678
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 15.411770700477064
+        }
+      },
+      "deform_local": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03342229966074228
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014634200371801853
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 15.319258600473404
+        }
+      },
+      "mirror": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 0.25,
+          "elapsed_seconds": 0.030576900579035282
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_fork-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01457739993929863
+        },
+        "E3": {
+          "original_target_rank": 2,
+          "top1": "mpeg7_fork-12",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 15.403263799846172
+        }
+      }
+    },
+    "bat-1": {
+      "rotate_37": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03318909928202629
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01461699977517128
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.5384615384615384,
+          "elapsed_seconds": 15.299099599942565
+        }
+      },
+      "rotate_90": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030717000365257263
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014378199353814125
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.254046900197864
+        }
+      },
+      "rotate_191": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.03456510044634342
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01522739976644516
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.5384615384615384,
+          "elapsed_seconds": 15.191541399806738
+        }
+      },
+      "scale_up": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.031680299900472164
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.026637200266122818
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.21598740015179
+        }
+      },
+      "scale_down": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030196000821888447
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.014567899517714977
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 15.045747999101877
+        }
+      },
+      "translate": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.030961900018155575
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.01438320055603981
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 14.985424799844623
+        }
+      },
+      "start_shift": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.0307773994281888
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 1.0,
+          "elapsed_seconds": 0.015443199314177036
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 14.891953700222075
+        }
+      },
+      "deform_local": {
+        "E0": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.6666666666666666,
+          "elapsed_seconds": 0.030581899918615818
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 0.014309199526906013
+        },
+        "E3": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.8181818181818182,
+          "elapsed_seconds": 14.936075100675225
+        }
+      },
+      "mirror": {
+        "E0": {
+          "original_target_rank": 163,
+          "top1": "mpeg7_pencil-13",
+          "top_k_overlap_with_untransformed": 0.0,
+          "elapsed_seconds": 0.03045060019940138
+        },
+        "E1": {
+          "original_target_rank": 1,
+          "top1": "mpeg7_bat-1",
+          "top_k_overlap_with_untransformed": 0.3333333333333333,
+          "elapsed_seconds": 0.014837299473583698
+        },
+        "E3": {
+          "original_target_rank": 3,
+          "top1": "mpeg7_bird-12",
+          "top_k_overlap_with_untransformed": 0.3333333333333333,
+          "elapsed_seconds": 14.935270099900663
+        }
+      }
+    }
+  }
+}

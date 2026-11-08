@@ -62,6 +62,7 @@ class Gallery:
         *,
         official_coords: dict[str, np.ndarray] | None = None,
         e3_params: dict[str, Any] | None = None,
+        e1_normalizer: e1.FeatureNormalizer | None = None,
         name: str = "gallery",
     ) -> None:
         if not shapes:
@@ -76,13 +77,16 @@ class Gallery:
         self.e3_params: dict[str, Any] = dict(e3_params or {})
 
         features = e1.features_for_library(list(self.matrix))
-        self.e1_normalizer = e1.fit_normalizer(
+        # Inheriting keeps "added candidates" the only variable when a condition extends the
+        # gallery; refitting would silently rescale every E1 distance at the same time.
+        self.e1_normalizer = e1_normalizer or e1.fit_normalizer(
             features,
             method="minmax",
             names=e1.feature_names(),
             fitted_on=f"{name} ({len(self.shapes)} shapes)",
         )
-        self._e1_features = features
+        self.e1_normalizer_inherited = e1_normalizer is not None
+        self.e1_features = features
         self.e3_descriptors = e3.build_library_descriptors(list(self.matrix), **self.e3_params)
 
     def __len__(self) -> int:

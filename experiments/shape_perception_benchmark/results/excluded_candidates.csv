@@ -1,0 +1,7 @@
+query_id,condition,shape_id,reason,e0_distance
+mpeg7_Heart-1,T2,mpeg7_Heart-6,E0 aligned distance < 0.05,0.04003955734646261
+mpeg7_fork-1,T2,mpeg7_fork-20,E0 aligned distance < 0.05,0.043303365773248045
+mpeg7_bat-1,T2,mpeg7_bat-20,E0 aligned distance < 0.05,0.02761549926735958
+mpeg7_apple-1,T2,mpeg7_apple-12,E0 aligned distance < 0.05,0.04404162116475941
+mpeg7_apple-1,T2,mpeg7_apple-17,E0 aligned distance < 0.05,0.047950675352841865
+mpeg7_butterfly-1,T2,mpeg7_butterfly-2,E0 aligned distance < 0.05,0.022554066796688723

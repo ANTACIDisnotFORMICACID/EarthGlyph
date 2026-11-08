@@ -1,0 +1,29 @@
+=== d4 ===
+  Heart-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  Heart-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  Heart-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82
+  Heart-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  Heart-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  Heart-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  Heart-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82
+  Heart-1 deform_local: E0 rank=1 overlap=0.82, E1 rank=1 overlap=0.67, E3 rank=1 overlap=0.82
+  Heart-1 mirror: E0 rank=246 overlap=0.00, E1 rank=2 overlap=0.67, E3 rank=1 overlap=0.67
+  fork-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.67
+  fork-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  fork-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.67
+  fork-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  fork-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  fork-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  fork-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82
+  fork-1 deform_local: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82
+  fork-1 mirror: E0 rank=1 overlap=0.25, E1 rank=1 overlap=1.00, E3 rank=2 overlap=0.67
+  bat-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.54
+  bat-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  bat-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.54
+  bat-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  bat-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  bat-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00
+  bat-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82
+  bat-1 deform_local: E0 rank=1 overlap=0.67, E1 rank=1 overlap=0.82, E3 rank=1 overlap=0.82
+  bat-1 mirror: E0 rank=163 overlap=0.00, E1 rank=1 overlap=0.33, E3 rank=3 overlap=0.33
+=== d4 done in 487.2s ===

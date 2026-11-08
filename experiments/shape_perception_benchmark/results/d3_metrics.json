@@ -1,0 +1,288 @@
+{
+  "note": "Designed structural probes. The expected ordering (structural variant above gross distractor) is a geometric hypothesis, NOT validated human truth.",
+  "e1_normalizer": "mpeg7 (1398 shapes)",
+  "e1_normalizer_policy": "Every probe gallery inherits the plain MPEG-7 normalizer, so E1 distances are comparable across probe families and the added probes are the only variable.",
+  "natural_family_asymmetry": "For 'natural' the query is a real MPEG-7 outline that stays in the gallery, so rank 1 is the exact original. For the four synthetic families the query itself is absent and only its three variants are present.",
+  "probes": {
+    "star": {
+      "E0": {
+        "structural_variant_ranks": [
+          1,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          39,
+          23,
+          111
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 23,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.12334179971367121
+      },
+      "E1": {
+        "structural_variant_ranks": [
+          7,
+          65,
+          1
+        ],
+        "gross_distractor_ranks": [
+          1337,
+          1163,
+          1258
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 1163,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.043476199731230736
+      },
+      "E3": {
+        "structural_variant_ranks": [
+          3,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          423,
+          207,
+          541
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 207,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 63.07420150004327
+      }
+    },
+    "heart": {
+      "E0": {
+        "structural_variant_ranks": [
+          1,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          94,
+          105,
+          36
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 36,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.126307500526309
+      },
+      "E1": {
+        "structural_variant_ranks": [
+          2,
+          4,
+          1
+        ],
+        "gross_distractor_ranks": [
+          853,
+          1182,
+          556
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 556,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.03435199987143278
+      },
+      "E3": {
+        "structural_variant_ranks": [
+          3,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          316,
+          320,
+          33
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 33,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 62.22642820049077
+      }
+    },
+    "crescent": {
+      "E0": {
+        "structural_variant_ranks": [
+          1,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          1195,
+          893,
+          1196
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 893,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.12524669989943504
+      },
+      "E1": {
+        "structural_variant_ranks": [
+          1,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          1391,
+          1165,
+          1392
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 1165,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.03575409948825836
+      },
+      "E3": {
+        "structural_variant_ranks": [
+          3,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          895,
+          799,
+          896
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 799,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 62.44235779996961
+      }
+    },
+    "forked": {
+      "E0": {
+        "structural_variant_ranks": [
+          1,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          77,
+          46,
+          262
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 46,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.12781890016049147
+      },
+      "E1": {
+        "structural_variant_ranks": [
+          2,
+          3,
+          1
+        ],
+        "gross_distractor_ranks": [
+          990,
+          664,
+          824
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 664,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.03544329944998026
+      },
+      "E3": {
+        "structural_variant_ranks": [
+          3,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          594,
+          478,
+          612
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 478,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 62.56534800026566
+      }
+    },
+    "natural": {
+      "E0": {
+        "structural_variant_ranks": [
+          2,
+          5,
+          3
+        ],
+        "gross_distractor_ranks": [
+          865,
+          440,
+          806
+        ],
+        "best_structural_variant_rank": 2,
+        "best_gross_distractor_rank": 440,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.14028360042721033
+      },
+      "E1": {
+        "structural_variant_ranks": [
+          2,
+          5,
+          3
+        ],
+        "gross_distractor_ranks": [
+          1402,
+          1387,
+          1401
+        ],
+        "best_structural_variant_rank": 2,
+        "best_gross_distractor_rank": 1387,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 0.03373680077493191
+      },
+      "E3": {
+        "structural_variant_ranks": [
+          7,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          1389,
+          1283,
+          1366
+        ],
+        "best_structural_variant_rank": 2,
+        "best_gross_distractor_rank": 1283,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 62.33149509970099
+      }
+    }
+  }
+}

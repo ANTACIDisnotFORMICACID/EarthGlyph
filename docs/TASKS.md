@@ -335,6 +335,77 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 两级结构可用于生产（粗筛盲区未解决）。
 **门禁状态：P0 仍未通过 → 不进入 P1 Web 前端开发。** 是否把 E3 设为正式精排，留给用户审查后决定。
 
+## P0-4.6 ShapeComp 官方复现与独立形状感知检索基准（2026-11-07，进行中）
+
+任务边界：**完全排除 Overture Maps、水体候选与地理坐标**；不扩大真实地貌库；不改正式产品检索默认；
+不复用旧图库 `REL` 标签当人类真值；不覆盖 P0-4 / P0-4.5 产物。
+产物目录 [`experiments/shape_perception_benchmark/`](../experiments/shape_perception_benchmark/README.md)，
+运行日志 [`notes.md`](../experiments/shape_perception_benchmark/notes.md)。
+
+核心问题：**一个经人类感知实验验证的形状模型，能否找到人眼判断相似的二维轮廓，并胜过 EarthGlyph 现有几何匹配器？**
+
+### Checkpoint 1：来源审计 + 官方实现可用性 ✅（`1e4d6ca`）
+
+| 项 | 实测结论 |
+|---|---|
+| 官方代码能否本地运行 | **不能**。Dropbox / `drive.google.com` / `sites.google.com` 全部网络阻断（curl 证据在 `official_shapecomp_status.json`）；本机无 MATLAB、无 Octave、无 TensorFlow；未安装任何商业软件、未购买许可 |
+| 两个 Zenodo 存档里有什么 | 用 HTTP Range 读 ZIP 中央目录（**传输 8 MB / 存档 308 MB + 2.23 GB**）逐一枚举：**没有**描述子引擎、没有 Demo、没有 `.py`、没有权重。大修订多出的 `.m/.c/.mex` 是 vendored psignifit（GPLv3）+ Psychtoolbox |
+| 但官方**输出**是公开的 | `Fig5B_shapeStim4RatingExpt.mat` 带 `shape1SC/shape2SC`（22 维）与 `dist`，且 `dist == ‖SC1−SC2‖` 残差 **4.44e-16** → `S0-MDS-precomputed` 是合法一臂，**仅限这 500 个已发布刺激**，不能给新形状打分 |
+| 人类数据 | **H1**：250 对 × **14 名被试**逐列评分，0 NaN，500/500 轮廓唯一（无 P0-4.5 的重复缺陷）→ 主真值。**H2**：15 个 Li et al. 形状，人类 MDS 坐标是 `Figure9.m` 用 `getpts` 从图 7D **数字化**来的 → 仅辅助，永不与 H1 合并 |
+| 被拒绝的"评分" | Figure 3 `GANlabels.mat` 是自由文本**命名**任务（"cow udder"/"italy"/"x"），文件名带 ratings 也不是相似度 → 不用 |
+| 未获取 | Mendeley 2D Shape Structure（API 域名不解析、页面是标题为 FAQ 的 JS 壳）；Li et al. 完整 360 形状与逐试次原始判断 |
+| 管线自检（不是新结果） | 从原始 `.mat` 复现论文两个头条数：H1 Pearson **−0.904** / Spearman **−0.911**（论文 0.91）；H2 Pearson **0.778**（论文 0.78） |
+
+复现：`.venv/Scripts/python.exe scripts/fetch_shape_benchmark_sources.py`
+（Zenodo 9 次 Range 请求 / 8 072 354 B；MPEG-7 3 380 427 B，sha256 `ce8d8740…`）。
+**未写任何 109 维描述子的 Python 移植**——任务书禁止把自写描述子集冒充 ShapeComp 复现。
+
+### Checkpoint 2：独立数据加载器 + 统一检索接口 ✅（`46e2fad`）
+
+- `earthglyph/shape_benchmark/datasets.py`：H1 / H2 / MPEG-7 加载器，每个形状同时带
+  128 点算法契约（`points`）与原始发布姿态（`display_points`，**只用于画图，绝不参与排名**）。
+- `earthglyph/shape_benchmark/retrieval.py`：`Gallery` 一次性预计算各臂语料；
+  `search_shape(query, gallery, method, top_k=10, exclude=...)` 返回**完整排名** + 逐候选距离 + 墙钟时间。
+- `scripts/search_shape_benchmark.py`：任务书要求的 CLI（`--query/--gallery/--method/--top-k`）。
+- 实测修正：发布轮廓是非均匀采样的闭合多边形（MATLAB `patch` 隐式封口），首尾弦达 0.196 RMS
+  超过草图开口守卫 0.15 → **显式重复首顶点**声明闭合，500/500 + 15/15 通过，**草图守卫未放宽**；
+  MPEG-7 1400 张中 **1398 提取成功 / 2 张真失败**（`pocket-11/12` 各含两个不连通 blob），进排除台账。
+- 成本实测：E0 0.1 ms/候选；E1 供定归一化器 + 缓存后 200 候选 0.01 s；**E3 41.9 ms/候选且是查询侧开销**，
+  描述子缓存救不了 → D1 只算**真正被评过的 250 对**，全库排名留给 D2–D4。
+
+验证：`pytest -q` → **744 passed**；`ruff check .` 全过；`mypy` 36 文件无问题。
+
+### Checkpoint 3：真实 Top-10 检索 + 对比图 ✅（commit 见 Checkpoint 4 记录）
+
+- **D2 去真目标检索**（MPEG-7 1398 形状 / 70 类，6 查询，T0–T3）：平均 class-recall@10
+  T2/T3 = **E0 0.717 / E1 0.833 / E3 0.917**；E0 在 `tree-1` 上 Top-3 返回 flatfish/jar，
+  E1/E3 返回 tree（见 overview 图）。**T3 未产生区分度**：三个异类硬干扰物未进入任何臂的
+  Top-10（0/6），故 T2→T3 行相同、不含硬干扰鲁棒性信息（notes F19，诚实负结果）。
+  完整排名存 `d2_full_rankings.npz`（非仅 Top-10）+ 排除台账 `excluded_candidates.csv`。
+- **公平性缺陷在出数前被抓并修复**（notes F17）：`Gallery` 原先对每个候选集重拟合 E1 minmax
+  归一化器，使 T3/D3 的"加干扰物"与"重缩放全部 E1 距离"成为同一变量。现改为继承 MPEG-7 归一化器；
+  反事实实测：重拟合会移动 **27/91** 个描述子尺度、最大相对偏移 **22.1%**。新增 2 个回归测试。
+- **D3 结构探针**（每族 1404 形状）：五族全部 `structure_beats_gross=true`；差异在裕量——
+  E1 把粗干扰压得最深（star 1163）但把一个 star 变体挤出 Top-10（rank 65）；E0 保住全部变体
+  却放干扰到 rank 23；E3 居中。**角色是构造的几何假设，非验证过的人类真值**，图上明示。
+- **D4 变换稳定性**（350 形状，3 目标 × 9 变换）：**E0 不镜像不变**（Top-10 overlap 0.00，
+  自匹配掉到 rank 246/163）；**E3 的 15° 旋转网格**使 37°/191° overlap 减半（0.54）；
+  E1 最耐变换但镜像仍丢 2/3 Top-10。平移/缩放/起点三者 E0/E1 全 1.0。
+- **图**：`perception_benchmark_overview.png` + 五族 `comparison_*.png` 各含 aligned 与
+  `_original_pose` 两版（**排名完全相同，仅展示姿态不同**）+ 三张人类评价图。全部 PNG < 0.5 MB。
+  图只读已存 CSV/JSON，**不重新排名**；展示对齐用与臂无关的 chamfer 旋转。
+- **Checkpoint 1 的一处错误被纠正**（notes F20）：`Figure8NetComparison.mat` **确实带刺激**
+  （1000 个 384×2 轮廓 + 25 维 GAN latent）与 MatNet/KerNet1/KerNet2 官方坐标；原"刺激不在该成员"
+  的说法撤回。从原始数组复算作者 Figure 8D：r = 0.928/0.945/0.910（论文 0.93/0.94/0.91）。
+  该 1000 形状**无人类评分**且与 H1 不相交 → 仅模型对模型；**未跑其检索臂**。
+  证据 `results/figure8_network_audit.json`，复现 `scripts/audit_figure8_networks.py`。
+- 单查询成本（~1400 候选）：E0 ≈ 0.1 s、E1 ≈ 12 s、E3 ≈ 58 s（CPU）。
+
+验证：`pytest -q` → **777 passed**；`ruff check .` 全过；`mypy` 38 文件无问题。
+复现：`run_shape_benchmark.py --stage d2 d3 d4` → `--stage summary` → `plot_shape_benchmark.py --figure all`。
+
+### Checkpoint 4：人类评分相关性 + 工程结论（待做）
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**
