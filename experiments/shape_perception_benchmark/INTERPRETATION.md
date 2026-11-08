@@ -93,7 +93,7 @@ S0K1/S0K2 与发布 S0 统计不可区分，并显著胜过 E3（E3−S0K1 −0.
 (c) Figure 8 检索臂（998 可加载形状，模型对模型、披露预处理混淆）仍可选；
 (d) 更细旋转网格（如 36 步 / 10°）或朝向规范化能否把网格外 37°/191° 的少数失配也拉回 rank 1、并回收 φ=0 峰值损失。
 
-> Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 `a70c7bd`、CP5 `31e6b00`、CP6 `<pending>`（均已推送）。
+> Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 `a70c7bd`、CP5 `31e6b00`、CP6 `e43f587`（均已推送）。
 > 十问回答见 [`notes.md` Checkpoint 4](notes.md)，端口翻译/验证/六臂对比见 [`notes.md` Checkpoint 5](notes.md)，
 > 旋转搜索同条件对比见 [`notes.md` Checkpoint 6](notes.md)；
 > 官方可用性与端口证据见 [`official_shapecomp_status.json`](official_shapecomp_status.json)。

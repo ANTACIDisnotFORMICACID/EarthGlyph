@@ -689,4 +689,7 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   d5 实跑约 **39 分钟**（S0K 帧构建 + E3 检索扫描为主，帧缓存使 250 对扫描可控）。工具箱与权重仍 gitignored、不入库，许可边界同 CP5。
 - **工程整合判断（交用户决定）**：加旋转搜索后的实跑网络在**旋转检索**上已可用（rank 1 恢复、overlap≈E3），
   但**人类 agreement 未超 E3**、且牺牲无旋转峰值——故**不替换正式默认**；是否把"旋转可查找的 ShapeComp"纳入产品由用户定。
-- **Git 检查点**：CP6 工作提交 `<pending>`。
+- **Git 检查点**：CP6 工作提交 `e43f587`（`feat: add rotation search to ShapeComp port and compare under
+  identical rotation (P0-4.6 CP6)`），已推送 `origin main`（ssh.github.com:443）；核验
+  `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` ==
+  `e43f587107faa4bb7bed9666338464c680febd3d`，作者 `ANTACIDisnotFORMICACID`。CP1–CP5 见上。

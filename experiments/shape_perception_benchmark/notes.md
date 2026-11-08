@@ -767,4 +767,7 @@ d5 took ~39 min wall (the S0K frame builds and E3 retrieval sweep dominate; the 
 250-pair sweep tractable). Toolbox and weights remain gitignored and uncommitted; the wrapper inherits the
 same licence boundary as Checkpoint 5.
 
-Git checkpoint: CP6 work commit `<pending>`.
+Git checkpoint: CP6 work commit `e43f587` (`feat: add rotation search to ShapeComp port and compare under
+identical rotation (P0-4.6 CP6)`), pushed to `origin main` (ssh.github.com:443); verified
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` ==
+`e43f587107faa4bb7bed9666338464c680febd3d`, author `ANTACIDisnotFORMICACID`. CP1–CP5 shas are above.

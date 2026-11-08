@@ -470,7 +470,7 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 `run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2` → `--stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`
 → `--stage summary` → `plot_shape_benchmark.py --figure all`。工具箱与权重不入库（gitignored）。
 
-### Checkpoint 6：给 ShapeComp 端口加旋转搜索并与各臂同旋转条件对比 ✅（`<pending>`）
+### Checkpoint 6：给 ShapeComp 端口加旋转搜索并与各臂同旋转条件对比 ✅（`e43f587`）
 
 > 触发：用户明确"本项目的目的就是实现旋转可查找"，要求对 shapecomp 加上旋转分析能力、
 > 与有旋转设计的方案在**同一旋转条件**下对比。属方法优化研究，**不改正式检索默认、不跨 P0 门禁**。
