@@ -625,7 +625,7 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   **KerNet2 对 H2 发布 KerNet2 坐标近乎精确**——逐维 r 0.9982、成对 Spearman **0.9989**、RMSE **0.0065**；
   KerNet1/2 对 Figure 8 发布网络列 Spearman **0.980/0.957**，残差是**输入溯源**（存档轮廓是原始非均匀显示轮廓，
   非网络精确输入；跳过重采样塌到 ~0.56，证明流水线必需且正确；999/1000 已顺时针，故保留的顺时针步近乎 no-op）。
-  **H1 不是忠实度测试**（`is_faithfulness_test:false`）：其 `shape1SC/shape2SC` 是**原始 91 维** ShapeComp MDS
+  **H1 不是忠实度测试**（`is_faithfulness_test:false`）：其 `shape1SC/shape2SC` 是**原始 109 描述子模型的 22 维** ShapeComp MDS
   坐标（另一模型/基），逐维 r 无意义（均值≈−0.06），成对 Spearman≈0.927/0.929 衡量神经近似对原始模型的追踪。
 - **D1（六臂，主真值 H1，agreement ρ 正=更好，两级配对 bootstrap）**：
   S0 0.9108 / **S0K1 0.9032** / **S0K2 0.9005** / E3 0.8391 / E1 0.7824 / E0 0.6831。
@@ -748,4 +748,82 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   `ruff check .` 全过；`mypy` 无问题。唯一触及共享辅助函数的改动是 `_interval()` 在全 replicate 退化时改抛
   `ValueError`（原先在 `np.quantile` 内崩），真实数据不触发（各臂 2000/2000 有效 replicate）。
 - **边界**：本轮**未**改生产默认检索器、**未**引入真实水体数据、**未**重跑 D1–D5 打分；CP7-C（R0/R1/R2 + T0/T1/T2）
-  与 CP7-D（F1–F4、图与最终报告）仍未做。
+  与 CP7-D（F1–F4、图与最终报告）见下一节，A/B 两节本身未触碰检索数字。
+
+## shape_perception_benchmark · Checkpoint 7 C/D（P0-4.6 · 冻结旋转方案对照 + 接口/术语/许可审计，2026-11-09）
+
+详细设计与逐条判读在 `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7（C1–C7、D1–D6）
+与 §十问；决策记录 **D64–D76**。本节只留复现命令与关键数值。
+
+**CP7-C 冻结旋转研究**
+
+- 复现：`python scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2`（需工具箱）
+  → `results/d6_retrieval_results.csv`（3456 行）、`d6_top10_hits.csv`、`d6_agreement_results.csv`（28000 行）、
+  `d6_rotation_metrics.json`；随后 `--stage summary`；图：`python scripts/plot_rotation_checkpoint7.py`。
+- **设计在运行前冻结**（产物 `design.frozen_before_run=true`）：12 查询（覆盖星状/心形/新月/分叉/细长/近圆/对称多解）
+  × 5 角度槽（`on_grid`×1、`mid_grid`×2、`random`×2；栅格步长 15°，`random` 距栅格与中点均 ≥2.0°）
+  + 1 control = **72 单元/臂/条件**，条件 T0/T1/T2，**主条件 T2**（删精确目标 + 删刚性近重复，阈值 0.05），
+  seed 20261107，top_k 10，16 臂。每臂每单元都跑 ⇒ 不存在"少跑难例换速度"的自由度。
+- 新模块 `earthglyph/shape_benchmark/rotation_methods.py`（+ `tests/test_shape_benchmark_rotation_methods.py`
+  **48** 项，注入 scorer 后**无需工具箱**即可运行）：`naive(1,1)`、`R0(24,1)`（= CP6 搜索，等值测试钉住）、
+  `R1_36(36,1)`、`R1_72(72,1)`、`R2(1,1)` 双向朝向规范化、`R3(24,24)` 双向多方向 min。
+  选姿态**不看目标/类别/图库**（`test_pose_choice_never_consults_the_gallery`），
+  R3 多姿态仍每形状一条（`test_r3_adds_gallery_poses_without_changing_the_query_grid`）。
+- **T2 关键数值**（同族 Top-1 / Top-1 稳定性 / Recall@10 / MRR / NDCG@10 / Top-10 重合 / 平均排名位移 / s 每查询）：
+  E1 **0.833**/1.000/0.267/0.879/0.722/0.995/0.2/0.013；
+  S0K2/R2 **0.764**/0.972/0.225/0.819/0.621/0.958/0.7/**0.009**；E0 0.750/1.000；S0K1/R3 0.694/0.778/
+  **0.288**/0.811/**0.735**/0.810/5.1/0.086；S0K1/R0 0.611/0.736；S0K1/R1_72 0.611/0.833/0.244/0.743/0.612/**0.911**/1.8/0.183；
+  **naive 0.264 / 0.250，稳定性 0.250 / 0.208**，且 72 单元中分别 **36 / 40** 个在 Top-10 内**无同族形状**
+  （首个同族 rank 达 250 / 241），平均位移 **46.5 / 45.9**、最大 **343 / 324**。
+- **错误吸引**（目标距离 − 最近异类距离，正=安全）：naive **−0.273 / −0.263**，包装器全部为正 +0.248…+0.593。
+  缓存与逐对距离最大偏差 **0.0**（16 臂 × 40 检查）⇒ 预计算只改变耗时。
+- **R2 严格不变性的直接验证**：`python scripts/verify_r2_pose_invariance.py` →
+  `results/r2_pose_invariance_check.json`。同一轮廓 37/191/270° 下 naive 坐标移动 **0.61–2.04**
+  （坐标范数 ~1.22，即超过自身长度），R2 在有主轴的 11 条上 **≤5.1e-14（K1）/ 恰好 0.0（K2）**；
+  唯一 `isotropic-fallback` 轮廓 `device2-1` 上 R2 与 naive **逐位相同**（0.1523/0.4336）⇒ 无轴即完全不生效。
+  图库侧状态统计：362 条轮廓 `ok` 343 / `minor` 4 / `isotropic-fallback` **13** / `sign-tie` **2**；
+  R2 与 E3 同一条轮廓朝向差最大 **180°**（317 条比较，中位 0）；规范化轮廓栅格化后 mask 主轴偏差最大 **179.6°**（tree-1）。
+- **预计算成本**：图库 2.899 s、E3 canonical 0.156 s、姿态栅格 **KerNet1 22.363 s / KerNet2 78.404 s**（一次性，按 network×strategy 缓存）。
+- **人类一致性（与检索分表，永不合并）**：E3/sample **0.839** > S0K1/R3 0.830 ≈ S0K2/R3 0.829 > E1 0.782 >
+  S0K2/R0 0.774 > S0K1/R0 0.747 > E0 0.683 > S0K2/R2 0.677 > S0K1/R2 0.639 > naive 0.458 / 0.434。
+  配对差（共用 replicate，250 簇）：R3−R0 = **+0.081 [+0.055,+0.108]**（K1）、**+0.055 [+0.034,+0.078]**（K2）；
+  R2−R0 = **−0.108 [−0.180,−0.045]**；R3−naive = +0.388 / +0.365。
+  R2 的 7 角度一致性曲线**完全平**（spread `0.000e+00`）——配合上面的坐标检查才说明"不变"而非"丢弃姿态"。
+
+**CP7-D F1–F4**
+
+- **F1**：`python scripts/measure_e1_orientation_sensitivity.py` → `results/f1_e1_orientation_sensitivity.{json,csv}`
+  （11 探针 × 12 姿态，91 维）。结论：`principal_frame()` 手构特征向量在**协方差对角且大方差在 y**时下溢走 `+x`
+  兜底，交付帧与主轴差 **90°** 而状态仍写 `canonical`（5 探针各 2 姿态命中，漂移 ~80× 于轴正确姿态）；
+  isotropic fallback（circle/hexagon/near_circle/square/star5）最坏 all-drift 0.0242、直方图块 0.6825；
+  所有探针的旋转位移均未超过到最近异类的距离。**故意不修**（修它=重跑全部已提交 E1 数字），只记录 + 另立方案：
+  E1 的 24 姿态查询侧 min 实测 0.0116→0.2787 s/查询，自距离 0.1327→0.0167（去除 87.4% 旋转位移），
+  异类距离比值 0.9999（最坏 1.0）⇒ **计价，不采纳**。
+- **F2**：`allow_mirror` 对 `S0/S0K1/S0K2` 改为**显式 `ValueError`**（`_require_mirror_support`，在载入权重前触发）；
+  连带修两处更隐蔽的静默无效——① 含镜像的缓存无视 `allow_mirror=False` 仍使用镜像（改为按开关取用，
+  `test_a_mirror_capable_cache_still_obeys_the_query_flag` 双向断言）；② E1 `fit_normalizer` 把浮点残差列
+  （H1 6 列，极差 5e-17–4e-16）除成 2.4–8.6 距离，使自身镜像永不可能胜出（加 `_SPREAD_FLOOR_RELATIVE=1e-12`；
+  两套真实语料**改变 0 列**，最小真实极差比地板高 5–8 个数量级，`shapecomp_port_validation.json` 重跑 0 个数值变化）；
+  ③ `Gallery(e3_params={"allow_mirror":True})` + `search_shape("E3")` 的 `TypeError` 关键字冲突。
+- **F3**：术语统一为"官方 **109** 描述子 → **22** 维 MDS；91 是 EarthGlyph 自写 E1 的宽度"，
+  含两处**代码生成字符串**（arm_availability、`reference_semantics`）；核实仓库从未声称复现 109 维引擎
+  （`getShapeComp22.m:26` 即 `SC = predict(net2, points)`）。**无任何结果数值变化**（错在文字）。
+- **F4**：README 新增 "Official toolbox" 节（作者渠道取回 → 放仓库根 `shapeComp_17_12_2024/` → 用
+  `validate_shapecomp_port.py` 比对 24 项 SHA256）；`.gitignore` 增 `*.h5`、`shapeComp_*.zip`。
+  **CC BY 只覆盖论文与其数据沉积，不构成工具箱权重/源码的再分发许可**。
+
+**交付图**：`checkpoint7/rotation_methods_overview.png`(1 233 404 B)、`rotation_rank_stability.png`(478 131 B)、
+`rotation_human_agreement.png`(313 592 B)、`rotation_failure_cases.png`(443 286 B)、
+`shapecomp_port_diagnostics.png`(243 908 B，CP7-A)。
+出图过程发现并修掉一处真实缺陷：`d6_top10_hits.csv` 的 pose 四舍五入到 3 位小数而
+`d6_retrieval_results.csv` 保留全精度，`abs(pose−angle)<1e-6` 的联配对 8 个最差单元中的 3 个匹配 0 条 ⇒
+**空白面板 = 静默删除证据**；容差改 1e-3° 后 8 行均 `matched=10`。
+失败原因只在有存储测量支撑处标注，否则写 `cause undetermined - not guessed (open item)`。
+
+**探索性披露**：R1/R2/R3 与 F1 的 E1 旋转搜索方案均在**同一冻结样本**上设计、调参与评价，
+无独立保留集、无新人类评分 ⇒ 属探索性结论；角度集为**固定设计因子**（D62）。
+
+**验证**：`pytest -q` **通过**、`ruff check .` 全过、`mypy` 40 个源文件无问题。
+
+**边界**：未改生产默认检索器；未引入真实水体数据；官方 MATLAB 与 `.h5` 只读未改；本轮到此停止，
+不做 Web UI、不扩大图库。

@@ -450,7 +450,7 @@ E0 镜像、E3 旋转网格为已测缺陷。验证：`pytest -q` 777 passed、`
 - **忠实度验证**（`scripts/validate_shapecomp_port.py` → `results/shapecomp_port_validation.json`）：
   **KerNet2 对 H2 发布坐标近乎精确**（逐维 r 0.9982、成对 Spearman 0.9989、RMSE 0.0065）；
   KerNet1/2 对 Figure 8 发布列 Spearman 0.980/0.957（残差=输入溯源，非端口 bug；跳过重采样塌到 ~0.56）。
-  **H1 非忠实度测试**（其坐标是原始 91 维 ShapeComp，另一基；逐维 r 无意义，成对 Spearman≈0.93 衡量近似追踪）。
+  **H1 非忠实度测试**（其坐标是原始 109 描述子模型的 22 维 ShapeComp MDS，另一基；逐维 r 无意义，成对 Spearman≈0.93 衡量近似追踪）。
 - **D1 六臂**（agreement ρ 正=更好）：S0 0.911 > **S0K1 0.903** > **S0K2 0.900** > E3 0.839 > E1 0.782 > E0 0.683。
   **网络间三差全含 0**（实跑网络与发布原始空间统计不可区分）；**每个 EarthGlyph 臂对每个网络臂差全排除 0**
   （E3−S0K1 −0.064 [−0.125,−0.013]、E0−S0K1 −0.220）。H2 辅助：S0K2 0.762 匹配发布 0.766，S0K1 0.630 较低
@@ -605,20 +605,58 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 决策记录 **D61–D63**。Git 检查点：工作提交 `193c0f8`（`fix: sample the D5 rotation sweep by rated
 pair, not by angle-row (P0-4.6 CP7-B)`），已推送 `origin main` 并核验 `git ls-remote` == `HEAD`。
 
-#### CP7-C：旋转方案与判别式检索（待做）
-R0 = 现有 24 步查询侧搜索；R1 = 24/36/72 步细网格；R2 = 查询与图库双向朝向规范化（须处理主轴 180° 歧义、
-近圆 / 五角星的不稳定轴、对称多解、噪声跳变、图像与轮廓轴一致；**不得用目标标签选朝向**；是待验证假设）；
-R3 可选双向多方向 min（须预缓存、检查错形状吸引、报告成本，**不把多方向候选当独立图库对象**）。
-检索拆 T0（目标在库）/ T1（移除精确目标）/ **T2（再移除刚性近重复，本阶段主评条件）**，
-固定种子随机角度须在跑前定死查询数与角度数，**不得按失败案例改抽样范围再以同批样本宣布改进**。
+#### CP7-C：旋转方案与判别式检索 ✅（工作提交待补，已推送并核验）
 
-#### CP7-D：接口、术语、许可与交付（待做）
-F1 `perceptual_features.principal_frame()` 的 `isotropic-fallback` 仍旋转敏感 ⇒ "E1 天然严格旋转不变"表述不实，
-须补五角星 / 近圆 / 正多边形 / 噪声对称测试实测旋转变化与 rank 影响，优化作为**独立方案**、不改旧基线；
-F2 `search_shape(..., allow_mirror=True)` 在 S0K 分支**惰性无效** ⇒ 要么显式拒绝要么实现可验证镜像搜索；
-F3 术语：官方 109 描述子 vs 自实现 E1 的 91 维 vs KerNet1/2 的 22 维 vs S0 发布坐标 vs 实跑网络，
-须核实没有任何地方声称完整复现 109 维模型；F4 README 说明如何从作者官方渠道取得工具箱、
-**不把论文 CC BY 自动视为权重再分发许可**。产物：`checkpoint7/` 五图 + 十问报告 + 全量 pytest / ruff / mypy + 提交推送。
+- **冻结设计（跑前写死，产物 `design.frozen_before_run=true`）**：12 查询（星状/心形/新月/分叉/细长/近圆/对称多解）
+  × 5 角度槽（`on_grid`×1、`mid_grid`×2、`random`×2，步长 15°，`random` 距栅格与中点均 ≥2°）+ control
+  = **72 单元/臂/条件**；T0/T1/**T2（主条件）**；seed 20261107、top_k 10、16 臂、3456 检索行 + 28000 评分行。
+  **每臂每单元都跑** ⇒ 没有"跳难例换速度"的自由度，也没有看见失败后重抽角度。
+- **四方案**（`earthglyph/shape_benchmark/rotation_methods.py`，48 项测试无需工具箱）：
+  `naive(1,1)`、`R0(24,1)`（等值于 CP6 搜索，测试钉住）、`R1_36/R1_72`、`R2(1,1)` 双向朝向规范化、`R3(24,24)`。
+  **姿态选择只看一条轮廓**（`test_pose_choice_never_consults_the_gallery`）⇒ 无目标标签泄漏；
+  R3 多姿态每形状仍一条（不作独立图库对象）。
+- **T2 同族 Top-1**：**E1 0.833** > S0K2/R2 0.764 > E0 0.750 > S0K1/R3 = E3/sample 0.694 > S0K2/R3 0.653 >
+  S0K1/R0 = S0K1/R1_72 0.611 > S0K1/R2 0.583 > S0K2/R1_36 = R1_72 0.542 > S0K2/R0 0.514 > **naive 0.264 / 0.250**。
+  类级深度归 **R3**（S0K1/R3 Recall@10 0.288、NDCG@10 0.735）。稳定性归 **R2**（0.958/0.972，位移 0.3/0.7）。
+  naive 在 72 单元中 **36/40** 个 Top-10 内无同族形状（首个同族 rank 达 250/241），位移最大 343/324，
+  错误吸引为**负**（−0.273/−0.263）而四个包装器全为正。
+- **细网格结论**：24→72 步 Top-1 持平/微升，稳定性与重合显著上升，代价 3× 查询耗时 ⇒ **买的是可预测性不是精度**。
+- **规范化结论（两侧都报）**：便宜且严格不变 —— 直接验证 `results/r2_pose_invariance_check.json`：
+  同一轮廓 37/191/270° 下 naive 坐标移动 0.61–2.04（范数 ~1.22），R2 在有主轴的 11 条上 ≤5.1e-14（K1）/恰好 0.0（K2），
+  而唯一 `isotropic-fallback` 轮廓上 R2 **与 naive 逐位相同** ⇒ 无轴即完全不生效；
+  图库 362 条：`ok` 343 / `minor` 4 / `isotropic-fallback` 13 / `sign-tie` 2；与 E3 朝向规则同一条轮廓最大差 **180°**；
+  规范化轮廓栅格化后 mask 轴最大偏差 179.6°。**且 R2 的人类一致性最低（0.639/0.677）**。
+- **目标 A/B 分表**：一致性最高 E3/sample 0.839、R3 0.830/0.829（配对 R3−R0 = +0.081/+0.055，R2−R0 = −0.108）；
+  检索最高 E1 0.833。**不合并成"综合更好"**。预计算：图库 2.90 s、E3 canonical 0.16 s、姿态栅格 K1 22.4 s / K2 78.4 s。
+- **探索性披露**：R1/R2/R3 在同一冻结样本上设计+调参+评价，无保留集、无新人类评分。
+
+验证：`--stage d6` → `--stage summary` → `scripts/plot_rotation_checkpoint7.py`；`pytest` **874 passed**、
+`ruff check .` 全过、`mypy` 40 源文件无问题。数值与判读见 notes §C1–C7；决策 **D64–D71**。
+
+#### CP7-D：接口、术语、许可与交付 ✅（工作提交待补，已推送并核验）
+
+- **F1（实测，故意不修）**：`principal_frame()` 手构特征向量在**协方差对角且大方差在 y**时下溢走 `+x` 兜底，
+  交付帧与自身主轴差 **90°** 而状态仍写 `canonical`（5 探针各 2 姿态命中，漂移 ~80×）；
+  isotropic fallback 最坏 all-drift 0.0242 / 直方图块 0.6825；所有探针旋转位移均未超过最近异类距离。
+  修它将重跑全部已提交 E1 数字 ⇒ 只记录（docstring warning + D74）；E1 的 24 姿态 min 作**独立方案计价不采纳**
+  （0.0116→0.2787 s/查询，自距离 0.1327→0.0167，异类比值 0.9999）。
+- **F2（三处真实缺陷）**：`allow_mirror` 对 S0/S0K1/S0K2 改**显式拒绝**（载入权重前触发，可测）；
+  含镜像缓存曾无视 `allow_mirror=False` 仍用镜像（现按开关取用 + 双向断言测试）；
+  E1 `fit_normalizer` 把 6 列浮点残差（极差 5e-17–4e-16）放大成 2.4–8.6 距离使镜像永不胜出（加 1e-12 相对地板，
+  **真实语料改变 0 列**、validation 数值 0 变化）；另修 `e3_params` 与调用参数的 `TypeError` 冲突。
+- **F3**：官方 **109 描述子 → 22 维 MDS**，91 仅为 EarthGlyph 自写 E1 宽度；纠正文档 + 两处**代码生成字符串**，
+  核实从未声称复现 109 维引擎（`getShapeComp22.m:26` = `SC = predict(net2, points)`）；结果数值 0 变化。
+- **F4**：README "Official toolbox" 节 + `.gitignore` 增 `*.h5`/`shapeComp_*.zip`；
+  **CC BY 覆盖论文与其数据沉积，不构成工具箱权重/源码再分发许可**；不提交压缩包与权重，只提交 manifest + 复现命令。
+- **五图**（`checkpoint7/`）：`rotation_methods_overview`(1.23 MB)、`rotation_rank_stability`(478 KB)、
+  `rotation_human_agreement`(314 KB)、`rotation_failure_cases`(443 KB)、`shapecomp_port_diagnostics`(244 KB，CP7-A)。
+  出图发现真实联调缺陷：hits CSV 的 pose 四舍五入 3 位 vs 结果 CSV 全精度 ⇒ `1e-6` 容差使 8 个最差单元中 3 个
+  匹配 0 条、面板空白；改 `1e-3` 后 8 行均 `matched=10`。失败原因仅在有存储测量处标注，否则 `cause undetermined`。
+- **十问报告**：见 [`notes.md` §Checkpoint 7 — the ten acceptance questions](../experiments/shape_perception_benchmark/notes.md)。
+  摘要：**不建议**把 ShapeComp 纳入生产默认检索；最明确技术阻塞 = "能对新轮廓打分的 ShapeComp 路线
+  无法同时超过 E1 的旋转鲁棒性与保住人类一致性，而胜出感知的一侧（发布 22 维坐标）在查询时根本不可用"。
+
+**边界遵守**：未改生产默认检索器、未引入真实水体库、官方 MATLAB/权重只读未改；本轮到此停止。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 

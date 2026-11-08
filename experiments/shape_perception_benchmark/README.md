@@ -32,8 +32,8 @@ statistically indistinguishable from the published original ShapeComp space**, a
 every EarthGlyph arm. Human consistency on the same pairs: observer-vs-observer median ρ = 0.601,
 leave-one-out median = 0.779.
 
-**S0 vs S0K1/S0K2.** `S0` is the authors' *published* 22-D coordinates (the original
-91-descriptor ShapeComp MDS space) and cannot score a new shape, so it appears in D1 only.
+**S0 vs S0K1/S0K2.** `S0` is the authors' *published* 22-D coordinates (the MDS projection of the
+original **109**-descriptor space) and cannot score a new shape, so it appears in D1 only.
 `S0K1`/`S0K2` are the authors' **own Keras weights executed locally** through a numpy port
 (h5py, no TensorFlow, no retraining); they *can* score new shapes and therefore appear in every
 retrieval stage. On H1 the run networks track the published space closely (pairwise Spearman
@@ -98,7 +98,7 @@ pass + L2 → **≈ 0 s marginal**, far cheaper than E3 at query time — but ro
     non-uniform 384-point display contour, not the exact normalised network input; skipping the
     resample collapses agreement to ~0.56, confirming the pipeline is required and correct.
   - **H1 is *not* a faithfulness test:** its `shape1SC/shape2SC` are the **original
-    91-descriptor** ShapeComp MDS coords (a different model/basis), so per-dim r is meaningless
+    109-descriptor model's** 22-D MDS coords (a different model/basis), so per-dim r is meaningless
     there; pairwise Spearman ≈ 0.93 measures how well the neural approximation tracks the
     original model.
 - **Historical availability (Checkpoint 1, still true at the time):** the MATLAB toolbox,
@@ -200,18 +200,75 @@ distance direction are wired correctly before any EarthGlyph arm is compared.
 Raw downloads are rebuildable from the URLs + checksums in `dataset_manifest.json`, so
 they stay out of Git per `AGENTS.md`.
 
+## Official toolbox: how to get it, and what never enters this repository
+
+**P0-4.6 Checkpoint 7-D, item F4.** `S0K1`/`S0K2` cannot run without the authors' toolbox, and no
+script here downloads it — nothing in this repository fetches, unpacks or vendors it.
+
+1. **Obtain it from the authors, not from us.** The entry point is Yaniv Morgenstern's own tools
+   page, <https://sites.google.com/view/yanivmorgenstern/home/tools/shapecomp>, which links the
+   current toolbox archive (the 2024 build `shapeComp_17_12_2024` was reached through the authors'
+   Google Drive link; the earlier `shapeComp_31_05_2021.zip` is on their Dropbox). Both URLs, the
+   article DOI (`10.1371/journal.pcbi.1008981`) and the Zenodo data DOI (`10.5281/zenodo.4730985`)
+   are recorded in `results/official_toolbox_hashes.json → official_pages`, so the route is part of
+   the provenance rather than of this prose.
+2. **Place it at the repository root** as `shapeComp_17_12_2024/`. That name is the default the
+   port looks for (`earthglyph/shape_benchmark/shapecomp_port.py:DEFAULT_TOOLBOX`);
+   `scripts/*.py --toolbox PATH` overrides it. `.gitignore` already excludes the directory.
+3. **Verify before trusting it.** Run `scripts/validate_shapecomp_port.py`. It re-hashes the files
+   the port actually reads and compares them with `official_toolbox_hashes.json`, which lists 24
+   inputs — the three `net/keras/*.h5` weight files, every `ShapeComp_src/*.m` the port translates,
+   `ShapeComp Readme.rtf`, `loadShapeComp.m` — each with byte count, SHA256 and upstream mtime.
+   A mismatch means the numbers below were produced against a different artefact than yours.
+4. **What stays out of Git, and why.** The `.h5` weights, the toolbox archive, and every copied
+   `.m` / `.c` / `.mex`. `.gitignore` blocks the whole `shapeComp_17_12_2024/` directory and, so a
+   copy elsewhere cannot quietly succeed, `*.h5` and `shapeComp_*.zip` as well. The repository
+   commits *hashes, byte counts and the commands that regenerate everything*, which is enough to
+   reproduce and to detect substitution, without redistributing anyone else's binaries.
+5. **Licence, stated plainly.** The article is CC BY-4.0 and the Zenodo deposit is CC BY-4.0.
+   **Neither licence covers re-publishing the toolbox weights.** CC BY-4.0 licenses the *article
+   and its deposited data*; the `net/keras/*.h5` binaries and the MATLAB sources are a separate
+   distribution that carries only the authors' "please cite" notice in `ShapeComp Readme.rtf` and
+   no explicit redistribution grant. So "the paper is CC BY" must never be shortened into "the
+   weights may be mirrored here". The vendored third-party code inside the toolbox is a third
+   licence again — `misc/geom2d` is BSD-3 (INRA, D. Legland), `misc/psignifit` is GPLv3 — and none
+   of it is executed by the port or shipped in this repository.
+6. **Cite the source if you use these arms.** Morgenstern et al. (2021), *PLOS Computational
+   Biology* 17(1): e1008981, plus the toolbox version you actually loaded. The full reference is
+   in `official_toolbox_hashes.json → citation`.
+
 ## Naming discipline
 
-Four things are kept strictly apart in every table and figure:
+**P0-4.6 Checkpoint 7-D, item F3.** Five different numbers get talked about in the same sentence
+and describe four different things. They are kept apart in every table and figure:
 
-1. **S0** — official ShapeComp, here only as *published precomputed coordinates* (the original
-   91-descriptor MDS space). Outputs only; cannot score a new shape; D1 only.
+| Name | What the number counts | Where it comes from | Can it score a new shape? |
+|---|---|---|---|
+| **109** | the **official descriptor set** — the full ShapeComp feature list (S1 Table of the paper) | the authors' MATLAB engine, which the 2024 toolbox does **not** contain | no — the engine is not obtainable, so nothing here computes it |
+| **22** | the **official coordinate space** — classical MDS of those 109 distances over 25,712 animal silhouettes, first 22 dims | `S0` published columns; `S0K1`/`S0K2` network outputs | `S0`: no. `S0K1`/`S0K2`: yes |
+| **91** | **EarthGlyph E1 only** — the self-written, ShapeComp-*inspired* descriptor vector (global 10 + moments 6 + curvature 18 + fourier 15 + histogram 42) | `earthglyph/retrieval/perceptual_features.py` | yes |
+| **20** | the production sketch-retrieval feature vector (Hu + Fourier + alignment extras) | the pre-benchmark pipeline | yes, and it is **not** what any benchmark arm runs |
+
+Read off that table:
+
+1. **S0** — official ShapeComp as *published precomputed coordinates only*: the 22-D MDS
+   projection of the authors' 109-descriptor space. Cannot score a new shape; D1 only.
 2. **S0K1 / S0K2** — the authors' **own KerNet1 / KerNet2 weights actually run** through the
-   numpy port. These *are* official network outputs (validated against the published columns),
-   can score new shapes, and appear in every stage. Not rotation/mirror invariant.
-3. **E1** — EarthGlyph **ShapeComp-inspired**, 91 self-written descriptors. Never
-   relabelled as official, never credited with official results.
+   numpy port (h5py forward pass, no TensorFlow, no retraining). These *are* official network
+   outputs (validated against the published columns), can score new shapes, and appear in every
+   retrieval stage. Not rotation/mirror invariant.
+3. **E1** — EarthGlyph **ShapeComp-inspired**, 91 self-written descriptors. Never relabelled as
+   official, never credited with official results, and **never described as a port of the 109**.
 4. **E0 / E3** — EarthGlyph geometric alignment / Shape Context.
+
+> **Correction (2026-11-09).** Earlier drafts of this file, `INTERPRETATION.md`, `notes.md`,
+> `docs/TASKS.md` and the experiment log described the published `shape1SC/shape2SC` columns as
+> "the original **91**-descriptor ShapeComp MDS space". That was wrong in two ways at once: the
+> official descriptor count is **109**, and the coordinates themselves are **22**-dimensional.
+> The 91 belongs to E1, which is EarthGlyph's own set. The wording is corrected everywhere it
+> appears; no number in any result file changes, because the mistake was in prose only. Anyone
+> reading an older commit should treat "91-descriptor ShapeComp" as "109-descriptor model, 22-D
+> coordinates".
 
 No self-written **descriptor** port was created, because the brief forbids passing one off
 as a ShapeComp reproduction. The port that *was* written translates only the official

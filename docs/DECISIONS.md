@@ -649,3 +649,95 @@ E1/E2/E3 的候选按原方向叠加，读者看到的"像不像"里混进了"�
   前提是"旋转其中一个成员不改变被试感知到的相似度"。本轮**未**复测任何旋转对，也不存在新的评分。
   因而 (a) 的 agreement 度量的是"对图像变换的不变性"，**不是**"人类对旋转形状的判断一致性"；
   主判据仍是 D54 的 (b) 检索，本条不得被升格为人类感知证据。
+
+## 旋转方法对照 R0/R1/R2/R3 与三档目标条件（P0-4.6 Checkpoint 7 · CP7-C，2026-11-09 新增）
+
+- **D64 冻结设计先行：12 查询 × 5 角度 × 3 条件 × 16 臂，先声明后运行** — 查询、角度槽位
+  （on_grid / 两个 mid_grid / 两个 random）、T0/T1/T2 与主条件 T2 全部写在
+  `scripts/run_shape_benchmark.py` 的 `D6_*` 常量里，`design.frozen_before_run=true` 记入产物。
+  **不允许看见失败样本后重抽角度或换查询再以同批宣布改进**：每个臂在每个单元都跑，
+  任何"跳过难例换速度"的做法都会让臂间不可比，故本设计里没有这种自由度。
+  统计：60 个 query×angle 单元/臂/条件，未旋转姿态另作 control 行，不进入旋转头部汇总。
+- **D65 无目标条件（T2）下，没有任何 ShapeComp 臂追上 E1 的 Top-1** — T2 同族 Top-1：
+  **E1 0.833** > S0K2/R2 0.764 > E0 0.750 > S0K1/R3 0.694 > E3/sample 0.694 > S0K2/R3 0.653 >
+  S0K1/R0 0.611 > S0K1/R1_36 0.597 > S0K1/R2 0.583 > S0K2/R1_36=R1_72 0.542 > S0K2/R0 0.514 >
+  **naive 0.264 / 0.250**（塌方）。类级 Recall@10/MRR/NDCG@10 则是 **R3 最好**
+  （S0K1/R3 0.288/0.811/0.735，S0K2/R3 0.282/0.763/0.702）。⇒ 结论按指标分说：
+  "R3 类级召回最高"与"网络臂 Top-1 仍不及 E1"两句同时成立，缺一句即为误导。
+- **D66 更细栅格确有增益但只换来稳定性，不是精度** — R1_72 对 R0：T2 同族 Top-1 在 S0K1
+  持平（0.611 vs 0.611）、S0K2 微升（0.542 vs 0.514），而 **Top-1 稳定性** 明显上升
+  （S0K1 0.736→0.833，S0K2 0.625→0.764），代价 **3× 查询耗时**（0.062→0.183、0.209→0.626 s/查询）。
+  24 步（15°）栅格本身不是瓶颈，**格中点**才是：CP6 已证 24 步落不到中点上。
+- **D67 R2 是"便宜且严格不变"的一支，但其类级排序与感知一致性都偏低** — 查询侧 0.003/0.009 s，
+  与 naive 同价（无需搜索，图库侧也只在 canonical/bilateral 时才预缓存）；Top-1 稳定性 0.958/0.972 为全场最高。
+  但 agreement 只有 **0.639/0.677**，低于 R0/R1/R3（0.747–0.830），MRR 亦低于 R3。
+  实测其 7 个角度 agreement 曲线**完全同一**（差 0.000e+00），并用真实轮廓验证过这不是"旋转被丢弃"：
+  `scripts/verify_r2_pose_invariance.py` → `results/r2_pose_invariance_check.json`，同一 contour 在
+  37/191/270° 下 **naive 坐标移动 0.61–2.04**（坐标范数约 1.22，即超过自身长度），
+  而 R2 在**有主轴的 11 条**上仅移动 **≤5.1e-14（KerNet1）/ 恰好 0.0（KerNet2）**；
+  第 12 条 `device2-1` 是冻结集中唯一的 `isotropic-fallback`，其 R2 移动与 naive **逐位相同**
+  （0.1523/0.4336）⇒ 无轴形状上 R2 **等价于不做任何事**，此结论按形状报告而非取平均。
+- **D68 R3 的 24×24 图库预缓存必须计入成本，且不得当作 24 个独立对象** — 预计算
+  `gallery_pose_embeddings`：S0K1 **22.4 s**、S0K2 **78.4 s**（一次性，按 network×strategy 缓存），
+  查询侧 0.086/0.231 s。多姿态是同一形状的姿态行，检索仍每形状一个条目；
+  `pose_embeddings()` 对 naive/R0/R1 直接复用 `kernet_coords()[:, None, :]`，并有确定性测试钉住，
+  保证包装器不能对"候选是什么"给出与朴素臂不同的答案。
+- **D69 错误吸引在 naive 臂上为负、在包装器上为正，故包装器不只是把自匹配拉近** —
+  `attraction_gap_mean`（目标距离减最近异类距离，正=更安全）：S0K1/naive **−0.273**、S0K2/naive
+  **−0.263**，而 R0/R1/R2/R3 全部为正（0.248–0.593）。同时 naive 的 Top-10 与未旋转重合仅 0.28–0.29、
+  平均绝对排名位移 **46** 位；R2 位移 0.27/0.68 位。⇒ 旋转不变性问题真实存在，且 R2/R3 改善的是排序结构本身。
+- **D70 R2 朝向规范化用了第三矩符号，与 E1 的容差不互通** — 180° 歧义由环坐标第三矩符号决定，
+  `ISOTROPY_MAX=0.98`、`SIGN_TIE_TOLERANCE=1e-3`；E1 的 `principal_frame` 用面积矩与 `1e-9`。
+  **两套口径不能互相冒充"the canonicalisation"**：CP7-D F1 实测 E1 侧残差 |η30| 常在 1e-17 量级
+  （即由浮点噪声定符号），而该情形下描述子漂移只是丢轴情形的 ~1/80。
+  近似圆/正多边形/五角星触发 isotropic fallback（无轴可对），R2 在**这些形状上并不等价于**朴素不变。
+- **D71 目标 A 与目标 B 必须分表报告，本轮不得合并成"综合更好"** — 同一臂在两个目标上排序不同：
+  agreement（人类一致性）最高 **E3/sample 0.839**、R3 0.830/0.829；T2 检索 Top-1 最高 **E1 0.833**。
+  禁止用 A 的高 ρ 掩盖 B 的失败（naive：ρ 0.434/0.458 且 T2 Top-1 0.264/0.250 同时崩塌），
+  也禁止用 B 的自匹配精确宣布感知已完善（R2：稳定性 0.972 而 ρ 仅 0.677）。
+
+## 接口真实性、术语与工具箱来源（P0-4.6 Checkpoint 7 · CP7-D，2026-11-09 新增）
+
+- **D72 F2：`allow_mirror` 在无镜像分支的臂上改为显式拒绝，而非静默无效** —
+  `MIRROR_AWARE_METHODS = ("E0","E1","E3")`；`search_shape`/`pair_distance` 对 S0/S0K1/S0K2 传
+  `allow_mirror=True` 直接 `ValueError`（`_require_mirror_support` 在载入权重之前触发，故无工具箱也能测试）。
+  **理由**：给官方臂加一次镜像前向是新能力，须作为独立臂评价（同 CP7-C 的旋转包装器），
+  不能藏在一个布尔后面；"参数看似有效、实际无效果"正是本轮要点名的失效模式。
+- **D73 F2 连带发现并修掉两处更隐蔽的"静默无效"**（均为真实缺陷，非测试便利）：
+  ① `score_library_from_descriptors` 只在**报错**时看 `allow_mirror`，打分循环却无条件读取
+  `cached.mirror_contexts`——因此**含镜像的缓存会让每个查询悄悄用上镜像**，与自身 POLICY
+  ("only when allow_mirror=True") 相反；现改为 `mirror = cached.mirror_contexts[row] if allow_mirror else None`。
+  ② E1 的 `fit_normalizer` 对"仅由浮点残差变化"的列仍做 minmax 除法：实测 H1 语料有 **6 列**
+  全库极差 5e-17–4e-16（数学上恒定量），除以自己的残差后把它们放大成 2.4–8.6 的距离，
+  使"查询自身镜像"的描述子离查询 11.7 而直接匹配 7.0 ⇒ **镜像分支永远不可能胜出**。
+  现加相对地板 `_SPREAD_FLOOR_RELATIVE=1e-12`（`floor=1e-12·max(|center|,1)`）。
+  **基线未动证明**：两套真实语料被标记的列数 6→6、5→5，**改变 0 列**，最小真实极差 2.46e-4/2.09e-3
+  比地板高 5–8 个数量级；`shapecomp_port_validation.json` 重跑后 diff **仅 1 行文字、0 个数值**。
+  ③ 顺带修 `Gallery(..., e3_params={"allow_mirror": True})` + `search_shape(method="E3")` 的
+  `TypeError: got multiple values for keyword argument 'allow_mirror'`：缓存侧标志（构建期）
+  与查询侧标志（打分期）语义不同，打分前从转发的参数里取出前者。
+- **D74 F1：`principal_frame` 的"canonical"不等于拿到了主轴（实测缺陷，故意不修）** —
+  手构特征向量 `(top − cov[1,1], cov[0,1])` 在**协方差对角且大方差在 y**时下溢为零向量，
+  于是走文档化的 `+x` 兜底，交付的帧与形状自身主轴差 **90°**，而状态字仍写 `canonical`。
+  实测 11 探针 12 姿态：5 个（ellipse/elongated/heart/teardrop/two_lobed）各 2 个姿态命中，
+  这些姿态的描述子漂移是"轴正确"姿态的 **~80×**（ellipse 0.0186 vs 0.00023）。
+  参考轴用 `numpy.linalg.eigh` 在同一协方差上算出，故这是**测出来的量**不是论证。
+  修它要重跑全部已提交 E1 数字，属"悄悄改旧基线"，本轮**只记录**（docstring `.. warning::` + 本条），
+  优化须另立方案评价。同时实测： isotropic fallback（circle/hexagon/near_circle/square/star5，
+  全部姿态）最坏 all-drift 0.0242、最坏直方图块漂移 0.6825（跨形状标尺），
+  而**全部 11 探针的旋转位移都未超过到最近异类的距离**（`probes_whose_rotation_moves_further_than_the_nearest_other_shape = []`）。
+- **D75 F3 术语更正：官方是"109 描述子 → 22 维 MDS"，91 是 EarthGlyph 自写 E1 的宽度** —
+  此前 README/INTERPRETATION/notes/experiment_log/TASKS 与两处**代码生成的字符串**
+  （`run_shape_benchmark.py` 的 arm_availability、`validate_shapecomp_port.py` 写入 JSON 的
+  `reference_semantics`）把发布坐标写成"原始 91 维 ShapeComp MDS"，两处皆错（官方计数 109，
+  坐标维度 22）。全部改为"109 描述子模型的 22 维 MDS 投影"并保留更正记录；
+  **无任何结果文件数值变化**（错在文字）。核实：仓库各处**从未**声称完整复现 109 维模型，
+  `getShapeComp22.m:26` 实为 `SC = predict(net2, points)`，即 2024 工具箱确实不含 109 描述子引擎。
+- **D76 F4 工具箱来源与许可边界写进 README，并补两条 gitignore 兜底** —
+  README 新增"Official toolbox"节：从作者工具页取（附 2024 Drive / 2021 Dropbox / 论文 DOI /
+  Zenodo DOI，均已在 `official_toolbox_hashes.json` 里版本化）、放到仓库根 `shapeComp_17_12_2024/`、
+  用 `validate_shapecomp_port.py` 逐文件比对 24 项 SHA256。
+  **论文与 Zenodo 的 CC BY-4.0 只覆盖论文与其数据沉积，不构成工具箱权重/MATLAB 源码的再分发许可**
+  （上游仅"please cite"）；因此不提交原始压缩包、不提交 `.h5`、不 vendor 任何 `.m/.c/.mex`，
+  仓库版本化的是 manifest+复现命令。另在 `.gitignore` 增 `*.h5` 与 `shapeComp_*.zip`，
+  防止把权重拷到别处就绕过规则。
