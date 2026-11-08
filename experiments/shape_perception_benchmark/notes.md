@@ -753,6 +753,19 @@ stability, with E0/E1/E3 all recovering the exact target at rank 1 in every rota
 **Consistency check:** the cached frames scorer reproduces the committed D1 numbers exactly at φ=0
 (S0K1 0.903, S0K2 0.901 vs D1 0.9032 / 0.9005), confirming `run_d5`'s shortcut equals `pair_distance`.
 
+**Criterion alignment (decided with the user, 2026-11-08).** This project's requirement is *best retrieval when
+the query is rotated at random*, so study **(b)** is the primary criterion and **(a)** is supporting evidence
+that the representation tracks human similarity — they answer different questions and neither may be swapped in
+for the other. Judged on (b) the winner is **E0/E1 (21/21 rank 1, overlap 1.000)**, then **E3 (21/21)**, then
+**S0K1+rot (20/21)** and **S0K2+rot (19/21)**, with the naive arms far behind (1/21 and 4/21). The port's
+Checkpoint-5 lead lived entirely in (a), which never promised (b): what this checkpoint bought is
+"rotation-searchable", not a new retrieval champion. The follow-up that could challenge E0/E1 on (b) *and* keep
+(a) is orientation **canonicalisation of query and gallery alike** rather than a query-side `min`
+(acceptance: (b) ≥ 21/21 rank 1 **and** (a) ≥ E3's 0.839 — any regression vetoes the wrapper, and the comparison
+stays on the same 30-member D4 gallery so the denominators remain comparable). Both that wrapper and the
+cheaper "finer grid" alternative are **mechanism inferences, not measurements** — recorded as assumptions
+D55/D56 in `docs/DECISIONS.md`; the criterion itself is D54.
+
 ### Determinism
 
 E0/E1/E3 and the **naive** S0K paths are arithmetically unchanged by this checkpoint: `rotation_search`
