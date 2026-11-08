@@ -1,0 +1,14 @@
+=== d1 ===
+  H1 E0: 250 pairs in 0.0s
+  H1 E1: 250 pairs in 4.0s
+  H1 E3: 250 pairs in 12.3s
+  H1 S0K1: 250 pairs in 6.8s
+  H1 S0K2: 250 pairs in 8.2s
+  H1 S0: 250 pairs in 0.0s
+  E0: H1 agreement=+0.6831 [+0.589, +0.736] H2 agreement=+0.7203
+  E1: H1 agreement=+0.7824 [+0.703, +0.819] H2 agreement=+0.6584
+  E3: H1 agreement=+0.8391 [+0.762, +0.868] H2 agreement=+0.6936
+  S0K1: H1 agreement=+0.9032 [+0.846, +0.911] H2 agreement=+0.6298
+  S0K2: H1 agreement=+0.9005 [+0.846, +0.909] H2 agreement=+0.7622
+  S0: H1 agreement=+0.9108 [+0.856, +0.918] H2 agreement=+0.7656
+=== d1 done in 90.2s ===

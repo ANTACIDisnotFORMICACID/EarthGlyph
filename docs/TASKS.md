@@ -433,6 +433,43 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 遗留：官方代码/权重仍不可得；T3 干扰物太粗需换_part structure_ 匹配集；H2 与 Figure 8 永不并入 H1；
 E0 镜像、E3 旋转网格为已测缺陷。验证：`pytest -q` 777 passed、`ruff` 全过、`mypy` 38 文件无问题。
 
+### Checkpoint 5：官方 KerNet1/KerNet2 翻译为 Python 并实跑（2026-11-08）
+
+> 本检查点**部分取代** CP4 第 1/2/9/10 问的"官方本地跑不了"结论：用户手动下载工具箱后，
+> 官方两个神经近似已本地实跑并验证；原始 109 维描述子引擎仍不可得。CP4 文字作为历史记录保留。
+
+十问回答与逐条证据在 [`notes.md` Checkpoint 5](../experiments/shape_perception_benchmark/notes.md)，此处摘要：
+
+- **触发与授权**：用户把官方工具箱下载到 `shapeComp_17_12_2024/`，经 AskUserQuestion 选定
+  **h5py + numpy 路线**（无 TensorFlow、无重训练）+ **完整有界范围**"两网络 + 验证 + 检索对比"。
+  **不改正式检索默认、不跨 P0 门禁。**
+- **翻译了什么**：`earthglyph/shape_benchmark/shapecomp_port.py` 只翻译官方 MATLAB 预处理
+  （质心 / 弧长重采样 / min-max 定位 / **保留顺时针强制** / 栅格化 / flipud），用 h5py 读官方
+  `shape2sc22a.h5`（KerNet1）/`im2sc22d.h5`（KerNet2）权重并 numpy 逐字前向。**无 TF/GPU/重训练。**
+  **没翻译**：109 维引擎（2024 工具箱不含）、MatNet、任何自写描述子近似（E1 仍标"inspired"）。
+- **忠实度验证**（`scripts/validate_shapecomp_port.py` → `results/shapecomp_port_validation.json`）：
+  **KerNet2 对 H2 发布坐标近乎精确**（逐维 r 0.9982、成对 Spearman 0.9989、RMSE 0.0065）；
+  KerNet1/2 对 Figure 8 发布列 Spearman 0.980/0.957（残差=输入溯源，非端口 bug；跳过重采样塌到 ~0.56）。
+  **H1 非忠实度测试**（其坐标是原始 91 维 ShapeComp，另一基；逐维 r 无意义，成对 Spearman≈0.93 衡量近似追踪）。
+- **D1 六臂**（agreement ρ 正=更好）：S0 0.911 > **S0K1 0.903** > **S0K2 0.900** > E3 0.839 > E1 0.782 > E0 0.683。
+  **网络间三差全含 0**（实跑网络与发布原始空间统计不可区分）；**每个 EarthGlyph 臂对每个网络臂差全排除 0**
+  （E3−S0K1 −0.064 [−0.125,−0.013]、E0−S0K1 −0.220）。H2 辅助：S0K2 0.762 匹配发布 0.766，S0K1 0.630 较低
+  （H2 目标由图像路线建）；永不并入 H1。
+- **D2–D4 实跑对比**（`--methods E0 E1 E3 S0K1 S0K2`）：**E0/E1/E3 与 CP4 逐位一致**（确定性通过）。
+  D2 类别 recall@10 E3 0.917 > E1 0.833 > S0K2 0.800 > S0K1 0.767 > E0 0.717（网络优化人类相似度而非类别；
+  tree-1 S0K2 0.9 vs E0 0.0，bat-1 S0K2 0.2 vs E1/E3 0.9）；T3 仍 0/6。D3 五族全过。
+  **D4 关键阻塞：官方网络不旋转不变**（37/90/191° overlap 0.00、自匹配 rank 至 301；镜像 bat 0.05），
+  E0/E1 旋转不变 → 网络**不能现成接入**旋转不变流水线，需旋转包装（未验证）。
+  成本：网络一次性打分图库后每查询≈0 s（远低于 E3 55 s），但旋转敏感。
+- **许可边界**：工具箱与 `.h5` 权重 gitignored（`.gitignore:72`，上游无再分发许可），**不入库**，
+  运行时从用户本地副本读；端口代码/脚本/测试/结果 JSON 入库。引用 Morgenstern 2021 + Carbajal Chavez（PsyArXiv）。
+  复现需本地工具箱 + `pip install -e ".[shapecomp]"`。
+
+验证：`pytest -q` **786 passed**（含 9 端口测试，0 跳过）、`ruff` 全过、`mypy` 39 文件无问题；
+E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_port.py` →
+`run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2` → `--stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`
+→ `--stage summary` → `plot_shape_benchmark.py --figure all`。工具箱与权重不入库（gitignored）。
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**

@@ -26,7 +26,7 @@
           "top1": "mpeg7_Heart-1",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12518920004367828,
+          "elapsed_seconds": 0.11788980010896921,
           "self_rank": 1
         },
         "E1": {
@@ -35,7 +35,7 @@
           "top1": "mpeg7_Heart-1",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.03498709946870804,
+          "elapsed_seconds": 0.03209049999713898,
           "self_rank": 1
         },
         "E3": {
@@ -44,7 +44,25 @@
           "top1": "mpeg7_Heart-1",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 61.68222470022738,
+          "elapsed_seconds": 54.64088170044124,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-1",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.761259799823165,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-1",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 24.38210009969771,
           "self_rank": 1
         }
       },
@@ -55,7 +73,7 @@
           "top1": "mpeg7_Heart-6",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.13421120028942823,
+          "elapsed_seconds": 0.12235840037465096,
           "self_rank": null
         },
         "E1": {
@@ -64,7 +82,7 @@
           "top1": "mpeg7_Heart-6",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.28141610044986,
+          "elapsed_seconds": 11.798820900730789,
           "self_rank": null
         },
         "E3": {
@@ -73,7 +91,25 @@
           "top1": "mpeg7_Heart-6",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 59.1430089995265,
+          "elapsed_seconds": 56.07237619999796,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-6",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01395069994032383,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-6",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01761160045862198,
           "self_rank": null
         }
       },
@@ -84,7 +120,7 @@
           "top1": "mpeg7_Heart-8",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12917719967663288,
+          "elapsed_seconds": 0.11830729991197586,
           "self_rank": null
         },
         "E1": {
@@ -93,7 +129,7 @@
           "top1": "mpeg7_Heart-11",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.319544400088489,
+          "elapsed_seconds": 11.1704170005396,
           "self_rank": null
         },
         "E3": {
@@ -102,7 +138,25 @@
           "top1": "mpeg7_Heart-11",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 59.145819399505854,
+          "elapsed_seconds": 53.94578289985657,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1396,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-15",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014116799458861351,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1396,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-11",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.017468399368226528,
           "self_rank": null
         }
       },
@@ -113,7 +167,7 @@
           "top1": "mpeg7_Heart-8",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12398510053753853,
+          "elapsed_seconds": 0.11969439964741468,
           "self_rank": null
         },
         "E1": {
@@ -122,7 +176,7 @@
           "top1": "mpeg7_Heart-11",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.308163000270724,
+          "elapsed_seconds": 11.193202099762857,
           "self_rank": null
         },
         "E3": {
@@ -131,7 +185,25 @@
           "top1": "mpeg7_Heart-11",
           "top1_category": "Heart",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 59.655904499813914,
+          "elapsed_seconds": 53.52784829959273,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1399,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-15",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.341641900129616,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1399,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_Heart-11",
+          "top1_category": "Heart",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.223424499854445,
           "self_rank": null
         }
       }
@@ -148,7 +220,7 @@
           "top1": "mpeg7_fork-1",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12122290022671223,
+          "elapsed_seconds": 0.11824910063296556,
           "self_rank": 1
         },
         "E1": {
@@ -157,7 +229,7 @@
           "top1": "mpeg7_fork-1",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.976387199945748,
+          "elapsed_seconds": 11.195451200008392,
           "self_rank": 1
         },
         "E3": {
@@ -166,7 +238,25 @@
           "top1": "mpeg7_fork-1",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 61.677720099687576,
+          "elapsed_seconds": 55.84145059995353,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-1",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.0140089001506567,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-1",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01533840037882328,
           "self_rank": 1
         }
       },
@@ -177,7 +267,7 @@
           "top1": "mpeg7_fork-20",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.13155429996550083,
+          "elapsed_seconds": 0.11509890016168356,
           "self_rank": null
         },
         "E1": {
@@ -186,7 +276,7 @@
           "top1": "mpeg7_fork-20",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.41808439977467,
+          "elapsed_seconds": 11.106949700042605,
           "self_rank": null
         },
         "E3": {
@@ -195,7 +285,25 @@
           "top1": "mpeg7_fork-20",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 60.17642989940941,
+          "elapsed_seconds": 55.94913909956813,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-20",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.013973399996757507,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-20",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.015610200352966785,
           "self_rank": null
         }
       },
@@ -206,7 +314,7 @@
           "top1": "mpeg7_fork-11",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12235100008547306,
+          "elapsed_seconds": 0.11633130069822073,
           "self_rank": null
         },
         "E1": {
@@ -215,7 +323,7 @@
           "top1": "mpeg7_fork-2",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.278149299323559,
+          "elapsed_seconds": 11.193070599809289,
           "self_rank": null
         },
         "E3": {
@@ -224,7 +332,25 @@
           "top1": "mpeg7_fork-11",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 59.27283950056881,
+          "elapsed_seconds": 55.98938479926437,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1396,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-2",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014201199635863304,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1396,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-15",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.015239600092172623,
           "self_rank": null
         }
       },
@@ -235,7 +361,7 @@
           "top1": "mpeg7_fork-11",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12149110063910484,
+          "elapsed_seconds": 0.11633359920233488,
           "self_rank": null
         },
         "E1": {
@@ -244,7 +370,7 @@
           "top1": "mpeg7_fork-2",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.065491800196469,
+          "elapsed_seconds": 11.260786100290716,
           "self_rank": null
         },
         "E3": {
@@ -253,7 +379,25 @@
           "top1": "mpeg7_fork-11",
           "top1_category": "fork",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 59.2418160000816,
+          "elapsed_seconds": 56.768678800202906,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1399,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-2",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.43080739956349,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1399,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_fork-15",
+          "top1_category": "fork",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.298935799859464,
           "self_rank": null
         }
       }
@@ -270,7 +414,7 @@
           "top1": "mpeg7_bat-1",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12220020033419132,
+          "elapsed_seconds": 0.11518890038132668,
           "self_rank": 1
         },
         "E1": {
@@ -279,7 +423,7 @@
           "top1": "mpeg7_bat-1",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.284636699594557,
+          "elapsed_seconds": 11.276746399700642,
           "self_rank": 1
         },
         "E3": {
@@ -288,7 +432,25 @@
           "top1": "mpeg7_bat-1",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 58.540485200472176,
+          "elapsed_seconds": 56.11108270008117,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.4,
+          "top1": "mpeg7_bat-1",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01408230047672987,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.3,
+          "top1": "mpeg7_bat-1",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.017393399961292744,
           "self_rank": 1
         }
       },
@@ -299,7 +461,7 @@
           "top1": "mpeg7_bat-20",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12087509967386723,
+          "elapsed_seconds": 0.1166395004838705,
           "self_rank": null
         },
         "E1": {
@@ -308,7 +470,7 @@
           "top1": "mpeg7_bat-20",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.025094699114561,
+          "elapsed_seconds": 11.213493800722063,
           "self_rank": null
         },
         "E3": {
@@ -317,7 +479,25 @@
           "top1": "mpeg7_bat-20",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 58.3071909006685,
+          "elapsed_seconds": 55.08856059983373,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.3,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014459400437772274,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.2,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01753770001232624,
           "self_rank": null
         }
       },
@@ -328,7 +508,7 @@
           "top1": "mpeg7_bat-16",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.11969830002635717,
+          "elapsed_seconds": 0.11496009957045317,
           "self_rank": null
         },
         "E1": {
@@ -337,7 +517,7 @@
           "top1": "mpeg7_bat-17",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.163324100896716,
+          "elapsed_seconds": 11.16137669980526,
           "self_rank": null
         },
         "E3": {
@@ -346,7 +526,25 @@
           "top1": "mpeg7_bat-16",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 58.411380800418556,
+          "elapsed_seconds": 55.1718520000577,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1396,
+          "class_recall_at_10": 0.3,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014087200164794922,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1396,
+          "class_recall_at_10": 0.2,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01752140000462532,
           "self_rank": null
         }
       },
@@ -357,7 +555,7 @@
           "top1": "mpeg7_bat-16",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12113429978489876,
+          "elapsed_seconds": 0.11668539978563786,
           "self_rank": null
         },
         "E1": {
@@ -366,7 +564,7 @@
           "top1": "mpeg7_bat-17",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.047120500355959,
+          "elapsed_seconds": 11.184701500460505,
           "self_rank": null
         },
         "E3": {
@@ -375,7 +573,25 @@
           "top1": "mpeg7_bat-16",
           "top1_category": "bat",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 58.45869049988687,
+          "elapsed_seconds": 55.51266959961504,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1399,
+          "class_recall_at_10": 0.3,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.387529000639915,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1399,
+          "class_recall_at_10": 0.2,
+          "top1": "mpeg7_bat-15",
+          "top1_category": "bat",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.305576800368726,
           "self_rank": null
         }
       }
@@ -390,7 +606,7 @@
           "top1": "mpeg7_tree-1",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12273079995065928,
+          "elapsed_seconds": 0.11819479987025261,
           "self_rank": 1
         },
         "E1": {
@@ -399,7 +615,7 @@
           "top1": "mpeg7_tree-1",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.177506300620735,
+          "elapsed_seconds": 11.21455099992454,
           "self_rank": 1
         },
         "E3": {
@@ -408,7 +624,25 @@
           "top1": "mpeg7_tree-1",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.67330959998071,
+          "elapsed_seconds": 55.185278800316155,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.7,
+          "top1": "mpeg7_tree-1",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014103800058364868,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_tree-1",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.016834099777042866,
           "self_rank": 1
         }
       },
@@ -419,7 +653,7 @@
           "top1": "mpeg7_flatfish-14",
           "top1_category": "flatfish",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12200070079416037,
+          "elapsed_seconds": 0.11654539965093136,
           "self_rank": null
         },
         "E1": {
@@ -428,7 +662,7 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.099423599429429,
+          "elapsed_seconds": 11.270637599751353,
           "self_rank": null
         },
         "E3": {
@@ -437,7 +671,25 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.52374009974301,
+          "elapsed_seconds": 55.494277300313115,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.6,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01406710036098957,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.016448600217700005,
           "self_rank": null
         }
       },
@@ -448,7 +700,7 @@
           "top1": "mpeg7_flatfish-14",
           "top1_category": "flatfish",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12286350037902594,
+          "elapsed_seconds": 0.11557359993457794,
           "self_rank": null
         },
         "E1": {
@@ -457,7 +709,7 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.03245129995048046,
+          "elapsed_seconds": 0.03082859981805086,
           "self_rank": null
         },
         "E3": {
@@ -466,7 +718,25 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.510659700259566,
+          "elapsed_seconds": 55.50045520067215,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.6,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014044600538909435,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.016555399633944035,
           "self_rank": null
         }
       },
@@ -477,7 +747,7 @@
           "top1": "mpeg7_flatfish-14",
           "top1_category": "flatfish",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.1224046004936099,
+          "elapsed_seconds": 0.12048960011452436,
           "self_rank": null
         },
         "E1": {
@@ -486,7 +756,7 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.019849599339068,
+          "elapsed_seconds": 11.203393200412393,
           "self_rank": null
         },
         "E3": {
@@ -495,7 +765,25 @@
           "top1": "mpeg7_tree-2",
           "top1_category": "tree",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.643543399870396,
+          "elapsed_seconds": 55.33499709982425,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1400,
+          "class_recall_at_10": 0.6,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.390650000423193,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1400,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_tree-17",
+          "top1_category": "tree",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.249595100060105,
           "self_rank": null
         }
       }
@@ -513,7 +801,7 @@
           "top1": "mpeg7_apple-1",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.1206060005351901,
+          "elapsed_seconds": 0.1161470003426075,
           "self_rank": 1
         },
         "E1": {
@@ -522,7 +810,7 @@
           "top1": "mpeg7_apple-1",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.0335442004725337,
+          "elapsed_seconds": 0.03055969998240471,
           "self_rank": 1
         },
         "E3": {
@@ -531,7 +819,25 @@
           "top1": "mpeg7_apple-1",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 58.15013830084354,
+          "elapsed_seconds": 54.25482069980353,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_apple-1",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01400730013847351,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-1",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.017395900562405586,
           "self_rank": 1
         }
       },
@@ -542,7 +848,7 @@
           "top1": "mpeg7_apple-12",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.11911480035632849,
+          "elapsed_seconds": 0.11765189934521914,
           "self_rank": null
         },
         "E1": {
@@ -551,7 +857,7 @@
           "top1": "mpeg7_apple-20",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.00292450003326,
+          "elapsed_seconds": 11.12700319942087,
           "self_rank": null
         },
         "E3": {
@@ -560,7 +866,25 @@
           "top1": "mpeg7_apple-12",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.5149505995214,
+          "elapsed_seconds": 54.60505330003798,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 1.0,
+          "top1": "mpeg7_apple-12",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.013908100314438343,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-12",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01735999993979931,
           "self_rank": null
         }
       },
@@ -571,7 +895,7 @@
           "top1": "mpeg7_apple-16",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12075189966708422,
+          "elapsed_seconds": 0.1152496999129653,
           "self_rank": null
         },
         "E1": {
@@ -580,7 +904,7 @@
           "top1": "mpeg7_apple-20",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.23152010049671,
+          "elapsed_seconds": 11.06438159942627,
           "self_rank": null
         },
         "E3": {
@@ -589,7 +913,25 @@
           "top1": "mpeg7_apple-19",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.673304099589586,
+          "elapsed_seconds": 54.51910649985075,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1395,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-7",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014460199512541294,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1395,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-14",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01730980072170496,
           "self_rank": null
         }
       },
@@ -600,7 +942,7 @@
           "top1": "mpeg7_apple-16",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.11935109924525023,
+          "elapsed_seconds": 0.11708169989287853,
           "self_rank": null
         },
         "E1": {
@@ -609,7 +951,7 @@
           "top1": "mpeg7_apple-20",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.021479300223291,
+          "elapsed_seconds": 11.141946599818766,
           "self_rank": null
         },
         "E3": {
@@ -618,7 +960,25 @@
           "top1": "mpeg7_apple-19",
           "top1_category": "apple",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.90644129924476,
+          "elapsed_seconds": 54.646963000297546,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-7",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.28250280022621,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_apple-14",
+          "top1_category": "apple",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.11071990057826,
           "self_rank": null
         }
       }
@@ -635,7 +995,7 @@
           "top1": "mpeg7_butterfly-1",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.1220057001337409,
+          "elapsed_seconds": 0.11504629999399185,
           "self_rank": 1
         },
         "E1": {
@@ -644,7 +1004,7 @@
           "top1": "mpeg7_butterfly-1",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.100593300536275,
+          "elapsed_seconds": 11.217796300537884,
           "self_rank": 1
         },
         "E3": {
@@ -653,7 +1013,25 @@
           "top1": "mpeg7_butterfly-1",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.57714289985597,
+          "elapsed_seconds": 54.96935869939625,
+          "self_rank": 1
+        },
+        "S0K1": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.9,
+          "top1": "mpeg7_butterfly-1",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014124100096523762,
+          "self_rank": 1
+        },
+        "S0K2": {
+          "candidates": 1398,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-1",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.017597099766135216,
           "self_rank": 1
         }
       },
@@ -664,7 +1042,7 @@
           "top1": "mpeg7_butterfly-2",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.11985190026462078,
+          "elapsed_seconds": 0.11671610083431005,
           "self_rank": null
         },
         "E1": {
@@ -673,7 +1051,7 @@
           "top1": "mpeg7_butterfly-2",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 11.990835499949753,
+          "elapsed_seconds": 11.096093499101698,
           "self_rank": null
         },
         "E3": {
@@ -682,7 +1060,25 @@
           "top1": "mpeg7_butterfly-2",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.67548820003867,
+          "elapsed_seconds": 54.78930589929223,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014241199940443039,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1397,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.01714350003749132,
           "self_rank": null
         }
       },
@@ -693,7 +1089,7 @@
           "top1": "mpeg7_butterfly-14",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.12380839977413416,
+          "elapsed_seconds": 0.11670969985425472,
           "self_rank": null
         },
         "E1": {
@@ -702,7 +1098,7 @@
           "top1": "mpeg7_butterfly-17",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.108358100056648,
+          "elapsed_seconds": 11.126962299458683,
           "self_rank": null
         },
         "E3": {
@@ -711,7 +1107,25 @@
           "top1": "mpeg7_butterfly-16",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.34643379971385,
+          "elapsed_seconds": 55.409621300175786,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1396,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.014149900525808334,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1396,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 0.017202000133693218,
           "self_rank": null
         }
       },
@@ -722,7 +1136,7 @@
           "top1": "mpeg7_butterfly-14",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 0.1207312997430563,
+          "elapsed_seconds": 0.11750790011137724,
           "self_rank": null
         },
         "E1": {
@@ -731,7 +1145,7 @@
           "top1": "mpeg7_butterfly-17",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 12.13251889962703,
+          "elapsed_seconds": 11.165583500638604,
           "self_rank": null
         },
         "E3": {
@@ -740,7 +1154,25 @@
           "top1": "mpeg7_butterfly-16",
           "top1_category": "butterfly",
           "synthetic_distractors_in_top10": [],
-          "elapsed_seconds": 57.51605159975588,
+          "elapsed_seconds": 54.73721120040864,
+          "self_rank": null
+        },
+        "S0K1": {
+          "candidates": 1399,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 19.22129390016198,
+          "self_rank": null
+        },
+        "S0K2": {
+          "candidates": 1399,
+          "class_recall_at_10": 0.8,
+          "top1": "mpeg7_butterfly-14",
+          "top1_category": "butterfly",
+          "synthetic_distractors_in_top10": [],
+          "elapsed_seconds": 23.222483799792826,
           "self_rank": null
         }
       }

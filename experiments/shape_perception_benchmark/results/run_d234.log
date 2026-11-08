@@ -1,0 +1,62 @@
+=== d2 ===
+  Heart-1 T0: E0 recall=1.0 (0.1s), E1 recall=1.0 (0.0s), E3 recall=1.0 (54.6s), S0K1 recall=1.0 (19.8s), S0K2 recall=1.0 (24.4s)
+  Heart-1 T1: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.8s), E3 recall=1.0 (56.1s), S0K1 recall=1.0 (0.0s), S0K2 recall=1.0 (0.0s)
+  Heart-1 T2: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (53.9s), S0K1 recall=1.0 (0.0s), S0K2 recall=1.0 (0.0s)
+  Heart-1 T3: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (53.5s), S0K1 recall=1.0 (19.3s), S0K2 recall=1.0 (23.2s)
+  fork-1 T0: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (55.8s), S0K1 recall=1.0 (0.0s), S0K2 recall=1.0 (0.0s)
+  fork-1 T1: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (55.9s), S0K1 recall=1.0 (0.0s), S0K2 recall=1.0 (0.0s)
+  fork-1 T2: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (56.0s), S0K1 recall=1.0 (0.0s), S0K2 recall=1.0 (0.0s)
+  fork-1 T3: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.3s), E3 recall=1.0 (56.8s), S0K1 recall=1.0 (19.4s), S0K2 recall=1.0 (23.3s)
+  bat-1 T0: E0 recall=0.6 (0.1s), E1 recall=0.9 (11.3s), E3 recall=0.9 (56.1s), S0K1 recall=0.4 (0.0s), S0K2 recall=0.3 (0.0s)
+  bat-1 T1: E0 recall=0.5 (0.1s), E1 recall=0.9 (11.2s), E3 recall=0.9 (55.1s), S0K1 recall=0.3 (0.0s), S0K2 recall=0.2 (0.0s)
+  bat-1 T2: E0 recall=0.4 (0.1s), E1 recall=0.9 (11.2s), E3 recall=0.9 (55.2s), S0K1 recall=0.3 (0.0s), S0K2 recall=0.2 (0.0s)
+  bat-1 T3: E0 recall=0.4 (0.1s), E1 recall=0.9 (11.2s), E3 recall=0.9 (55.5s), S0K1 recall=0.3 (19.4s), S0K2 recall=0.2 (23.3s)
+  tree-1 T0: E0 recall=0.1 (0.1s), E1 recall=0.2 (11.2s), E3 recall=0.6 (55.2s), S0K1 recall=0.7 (0.0s), S0K2 recall=0.9 (0.0s)
+  tree-1 T1: E0 recall=0.0 (0.1s), E1 recall=0.1 (11.3s), E3 recall=0.6 (55.5s), S0K1 recall=0.6 (0.0s), S0K2 recall=0.9 (0.0s)
+  tree-1 T2: E0 recall=0.0 (0.1s), E1 recall=0.1 (0.0s), E3 recall=0.6 (55.5s), S0K1 recall=0.6 (0.0s), S0K2 recall=0.9 (0.0s)
+  tree-1 T3: E0 recall=0.0 (0.1s), E1 recall=0.1 (11.2s), E3 recall=0.6 (55.3s), S0K1 recall=0.6 (19.4s), S0K2 recall=0.9 (23.2s)
+  apple-1 T0: E0 recall=0.9 (0.1s), E1 recall=1.0 (0.0s), E3 recall=1.0 (54.3s), S0K1 recall=1.0 (0.0s), S0K2 recall=0.9 (0.0s)
+  apple-1 T1: E0 recall=0.9 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (54.6s), S0K1 recall=1.0 (0.0s), S0K2 recall=0.9 (0.0s)
+  apple-1 T2: E0 recall=0.9 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (54.5s), S0K1 recall=0.9 (0.0s), S0K2 recall=0.9 (0.0s)
+  apple-1 T3: E0 recall=0.9 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (54.6s), S0K1 recall=0.9 (19.3s), S0K2 recall=0.9 (23.1s)
+  butterfly-1 T0: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (55.0s), S0K1 recall=0.9 (0.0s), S0K2 recall=0.8 (0.0s)
+  butterfly-1 T1: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (54.8s), S0K1 recall=0.8 (0.0s), S0K2 recall=0.8 (0.0s)
+  butterfly-1 T2: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.1s), E3 recall=1.0 (55.4s), S0K1 recall=0.8 (0.0s), S0K2 recall=0.8 (0.0s)
+  butterfly-1 T3: E0 recall=1.0 (0.1s), E1 recall=1.0 (11.2s), E3 recall=1.0 (54.7s), S0K1 recall=0.8 (19.2s), S0K2 recall=0.8 (23.2s)
+=== d2 done in 1944.2s ===
+=== d3 ===
+  star: E0 variant=1 distractor=23 ok=True, E1 variant=1 distractor=1163 ok=True, E3 variant=1 distractor=207 ok=True, S0K1 variant=1 distractor=879 ok=True, S0K2 variant=1 distractor=917 ok=True
+  heart: E0 variant=1 distractor=36 ok=True, E1 variant=1 distractor=556 ok=True, E3 variant=1 distractor=33 ok=True, S0K1 variant=1 distractor=41 ok=True, S0K2 variant=1 distractor=42 ok=True
+  crescent: E0 variant=1 distractor=893 ok=True, E1 variant=1 distractor=1165 ok=True, E3 variant=1 distractor=799 ok=True, S0K1 variant=1 distractor=748 ok=True, S0K2 variant=1 distractor=1050 ok=True
+  forked: E0 variant=1 distractor=46 ok=True, E1 variant=1 distractor=664 ok=True, E3 variant=1 distractor=478 ok=True, S0K1 variant=1 distractor=217 ok=True, S0K2 variant=1 distractor=97 ok=True
+  natural: E0 variant=2 distractor=440 ok=True, E1 variant=2 distractor=1387 ok=True, E3 variant=2 distractor=1283 ok=True, S0K1 variant=2 distractor=1103 ok=True, S0K2 variant=2 distractor=1077 ok=True
+=== d3 done in 569.0s ===
+=== d4 ===
+  Heart-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=3 overlap=0.54, S0K2 rank=1 overlap=0.54
+  Heart-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=21 overlap=0.11, S0K2 rank=31 overlap=0.05
+  Heart-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82, S0K1 rank=2 overlap=0.82, S0K2 rank=1 overlap=0.82
+  Heart-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.82
+  Heart-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.82
+  Heart-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.82
+  Heart-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.82
+  Heart-1 deform_local: E0 rank=1 overlap=0.82, E1 rank=1 overlap=0.67, E3 rank=1 overlap=0.82, S0K1 rank=1 overlap=0.82, S0K2 rank=1 overlap=0.67
+  Heart-1 mirror: E0 rank=246 overlap=0.00, E1 rank=2 overlap=0.67, E3 rank=1 overlap=0.67, S0K1 rank=1 overlap=0.82, S0K2 rank=1 overlap=0.82
+  fork-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.67, S0K1 rank=116 overlap=0.00, S0K2 rank=65 overlap=0.00
+  fork-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=301 overlap=0.00, S0K2 rank=247 overlap=0.00
+  fork-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.67, S0K1 rank=35 overlap=0.00, S0K2 rank=115 overlap=0.00
+  fork-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=1.00
+  fork-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=1.00
+  fork-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=1.00
+  fork-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=1.00
+  fork-1 deform_local: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82, S0K1 rank=2 overlap=1.00, S0K2 rank=1 overlap=0.82
+  fork-1 mirror: E0 rank=1 overlap=0.25, E1 rank=1 overlap=1.00, E3 rank=2 overlap=0.67, S0K1 rank=1 overlap=0.43, S0K2 rank=1 overlap=0.82
+  bat-1 rotate_37: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.54, S0K1 rank=161 overlap=0.00, S0K2 rank=184 overlap=0.00
+  bat-1 rotate_90: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=182 overlap=0.00, S0K2 rank=177 overlap=0.00
+  bat-1 rotate_191: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.54, S0K1 rank=183 overlap=0.00, S0K2 rank=190 overlap=0.00
+  bat-1 scale_up: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.67
+  bat-1 scale_down: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.67
+  bat-1 translate: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=1.00, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.67
+  bat-1 start_shift: E0 rank=1 overlap=1.00, E1 rank=1 overlap=1.00, E3 rank=1 overlap=0.82, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.67
+  bat-1 deform_local: E0 rank=1 overlap=0.67, E1 rank=1 overlap=0.82, E3 rank=1 overlap=0.82, S0K1 rank=1 overlap=1.00, S0K2 rank=1 overlap=0.67
+  bat-1 mirror: E0 rank=163 overlap=0.00, E1 rank=1 overlap=0.33, E3 rank=3 overlap=0.33, S0K1 rank=112 overlap=0.05, S0K2 rank=101 overlap=0.05
+=== d4 done in 449.8s ===

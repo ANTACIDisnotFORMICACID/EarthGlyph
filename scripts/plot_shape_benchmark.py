@@ -55,13 +55,21 @@ RESULTS = BENCH / "results"
 FIGURES = BENCH / "figures"
 QUERIES = BENCH / "queries"
 KINDS = ["star", "heart", "crescent", "forked", "natural"]
-ARMS = ["E0", "E1", "E3"]
+ARM_ORDER = ["E0", "E1", "E3", "S0", "S0K1", "S0K2"]
 ARM_TITLES = {
     "E0": "E0  geometric alignment",
     "E1": "E1  EarthGlyph ShapeComp-inspired (91-D, ours)",
     "E3": "E3  Shape Context + rotation search",
     "S0": "S0  official ShapeComp 22-D (published coordinates)",
+    "S0K1": "S0K1  official KerNet1 (actually run, numpy port)",
+    "S0K2": "S0K2  official KerNet2 (actually run, numpy port)",
 }
+
+
+def arms_in(rows: list[dict[str, str]]) -> list[str]:
+    """Arms present in a result table, in canonical order — figures adapt to what was run."""
+    present = {r["method"] for r in rows}
+    return [a for a in ARM_ORDER if a in present]
 ROLE_COLOUR = {
     "query": "#1f4e9c",
     "structural_variant": "#1a7f37",
@@ -184,6 +192,7 @@ def plot_overview(index: dict[str, BenchmarkShape], condition: str = "T2") -> Pa
         if r["experiment"] == "d2" and r["condition"] == condition
     ]
     query_ids = list(dict.fromkeys(r["query_id"] for r in rows))
+    arms = arms_in(rows)
     top3: dict[tuple[str, str], list[dict[str, str]]] = {}
     for row in rows:
         key = (row["query_id"], row["method"])
@@ -191,7 +200,7 @@ def plot_overview(index: dict[str, BenchmarkShape], condition: str = "T2") -> Pa
     for key in top3:
         top3[key] = sorted(top3[key], key=lambda r: int(r["rank"]))[:3]
 
-    n_cols = 1 + 3 * len(ARMS)
+    n_cols = 1 + 3 * len(arms)
     fig = plt.figure(figsize=(1.55 * n_cols, 1.75 * len(query_ids) + 1.1))
     grid = GridSpec(
         len(query_ids), n_cols, figure=fig,
@@ -203,7 +212,7 @@ def plot_overview(index: dict[str, BenchmarkShape], condition: str = "T2") -> Pa
         query = index[query_id]
         cells.append((row_i, 0, "query", query_id, query))
         drawn.append(posed(query, query, "aligned"))
-        for arm_i, arm in enumerate(ARMS):
+        for arm_i, arm in enumerate(arms):
             for rank_i, hit in enumerate(top3.get((query_id, arm), [])):
                 shape = index[hit["shape_id"]]
                 cells.append((row_i, 1 + arm_i * 3 + rank_i, hit["rank"], hit["shape_id"], shape))
@@ -215,17 +224,17 @@ def plot_overview(index: dict[str, BenchmarkShape], condition: str = "T2") -> Pa
         role = "query" if col_i == 0 else "gallery"
         draw(ax, posed(shape, query, "aligned"), colour=ROLE_COLOUR[role], limit=limit, fill=True)
         panel_label(ax, rank, shape, role)
-    for arm_i, arm in enumerate(ARMS):
+    for arm_i, arm in enumerate(arms):
         ax = fig.add_subplot(grid[0, 1 + arm_i * 3: 1 + arm_i * 3 + 3])
         ax.axis("off")
         ax.set_title(ARM_TITLES[arm], fontsize=8, pad=14)
     fig.suptitle(
         f"Shape-perception benchmark — MPEG-7 gallery, condition {condition} "
         "(query and its rigid near-duplicates removed)\n"
-        "Same 1398-shape gallery for every arm. Labels are rank + id + category, not scores. "
+        "Same gallery for every arm. Labels are rank + id + category, not scores. "
         "Display pose fitted with an arm-independent chamfer rotation; ranks are unchanged.\n"
-        "S0 (official ShapeComp) is absent here: the authors published no coordinates for "
-        "MPEG-7, and the official code does not run on this machine.",
+        "S0K1/S0K2 run the official KerNet weights locally (numpy port) and can score MPEG-7; "
+        "S0 (published coordinates) is absent here because no MPEG-7 coordinates were published.",
         fontsize=8.5, y=0.995,
     )
     FIGURES.mkdir(parents=True, exist_ok=True)
@@ -245,6 +254,7 @@ def plot_comparison(index: dict[str, BenchmarkShape], kind: str, mode: str) -> P
     ]
     if not rows:
         raise ValueError(f"no D3 rows for {kind}; run --stage d3 first")
+    arms = arms_in(rows)
     query_id = rows[0]["query_id"]
     query = index[query_id]
     probe = build_structure_probe(kind, natural=index.get("mpeg7_bat-1"))
@@ -252,16 +262,16 @@ def plot_comparison(index: dict[str, BenchmarkShape], kind: str, mode: str) -> P
     key_roles = ["query"] + ["structural_variant"] * 3 + ["gross_distractor"] * 3
 
     n_cols = 11
-    fig = plt.figure(figsize=(1.55 * n_cols, 1.85 * (len(ARMS) + 1) + 1.2))
+    fig = plt.figure(figsize=(1.55 * n_cols, 1.85 * (len(arms) + 1) + 1.2))
     grid = GridSpec(
-        len(ARMS) + 1, n_cols, figure=fig,
+        len(arms) + 1, n_cols, figure=fig,
         left=0.035, right=0.99, top=0.87, bottom=0.02, wspace=0.08, hspace=0.55,
     )
     drawn = [posed(s, query, mode) for s in key_shapes]
     hits_by_arm: dict[str, list[dict[str, str]]] = {}
     for row in rows:
         hits_by_arm.setdefault(row["method"], []).append(row)
-    for arm in ARMS:
+    for arm in arms:
         for hit in sorted(hits_by_arm.get(arm, []), key=lambda r: int(r["rank"])):
             drawn.append(posed(index[hit["shape_id"]], query, mode))
     limit = figure_limit(drawn)
@@ -281,7 +291,7 @@ def plot_comparison(index: dict[str, BenchmarkShape], kind: str, mode: str) -> P
     for col in range(len(key_shapes), n_cols):
         fig.add_subplot(grid[0, col]).axis("off")
 
-    for arm_i, arm in enumerate(ARMS):
+    for arm_i, arm in enumerate(arms):
         ax = fig.add_subplot(grid[arm_i + 1, 0])
         draw(ax, posed(query, query, mode), colour=ROLE_COLOUR["query"], limit=limit, fill=True)
         panel_label(ax, "query", query, "query")
@@ -331,8 +341,9 @@ def plot_comparison(index: dict[str, BenchmarkShape], kind: str, mode: str) -> P
 def plot_human_scatter(metrics: dict[str, Any], predictions: list[dict[str, str]]) -> Path:
     h1 = [r for r in predictions if r["dataset"] == "H1"]
     rating = np.array([float(r["human_mean_similarity"]) for r in h1])
-    arms = [a for a in ["E0", "E1", "E3", "S0"] if f"dist_{a}" in h1[0]]
-    fig, axes = plt.subplots(2, 2, figsize=(10.5, 9.2))
+    arms = [a for a in ARM_ORDER if f"dist_{a}" in h1[0]]
+    n_rows = max(1, (len(arms) + 1) // 2)
+    fig, axes = plt.subplots(n_rows, 2, figsize=(10.5, 4.6 * n_rows))
     for ax, arm in zip(axes.flat, arms, strict=False):
         distance = np.array([float(r[f"dist_{arm}"]) for r in h1])
         stats = metrics["H1"]["methods"][arm]
@@ -362,7 +373,8 @@ def plot_human_scatter(metrics: dict[str, Any], predictions: list[dict[str, str]
         "good model's distance falls: agreement rho is the sign-flipped Spearman.\n"
         f"CI = two-level bootstrap (pairs AND observers, 2000 replicates, seed 20261107). "
         f"Single-observer noise ceiling (leave-one-out median) = {ceiling:.3f}.\n"
-        "S0 uses the authors' published 22-D coordinates, not a local run of their code. "
+        "S0 uses the authors' published original-ShapeComp 22-D coordinates (outputs only). "
+        "S0K1/S0K2 actually run the official KerNet weights locally via the numpy port. "
         "E1 is EarthGlyph's own 91-D descriptor set, NOT ShapeComp.",
         fontsize=8.5, y=0.995,
     )
@@ -407,7 +419,7 @@ def plot_human_agreement(metrics: dict[str, Any]) -> Path:
     ax.grid(alpha=0.25, linewidth=0.5, axis="x")
 
     ax = axes[1]
-    arms = [a for a in ["E0", "E1", "E3", "S0"] if a in metrics["H1"]["methods"]]
+    arms = [a for a in ARM_ORDER if a in metrics["H1"]["methods"]]
     for i, arm in enumerate(arms):
         values = np.array(
             [abs(float(r["spearman"])) for r in metrics["H1"]["methods"][arm]["per_observer"]]
@@ -475,7 +487,7 @@ def plot_human_failures(
             f"(sd {float(row['human_sd_across_observers']):.3f})",
             f"human dissimilarity percentile {float(row['human_dissimilarity_percentile']):.3f}",
         ]
-        for arm in ["E0", "E1", "E3", "S0"]:
+        for arm in ARM_ORDER:
             key = f"disagreement_{arm}"
             if key in row:
                 lines.append(

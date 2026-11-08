@@ -606,3 +606,52 @@ mypy                             # Success: no issues found in 32 source files
   但发布空间在人类评分上显著胜过所有可跑臂，E3→S0 的 +0.072 是近似/混合方案的头部空间。
   建议下一步做 Figure 8 检索臂 + 小回归器逼近发布 22 维坐标两项**有界**实验；
   **不改正式默认、不跨 P0 门禁**，是否整合由用户决定。
+
+## shape_perception_benchmark · Checkpoint 5（P0-4.6 · 官方 KerNet1/KerNet2 翻译为 Python 并实跑，2026-11-08）
+
+**触发与授权**：用户把官方工具箱下载到 `E:\EarthGlyph\shapeComp_17_12_2024`，问能否把 MATLAB 翻译成
+Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 路线**（读官方 `.h5` 权重、numpy 前向、
+**无 TensorFlow**、无重训练）+ **(b) 完整有界范围**"两网络 + 验证 + 检索对比"。**不改正式检索默认。**
+
+- **翻译了什么**：`earthglyph/shape_benchmark/shapecomp_port.py` 只翻译官方 MATLAB 预处理
+  （质心 / `resamplePolygon` 弧长重采样 / `adjustContourPos` min-max / **保留顺时针强制** / `inpolygon`→`shapely.covers`
+  栅格化 / `flipud`），并用 h5py 读 `net/keras/shape2sc22a.h5`（KerNet1，dense_1..7）与 `im2sc22d.h5`
+  （KerNet2，conv2d_4/5/6 + dense_3/4），numpy 逐字前向（Dense `x@W+b`+ReLU；Conv2D 'same' 零填充互相关
+  `sliding_window_view`+`einsum`；MaxPool 2×2；KerNet1 flatten order='F' 768 维，KerNet2 40×40×1）。
+  **无 TF/Keras 运行时、无 GPU、无重训练。**
+- **没翻译什么**：109 维描述子引擎（2024 工具箱不含）、MatNet（MATLAB 权重不可得）、任何自写描述子近似。
+  E1 仍标"EarthGlyph ShapeComp-inspired"；端口运行的是官方**权重**（用户明确授权），不是自写描述子冒充复现。
+- **忠实度验证**（`scripts/validate_shapecomp_port.py` → `results/shapecomp_port_validation.json`）：
+  **KerNet2 对 H2 发布 KerNet2 坐标近乎精确**——逐维 r 0.9982、成对 Spearman **0.9989**、RMSE **0.0065**；
+  KerNet1/2 对 Figure 8 发布网络列 Spearman **0.980/0.957**，残差是**输入溯源**（存档轮廓是原始非均匀显示轮廓，
+  非网络精确输入；跳过重采样塌到 ~0.56，证明流水线必需且正确；999/1000 已顺时针，故保留的顺时针步近乎 no-op）。
+  **H1 不是忠实度测试**（`is_faithfulness_test:false`）：其 `shape1SC/shape2SC` 是**原始 91 维** ShapeComp MDS
+  坐标（另一模型/基），逐维 r 无意义（均值≈−0.06），成对 Spearman≈0.927/0.929 衡量神经近似对原始模型的追踪。
+- **D1（六臂，主真值 H1，agreement ρ 正=更好，两级配对 bootstrap）**：
+  S0 0.9108 / **S0K1 0.9032** / **S0K2 0.9005** / E3 0.8391 / E1 0.7824 / E0 0.6831。
+  **网络间差值全含 0**（S0K1−S0 −0.0076 [−0.031,+0.013]、S0K2−S0 −0.0103 [−0.031,+0.009]、
+  S0K1−S0K2 +0.0027 [−0.015,+0.019]）→ 实跑网络与发布原始空间**统计不可区分**；
+  **每个 EarthGlyph 臂对每个网络臂差值全排除 0**（E3−S0K1 −0.0641 [−0.125,−0.013]、
+  E3−S0K2 −0.0614、E1−S0K1 −0.1208、E0−S0K1 −0.2201）→ 端口忠实复现官方网络的人类预测力且显著胜过所有 EarthGlyph 臂。
+  H2 辅助：S0K2 0.7622 匹配发布 0.7656（H2 目标由**图像**路线建），S0K1 0.6298 较低（轮廓 MLP 是不同近似）；永不并入 H1。
+- **许可边界**：工具箱 `shapeComp_17_12_2024/` 已 gitignore（`.gitignore:72`）；上游仅"please cite"、**无再分发许可**，
+  故工具箱与 `.h5` 权重**不入库**，运行时从用户本地副本读取。端口代码/验证脚本/测试/结果 JSON 入库。
+  引用 Morgenstern et al. 2021（DOI 10.1371/journal.pcbi.1008981）与 Carbajal Chavez et al.（PsyArXiv）。
+  复现需用户本地提供工具箱 + `pip install -e ".[shapecomp]"`（h5py + matplotlib）。
+- **D2–D4 实跑网络检索对比**（`run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`）：
+  **E0/E1/E3 行与 CP4 逐位一致**（D2 T2/T3 recall 0.717/0.833/0.917；D4 E0 镜像 0.00、E3 rotate_37 0.54、
+  E1 镜像 0.33）→ 确定性核验通过。**D2** 类别 recall@10：E3 0.917 > E1 0.833 > S0K2 0.800 > S0K1 0.767 > E0 0.717；
+  网络胜 E0 但不胜 E1/E3——网络优化**人类感知相似度**（D1）而非物体类别。逐查询 `tree-1` S0K2 0.9 vs E0 0.0；
+  `bat-1` S0K2 0.2 vs E1/E3 0.9（枝状=D1 失败模式）。T3 仍 0/6 干扰入 Top-10。**D3** 五族全过，E1 压干扰最深、网络居中。
+  **D4 关键整合阻塞：官方网络不旋转不变**——37°/90°/191° 后 Top-10 overlap 塌到 **0.00**、自匹配 rank 至 **301**
+  （fork-1 90° S0K1）；镜像形状依赖（bat 0.05、heart 0.82）；缩放/平移/起点 S0K1 基本 intact（1.00）。
+  E0/E1 旋转不变；故经人类验证的网络**不能现成接入** EarthGlyph 旋转不变流水线，需旋转搜索/不变包装（未验证）。
+  **成本**：网络一次性打分图库（~20 s）后每查询≈**0 s**（远低于 E3 55 s/查询），但旋转敏感。
+- **验证与确定性**：`pytest -q` **786 passed**（含 9 端口测试，0 跳过）；`ruff check .` 全过；`mypy` 39 文件无问题。
+  加入 S0K1/S0K2 重跑后 **E0/E1/E3 的 D2/D4 行与 CP4 逐位一致**。新增 `shapecomp_port.py` /
+  `validate_shapecomp_port.py` / `test_shapecomp_port.py`；改 `retrieval.py`（S0K 臂、lazy h5py）/
+  `run_shape_benchmark.py` / `plot_shape_benchmark.py` / `pyproject.toml`（`shapecomp` extra）/ `.gitignore` /
+  `official_shapecomp_status.json`；产物 `shapecomp_port_validation.json` + 重生成 D1–D4 JSON/CSV/图。
+  工具箱与权重**不入库**（gitignored、无再分发许可）。复现：`validate_shapecomp_port.py` →
+  `run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2` → `--stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`
+  → `--stage summary` → `plot_shape_benchmark.py --figure all`。

@@ -506,10 +506,160 @@ port remains forbidden by the brief and was not attempted.
 
 ### Blockers and open items carried out of P0-4.6
 
-- Official code/weights remain unobtainable from this network; any future "reproduction" claim must
-  first show the toolbox or weights actually downloaded and executed.
+- ~~Official code/weights remain unobtainable from this network~~ **Resolved 2026-11-08 (Checkpoint 5):**
+  the user manually downloaded the toolbox and the official KerNet1/KerNet2 weights were executed
+  locally via the numpy port and validated against published network outputs. The original
+  109-descriptor engine is still absent from the 2024 toolbox, so exact original-ShapeComp projection
+  of a new shape remains unavailable; only the two neural approximations run.
 - T3's hard distractors were too gross to discriminate (F19); a part-structure-matched distractor
   set is needed before claiming hard-distractor robustness.
 - H2's digitised target and the Figure 8 model-vs-model set must never be merged into H1's human
   truth; both are labelled auxiliary wherever they appear.
 - E0 mirror-invariance and E3 rotation-grid resolution are known, measured defects, not surprises.
+
+## Checkpoint 5 — official KerNet1/KerNet2 translated to Python and actually run (2026-11-08)
+
+**Trigger.** The user downloaded the official toolbox to `E:\EarthGlyph\shapeComp_17_12_2024` and
+asked whether the MATLAB code could be translated to Python to run and compare. Via AskUserQuestion
+the user chose **(a) the h5py + numpy route** (read the official `.h5` weights, numpy forward pass,
+**no TensorFlow**, no retraining) and **(b) the full bounded scope** "两网络 + 验证 + 检索对比":
+translate preprocessing → load KerNet1/KerNet2 → validate faithfulness against published 22-D
+coordinates → add them as actually-run `S0K1`/`S0K2` arms to the D1–D4 comparison vs E0/E1/E3.
+**Production retrieval defaults were not changed.**
+
+### What was translated, and what was deliberately not
+
+`earthglyph/shape_benchmark/shapecomp_port.py` translates **only the official MATLAB preprocessing**
+and runs the authors' **own weights verbatim**:
+
+- Preprocessing ported from `getShapeComp22netkeras.m` / `getShapeComp22netkerasimage.m`:
+  centroid = mean of points; `resamplePolygon` (close → arc-length resample to n+1 → drop last);
+  `adjustContourPos` = (c − min)/(max − min); **clockwise enforcement kept** (lines 9–13 of the
+  contour script); `inpolygon` → `shapely.covers` for the 40×40 raster; `flipud` for KerNet2.
+  KerNet1 input is `np.ravel(points, order="F")` (768-D, MATLAB column-major `points(:)`);
+  KerNet2 input is a 40×40×1 float32 binary image.
+- Weights read with **h5py** from `net/keras/shape2sc22a.h5` (KerNet1: dense_1..7) and
+  `net/keras/im2sc22d.h5` (KerNet2: conv2d_4/5/6 + dense_3/4). Keras 2.1.2 layout
+  `model_weights/<layer>/<layer>/kernel:0|bias:0`; Dense kernel (in,out); Conv2D (3,3,in,out)
+  channels_last. Forward pass: Dense `x@W+b` then ReLU; Conv2D 'same' = zero-pad-1
+  cross-correlation (`sliding_window_view` + `einsum("hwcij,ijco->hwo")`); MaxPool 2×2 reshape-max;
+  CNN flatten order='C'. **No TensorFlow/Keras runtime, no GPU, no retraining.**
+- **NOT translated:** the 109-descriptor engine (absent from the 2024 toolbox), MatNet (MATLAB
+  Neural-Network-Toolbox, no weights obtainable), and any self-written descriptor approximation.
+  E1 remains labelled "EarthGlyph ShapeComp-inspired"; the port is never called a descriptor
+  reproduction. The brief's ban on passing a self-written 91/109-D version off as ShapeComp is
+  honoured — this port runs the official **weights**, which the user explicitly authorised.
+
+### Faithfulness validation (`results/shapecomp_port_validation.json`)
+
+Reproduce: `.venv/Scripts/python.exe scripts/validate_shapecomp_port.py`. Metrics are
+basis-invariant pairwise-distance Spearman/Pearson plus per-dim Pearson r and raw/Procrustes RMSE.
+
+- **KerNet2 vs published H2 KerNet2 coords — essentially exact:** per-dim r 0.9982 (min 0.9949),
+  pairwise Spearman **0.9989**, Pearson 0.9992, raw RMSE **0.0065**, Procrustes RMSE 0.0044.
+  H2's `lietal_ShapeCompSolution_keras_mds_image.mat` pairs each input contour `stim[i].c` with its
+  own published output `sc[i]` — a clean input→output pair for the ported network.
+- **KerNet1 / KerNet2 vs Figure 8 published network columns:** pairwise Spearman **0.980 / 0.957**,
+  per-dim r mean 0.951 / 0.905. The residual is **input provenance, not a port bug**: deposited
+  `shapes[i].c` is a raw non-uniform 384-point display contour, not the exact normalised network
+  input. Skipping the resample collapses agreement to ~0.56, confirming the pipeline is required
+  and correct. Orientation check: 999/1000 deposited contours are already clockwise, so the kept
+  clockwise step is a near-no-op here and cannot explain the residual.
+- **H1 is explicitly NOT a faithfulness test** (`is_faithfulness_test: false`): its
+  `shape1SC/shape2SC` are the **original 91-descriptor** ShapeComp MDS coords
+  (`view_rating_expt_stim_and_resp.m` line 21), a different model/basis — per-dim r is meaningless
+  (mean ≈ −0.06). Pairwise Spearman ≈ 0.927 / 0.929 measures how well the neural approximation
+  tracks the original model, which is the D1 question, not port correctness.
+
+### D1 — the run networks match the published space and beat every EarthGlyph arm
+
+`human_metrics.json`, six arms, agreement ρ (positive = better), two-level paired bootstrap:
+
+| Arm | H1 agreement ρ | 95% CI | H2 agreement |
+|---|---|---|---|
+| S0 (published original 22-D) | 0.9108 | [0.856, 0.918] | 0.7656 |
+| **S0K1 (KerNet1 actually run)** | **0.9032** | [0.846, 0.911] | 0.6298 |
+| **S0K2 (KerNet2 actually run)** | **0.9005** | [0.846, 0.909] | 0.7622 |
+| E3 (Shape Context) | 0.8391 | [0.762, 0.868] | 0.6936 |
+| E1 (EarthGlyph 91-D) | 0.7824 | [0.703, 0.819] | 0.6584 |
+| E0 (geometric alignment) | 0.6831 | [0.589, 0.736] | 0.7203 |
+
+- **Network-vs-network contrasts include zero** (statistically indistinguishable from the published
+  original): S0K1−S0 = −0.0076 [−0.0306, +0.0127], S0K2−S0 = −0.0103 [−0.0305, +0.0086],
+  S0K1−S0K2 = +0.0027 [−0.0150, +0.0188].
+- **Every EarthGlyph-vs-network contrast excludes zero:** e.g. E3−S0K1 = −0.0641 [−0.1247, −0.0134],
+  E3−S0K2 = −0.0614 [−0.1201, −0.0137], E1−S0K1 = −0.1208 [−0.1802, −0.0630],
+  E0−S0K1 = −0.2201 [−0.2931, −0.1478]. So the ported official networks significantly out-predict
+  every EarthGlyph arm on independent human ratings.
+- **H2 nuance (faithful, not a bug):** S0K2 (image CNN) matches the published H2 KerNet2-based
+  arrangement (0.7622 vs S0 0.7656), while S0K1 (contour MLP) scores lower (0.6298) — H2's target
+  was built from the **image** route, so the contour network is a different approximation there.
+  H2 stays auxiliary and is never pooled with H1.
+
+### D2–D4 — the run networks on real closed contours (MPEG-7, no human truth claimed)
+
+Reproduce: `run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2` → `--stage summary`.
+S0 is absent from every retrieval stage (no published MPEG-7 coordinates). **E0/E1/E3 rows are
+bit-identical to Checkpoint 4** (D2 T2/T3 recall 0.717/0.833/0.917; D4 E0 mirror 0.00, E3 rotate_37
+0.54, E1 mirror 0.33) — the determinism check the brief required.
+
+- **D2 category recall@10 (T2/T3 mean over 6 queries):** E0 0.717, E1 0.833, **E3 0.917**,
+  S0K1 0.767, S0K2 0.800. On *category* recall the networks beat E0 but **not** E1/E3. This is
+  expected and honest: the networks optimise **human perceptual similarity** (D1), not MPEG-7 object
+  categories, and the two are not equivalent. Per query the split is stark — `tree-1`: S0K2 **0.9**
+  vs E0 0.0 / E1 0.1 / E3 0.6; `bat-1`: S0K1 0.3 / S0K2 **0.2** vs E1/E3 0.9. Bat is elongated/branchy,
+  precisely the shapes where D1 shows the networks diverging from humans (failure_cases 217/96/189/
+  247/18). **T3 still adds no discrimination**: 0/6 queries put a synthetic distractor in any arm's
+  Top-10 (F19 unchanged). Full rankings in `d2_full_rankings.npz`.
+- **D3 structure probes:** all five families pass for every arm (structural variant above gross
+  distractor; variant rank 1, natural 2). Distractor suppression: E1 hardest (best distractor rank
+  556–1387), networks intermediate (S0K1 41–1103, S0K2 42–1077), E3 33–1283, E0 admits a distractor
+  as early as rank 23. Roles remain a **constructed hypothesis, not human truth**.
+- **D4 transform stability — the measured integration blocker.** The official networks are **not
+  rotation-invariant**: rotating the query 37°/90°/191° collapses Top-10 overlap to **0.00** (bat-1
+  aggregate) and pushes the self-match to rank **301** (fork-1, 90°, S0K1) / 247 (S0K2). Mirroring is
+  shape-dependent (bat-1 overlap 0.05, self-rank 112/101; heart-1 overlap 0.82). Scale/translation/
+  start-shift leave S0K1 intact (overlap 1.00) and S0K2 mostly intact (0.67). By contrast E0/E1 are
+  rotation-invariant (overlap 1.00 across all rotations); E0 is **not mirror-invariant** (overlap 0.00,
+  self-rank 246/163); E3's 15° grid halves overlap at 37°/191° (0.54). **Conclusion:** the
+  human-validated networks cannot be dropped into EarthGlyph's rotation-invariant retrieval as-is —
+  they need a rotation search or invariant wrapper, which is unvalidated here.
+- **Cost asymmetry (engineering):** the networks score the gallery **once** (absolute 22-D coords, no
+  corpus fitting; ~20 s one-time for 1398 shapes), then each query is one forward pass + L2 →
+  **≈ 0 s marginal** (D2 T1/T2 logged 0.0 s). E3 recomputes per query at ~55 s. So the networks are far
+  cheaper at query time *after* gallery scoring, but rotation-sensitive; E1 is the transform-tolerant
+  middle ground at ~12 s/query.
+
+### Licence and redistribution boundary
+
+The toolbox at `shapeComp_17_12_2024/` is **gitignored** (`.gitignore:72`). Upstream carries only a
+"please cite" notice and **no redistribution licence**, so neither the toolbox nor the `.h5` weights
+are committed. The port code, validation script, tests and result JSONs are committed; the weights
+are read at runtime from the user's local copy. Cite both Morgenstern et al. 2021 (PLoS Comput Biol,
+DOI 10.1371/journal.pcbi.1008981) and Carbajal Chavez et al. (PsyArXiv). Reproduction requires the
+user to supply the toolbox locally and `pip install -e ".[shapecomp]"` (h5py + matplotlib).
+
+### Checkpoint 5 artefacts and verify
+
+New code: `earthglyph/shape_benchmark/shapecomp_port.py` (the port), `scripts/validate_shapecomp_port.py`
+(faithfulness), `tests/test_shapecomp_port.py` (9 tests). Modified: `retrieval.py` (S0K1/S0K2 arms,
+lazy h5py), `run_shape_benchmark.py` + `plot_shape_benchmark.py` (six-arm wiring), `pyproject.toml`
+(`shapecomp` extra), `.gitignore` (toolbox), `official_shapecomp_status.json` (port status). New
+results: `shapecomp_port_validation.json`, `run_d1.log`, `run_d234.log`; regenerated D1–D4 JSON/CSV,
+`d2_full_rankings.npz`, `metrics.json` and all figures (six-arm scatter, five comparison families).
+
+```bash
+.venv/Scripts/python.exe -m pytest -q        # 786 passed, 0 skipped (incl. 9 port tests)
+.venv/Scripts/python.exe -m ruff check .     # All checks passed
+.venv/Scripts/python.exe -m mypy             # 39 source files, no issues
+.venv/Scripts/python.exe scripts/validate_shapecomp_port.py
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
+.venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure all
+```
+
+Determinism: re-running with S0K1/S0K2 leaves E0/E1/E3 **bit-identical** to Checkpoint 4
+(D2 T2/T3 recall 0.717/0.833/0.917; D4 E0 mirror overlap 0.00, E3 rotate_37 0.54, E1 mirror 0.33).
+The toolbox and `.h5` weights are **not** in Git (gitignored, no redistribution licence); only the
+port code, scripts, tests and result artefacts are committed.

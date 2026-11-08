@@ -43,6 +43,7 @@ from earthglyph.shape_benchmark.probes import (
 )
 from earthglyph.shape_benchmark.retrieval import (
     EARTHGLYPH_METHODS,
+    SHAPECOMP_RUN_METHODS,
     Gallery,
     pair_distance,
     search_shape,
@@ -696,7 +697,7 @@ def write_summary() -> None:
         by_condition: dict[str, Any] = {}
         for condition in conditions:
             arms = {}
-            for method in EARTHGLYPH_METHODS:
+            for method in (*EARTHGLYPH_METHODS, *SHAPECOMP_RUN_METHODS):
                 rows = [
                     (query["category"], query[condition][method])
                     for query in d2["queries"].values()
@@ -782,8 +783,11 @@ def write_summary() -> None:
         "stages_present": sorted(present),
         "reproduce": [
             "python scripts/fetch_shape_benchmark_sources.py",
-            "python scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3",
-            "python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3",
+            "# S0K1/S0K2 additionally need the official toolbox (gitignored, no redistribution "
+            "licence) at shapeComp_17_12_2024/ and: pip install -e .[shapecomp]",
+            "python scripts/validate_shapecomp_port.py",
+            "python scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2",
+            "python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/plot_shape_benchmark.py --figure all",
         ],
         "arm_availability": {
@@ -791,9 +795,21 @@ def write_summary() -> None:
             "E1": "all stages (EarthGlyph's own 91-D descriptors, NOT ShapeComp)",
             "E3": "all stages",
             "S0": (
-                "H1/H2 pairwise only, from the authors' published 22-D coordinates. "
-                "The official code does not run here and no coordinates exist for MPEG-7, "
-                "so S0 is absent from every retrieval stage."
+                "H1/H2 pairwise only, from the authors' published 22-D coordinates "
+                "(the ORIGINAL 91-descriptor ShapeComp MDS space). Outputs only: cannot score "
+                "MPEG-7 or any new shape, so S0 is absent from every retrieval stage."
+            ),
+            "S0K1": (
+                "all stages. Official KerNet1 weights ACTUALLY RUN locally via the numpy port "
+                "(h5py, no TensorFlow), on the original contour under the official input "
+                "contract. Can score MPEG-7 and new shapes. Validated vs published KerNet1 "
+                "outputs (Figure8 pairwise Spearman ~0.98). Not rotation/mirror invariant."
+            ),
+            "S0K2": (
+                "all stages. Official KerNet2 weights ACTUALLY RUN locally via the numpy port. "
+                "Validated essentially exact vs published KerNet2 outputs (H2 per-dim r ~0.998, "
+                "pairwise Spearman ~0.999). Can score MPEG-7 and new shapes. Not rotation/mirror "
+                "invariant."
             ),
         },
         "headline": headline,
@@ -819,7 +835,7 @@ def main() -> None:
         "--stage", nargs="+", required=True, choices=["d1", "d2", "d3", "d4", "summary"]
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
-                        choices=["E0", "E1", "E3", "S0"])
+                        choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
     parser.add_argument("--top-k", type=int, default=10)
     args = parser.parse_args()
     RESULTS.mkdir(parents=True, exist_ok=True)

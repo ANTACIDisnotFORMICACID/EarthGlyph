@@ -21,7 +21,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.12334179971367121
+        "elapsed_seconds": 0.1166524002328515
       },
       "E1": {
         "structural_variant_ranks": [
@@ -39,7 +39,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 2,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.043476199731230736
+        "elapsed_seconds": 0.028732500039041042
       },
       "E3": {
         "structural_variant_ranks": [
@@ -57,7 +57,43 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 63.07420150004327
+        "elapsed_seconds": 54.58554789982736
+      },
+      "S0K1": {
+        "structural_variant_ranks": [
+          14,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          1327,
+          879,
+          1150
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 879,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 19.374804200604558
+      },
+      "S0K2": {
+        "structural_variant_ranks": [
+          42,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          1329,
+          917,
+          1001
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 917,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 23.347161100246012
       }
     },
     "heart": {
@@ -77,7 +113,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.126307500526309
+        "elapsed_seconds": 0.11522020027041435
       },
       "E1": {
         "structural_variant_ranks": [
@@ -95,7 +131,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.03435199987143278
+        "elapsed_seconds": 0.031644999980926514
       },
       "E3": {
         "structural_variant_ranks": [
@@ -113,7 +149,43 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 62.22642820049077
+        "elapsed_seconds": 54.812015200033784
+      },
+      "S0K1": {
+        "structural_variant_ranks": [
+          22,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          41,
+          134,
+          44
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 41,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 19.266416399739683
+      },
+      "S0K2": {
+        "structural_variant_ranks": [
+          3,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          42,
+          302,
+          58
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 42,
+        "structure_beats_gross": true,
+        "variants_in_top10": 3,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 23.295293499715626
       }
     },
     "crescent": {
@@ -133,7 +205,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.12524669989943504
+        "elapsed_seconds": 0.11705750040709972
       },
       "E1": {
         "structural_variant_ranks": [
@@ -151,7 +223,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.03575409948825836
+        "elapsed_seconds": 0.03267520014196634
       },
       "E3": {
         "structural_variant_ranks": [
@@ -169,7 +241,43 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 62.44235779996961
+        "elapsed_seconds": 55.25586919952184
+      },
+      "S0K1": {
+        "structural_variant_ranks": [
+          212,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          1079,
+          748,
+          1080
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 748,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 19.236469900235534
+      },
+      "S0K2": {
+        "structural_variant_ranks": [
+          70,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          1270,
+          1050,
+          1271
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 1050,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 23.255350700579584
       }
     },
     "forked": {
@@ -189,7 +297,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.12781890016049147
+        "elapsed_seconds": 0.1179748997092247
       },
       "E1": {
         "structural_variant_ranks": [
@@ -207,7 +315,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.03544329944998026
+        "elapsed_seconds": 0.03044659923762083
       },
       "E3": {
         "structural_variant_ranks": [
@@ -225,7 +333,43 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 62.56534800026566
+        "elapsed_seconds": 56.28127799928188
+      },
+      "S0K1": {
+        "structural_variant_ranks": [
+          167,
+          257,
+          1
+        ],
+        "gross_distractor_ranks": [
+          512,
+          536,
+          217
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 217,
+        "structure_beats_gross": true,
+        "variants_in_top10": 1,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 19.229564600624144
+      },
+      "S0K2": {
+        "structural_variant_ranks": [
+          54,
+          2,
+          1
+        ],
+        "gross_distractor_ranks": [
+          394,
+          296,
+          97
+        ],
+        "best_structural_variant_rank": 1,
+        "best_gross_distractor_rank": 97,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 23.363712599501014
       }
     },
     "natural": {
@@ -245,7 +389,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.14028360042721033
+        "elapsed_seconds": 0.11680019926279783
       },
       "E1": {
         "structural_variant_ranks": [
@@ -263,7 +407,7 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 0.03373680077493191
+        "elapsed_seconds": 0.030601599253714085
       },
       "E3": {
         "structural_variant_ranks": [
@@ -281,7 +425,43 @@
         "structure_beats_gross": true,
         "variants_in_top10": 3,
         "distractors_in_top10": 0,
-        "elapsed_seconds": 62.33149509970099
+        "elapsed_seconds": 55.67374590039253
+      },
+      "S0K1": {
+        "structural_variant_ranks": [
+          305,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          1348,
+          1103,
+          1335
+        ],
+        "best_structural_variant_rank": 2,
+        "best_gross_distractor_rank": 1103,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 19.243787500075996
+      },
+      "S0K2": {
+        "structural_variant_ranks": [
+          588,
+          3,
+          2
+        ],
+        "gross_distractor_ranks": [
+          1341,
+          1077,
+          1328
+        ],
+        "best_structural_variant_rank": 2,
+        "best_gross_distractor_rank": 1077,
+        "structure_beats_gross": true,
+        "variants_in_top10": 2,
+        "distractors_in_top10": 0,
+        "elapsed_seconds": 23.277712300419807
       }
     }
   }

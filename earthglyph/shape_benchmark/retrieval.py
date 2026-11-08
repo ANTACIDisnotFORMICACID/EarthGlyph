@@ -1,9 +1,18 @@
 """Unified, geography-free shape retrieval over the EarthGlyph arms plus official outputs.
 
 Every method scores the *same* candidate set. E0/E1/E3 share one preprocessing contract
-(128-point centred/unit-RMS/CCW rings). S0 is different in kind: it is the authors'
-*published* 22-D ShapeComp coordinates, so it needs no preprocessing and can only score
-shapes whose coordinates were published. That asymmetry is reported, never hidden.
+(128-point centred/unit-RMS/CCW rings). The official ShapeComp arms come in two kinds:
+
+* **S0** — the authors' *published* 22-D coordinates. No preprocessing, but it can only score
+  shapes whose coordinates were published (H1/H2 stimuli), never MPEG-7 or a new drawing.
+* **S0K1 / S0K2** — the official KerNet1/KerNet2 weights *actually run* locally through the
+  numpy port (``shapecomp_port``). These feed the network the ORIGINAL contour
+  (``display_points``) under the official input contract, deliberately NOT EarthGlyph's
+  128-point contract, and can score any shape including MPEG-7. They are not rotation/mirror
+  invariant, exactly as the official networks are not.
+
+That asymmetry is reported, never hidden. Loading the weights is lazy and optional (h5py),
+so E0/E1/E3 still run without the ``shapecomp`` extra installed.
 """
 
 from __future__ import annotations
@@ -11,7 +20,7 @@ from __future__ import annotations
 import time
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -20,8 +29,25 @@ from earthglyph.retrieval import perceptual_methods as pm
 from earthglyph.retrieval import shape_context_baseline as e3
 from earthglyph.shape_benchmark.datasets import BenchmarkShape
 
+if TYPE_CHECKING:
+    from earthglyph.shape_benchmark.shapecomp_port import ShapeCompNets
+
 EARTHGLYPH_METHODS = ("E0", "E1", "E3")
-ALL_METHODS = ("E0", "E1", "E3", "S0")
+SHAPECOMP_RUN_METHODS = ("S0K1", "S0K2")
+ALL_METHODS = ("E0", "E1", "E3", "S0", "S0K1", "S0K2")
+_RUN_NETWORK = {"S0K1": "kernet1", "S0K2": "kernet2"}
+
+_SHAPECOMP_NETS: ShapeCompNets | None = None
+
+
+def _load_shapecomp_nets() -> ShapeCompNets:
+    """Load the official weights once, lazily, so h5py is only needed when a run arm is used."""
+    global _SHAPECOMP_NETS
+    if _SHAPECOMP_NETS is None:
+        from earthglyph.shape_benchmark.shapecomp_port import ShapeCompNets
+
+        _SHAPECOMP_NETS = ShapeCompNets()
+    return _SHAPECOMP_NETS
 
 
 @dataclass(frozen=True)
@@ -63,6 +89,7 @@ class Gallery:
         official_coords: dict[str, np.ndarray] | None = None,
         e3_params: dict[str, Any] | None = None,
         e1_normalizer: e1.FeatureNormalizer | None = None,
+        shapecomp_nets: ShapeCompNets | None = None,
         name: str = "gallery",
     ) -> None:
         if not shapes:
@@ -75,6 +102,8 @@ class Gallery:
             raise ValueError("gallery contains duplicate shape_id values")
         self.official_coords = official_coords
         self.e3_params: dict[str, Any] = dict(e3_params or {})
+        self._shapecomp_nets = shapecomp_nets
+        self._kernet_coords: dict[str, np.ndarray] = {}
 
         features = e1.features_for_library(list(self.matrix))
         # Inheriting keeps "added candidates" the only variable when a condition extends the
@@ -99,6 +128,29 @@ class Gallery:
         return self.official_coords is not None and all(
             shape.shape_id in self.official_coords for shape in self.shapes
         )
+
+    def _nets(self) -> ShapeCompNets:
+        return self._shapecomp_nets if self._shapecomp_nets is not None else _load_shapecomp_nets()
+
+    def score_contour(self, network: str, contour: np.ndarray) -> np.ndarray:
+        """Run the official network on one ORIGINAL contour under its own input contract."""
+        nets = self._nets()
+        fn = nets.kernet1 if network == "kernet1" else nets.kernet2
+        return np.asarray(fn(contour), dtype=float)
+
+    def kernet_coords(self, network: str) -> np.ndarray:
+        """(n, 22) official-network coordinates for the gallery, scored once and cached.
+
+        Each shape is scored on its ``display_points`` (the original contour), not the shared
+        128-point ``points``, so the official preprocessing contract is preserved. The output
+        is absolute (no corpus fitting), so adding candidates never rescales existing scores.
+        """
+        if network not in self._kernet_coords:
+            self._kernet_coords[network] = np.array(
+                [self.score_contour(network, shape.display_points) for shape in self.shapes],
+                dtype=float,
+            )
+        return self._kernet_coords[network]
 
     def params_for(self, method: str) -> dict[str, Any]:
         if method == "E1":
@@ -141,7 +193,26 @@ def search_shape(
 
     started = time.perf_counter()
     details: dict[str, Any]
-    if method == "S0":
+    if method in SHAPECOMP_RUN_METHODS:
+        network = _RUN_NETWORK[method]
+        query_contour = (
+            query.display_points
+            if isinstance(query, BenchmarkShape)
+            else np.asarray(query, dtype=float)
+        )
+        run_coords = gallery.score_contour(network, query_contour)
+        gallery_coords = gallery.kernet_coords(network)
+        indices = np.flatnonzero(mask)
+        distances = np.full(len(gallery), np.inf)
+        distances[indices] = np.linalg.norm(gallery_coords[indices] - run_coords, axis=1)
+        details = {
+            "kind": "official_network_actually_run",
+            "network": network,
+            "note": "Official KerNet weights run locally via the numpy port on the original "
+            "contour (official input contract); scores shapes with no published coordinates. "
+            "Not rotation/mirror invariant, as the official networks are not.",
+        }
+    elif method == "S0":
         if not gallery.has_official_coords():
             raise ValueError(
                 "S0 needs published official 22-D coordinates for every gallery shape; "
@@ -215,6 +286,17 @@ def pair_distance(
 
     Computing only the pairs that were actually rated avoids ranking 500 shapes 250 times.
     """
+    if method in SHAPECOMP_RUN_METHODS:
+        network = _RUN_NETWORK[method]
+        nets = _load_shapecomp_nets()
+        fn = nets.kernet1 if network == "kernet1" else nets.kernet2
+        left_contour = (
+            left.display_points if isinstance(left, BenchmarkShape) else np.asarray(left, float)
+        )
+        right_contour = (
+            right.display_points if isinstance(right, BenchmarkShape) else np.asarray(right, float)
+        )
+        return float(np.linalg.norm(fn(left_contour) - fn(right_contour)))
     left_points, _ = _query_points(left)
     right_points, _ = _query_points(right)
     if method == "S0":

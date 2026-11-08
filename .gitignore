@@ -63,3 +63,10 @@ experiments/**/cache/
 # splits live in labels.json, the integrity record in dataset_manifest.json, and the
 # contours regenerate from the committed builder.
 experiments/**/gallery.jsonl
+
+# Official ShapeComp MATLAB toolbox manually downloaded by the user (407 MB, weights
+# included). The repo carries only a "please cite" notice, no formal redistribution
+# licence, so the raw toolbox/weights stay local. The Python port in
+# earthglyph/shape_benchmark/shapecomp_port.py reads it from this path; only our own
+# translation code, validation results and metadata are committed.
+shapeComp_17_12_2024/

@@ -1,7 +1,8 @@
 {
   "schema": "earthglyph.shape_perception_benchmark.official_shapecomp_status/1",
   "audit_date": "2026-11-07",
-  "overall": "OFFICIAL CODE NOT RUNNABLE HERE; OFFICIAL MODEL OUTPUTS ARE AVAILABLE AND USED",
+  "translation_date": "2026-11-08",
+  "overall": "OFFICIAL KERAS NETWORKS (KerNet1/KerNet2) NOW RUNNABLE LOCALLY VIA A NUMPY PORT THAT LOADS THE AUTHORS' OWN WEIGHTS; the 109-descriptor engine and MatNet remain unavailable",
   "distinction_required_by_brief": {
     "official_descriptor_mds": "109 descriptors -> per-descriptor max-range scaling -> 109-D Euclidean -> classical MDS on 25,712 animal silhouettes -> first 22 dims (95.05% variance). New shapes enter via MDS re-fit + Procrustes.",
     "official_neural_approximation": "MatNet (MATLAB, 384x2 contour), KerNet1 (Keras, 384x2 contour), KerNet2 (Keras, 40x40 binary image). Trained on 800,000 GAN shapes to emit the 22 coordinates directly.",
@@ -92,12 +93,16 @@
     "octave_policy": "Not installed. GNU Octave is not assumed MATLAB-compatible, and the official code was never obtained anyway, so compatibility is moot.",
     "commercial_software_installed": false,
     "license_purchased": false,
-    "tensorflow_available": false,
-    "tensorflow_evidence": "import tensorflow -> ModuleNotFoundError in .venv; no weights exist to load even if it were installed",
     "official_demo_run": false,
     "official_demo_run_reason": "The demo code could not be obtained from any reachable host, and no MATLAB runtime exists on this machine.",
     "python_reimplementation_written": false,
-    "python_reimplementation_policy": "Deliberately NOT written. The brief forbids passing a self-written 91/109-D descriptor version off as a ShapeComp reproduction. E1 remains labelled 'EarthGlyph ShapeComp-inspired'."
+    "python_reimplementation_policy": "Deliberately NOT written. The brief forbids passing a self-written 91/109-D descriptor version off as a ShapeComp reproduction. E1 remains labelled 'EarthGlyph ShapeComp-inspired'.",
+    "python_port_of_official_networks_written": true,
+    "python_port_kind": "NOT a self-written descriptor reimplementation. earthglyph/shape_benchmark/shapecomp_port.py translates ONLY the official MATLAB preprocessing (centroid/resamplePolygon/resamplePolyline/parametrize/adjustContourPos/clockwise/inpolygon) and runs the authors' OWN Keras 2.1.2 .h5 weights verbatim through a numpy forward pass (h5py, no TensorFlow, no retraining, no GPU). This is the official neural approximation executed in Python, which the user explicitly authorised on 2026-11-08.",
+    "python_port_weights_source": "Toolbox manually downloaded by the user to shapeComp_17_12_2024/ (gitignored; upstream carries only a 'please cite' notice, no redistribution licence). Weights read from net/keras/shape2sc22a.h5 (KerNet1) and net/keras/im2sc22d.h5 (KerNet2).",
+    "python_port_validation": "results/shapecomp_port_validation.json — KerNet2 vs published H2 KerNet2 coords: per-dim r 0.9982, pairwise Spearman 0.9989, RMSE 0.0065 (essentially exact). KerNet1/KerNet2 vs Figure8 published network columns: pairwise Spearman 0.980 / 0.957 (residual = deposited raw display contours, not the exact network input).",
+    "tensorflow_available": false,
+    "tensorflow_evidence": "Not needed: the port reads .h5 with h5py and runs numpy; no TensorFlow/Keras runtime is installed or required."
   },
   "arms_actually_available": {
     "S0-MDS-precomputed": {
@@ -114,13 +119,18 @@
       "evidence": "results/figure8_network_audit.json"
     },
     "S0-KerNet1": {
-      "available": "outputs_only",
-      "reason": "No Keras weights, but published KerNet1 22-D coordinates for the same 1000 held-out GAN shapes are in Figure8NetComparison.mat. Precomputed outputs only; no human ratings.",
-      "evidence": "results/figure8_network_audit.json"
+      "available": "actually_run_validated",
+      "as_of": "2026-11-08",
+      "reason": "The user manually downloaded the official toolbox; shapecomp_port.py loads net/keras/shape2sc22a.h5 and runs it via numpy. Now scores ANY contour (including MPEG-7 and new drawings) under the official input contract, not just the fixed published set.",
+      "validation": "vs Figure8 published kernet1 column: pairwise Spearman 0.980, per-dim r 0.951 (residual = deposited raw display contours). Retrieval arm S0K1.",
+      "evidence": "results/shapecomp_port_validation.json"
     },
     "S0-KerNet2": {
-      "available": "outputs_only",
-      "reason": "No weights, but official KerNet2-produced 22-D coordinates are published twice: for the 15 H2 shapes (lietal_ShapeCompSolution_keras_mds_image.mat) and for the 1000 Figure 8 GAN shapes (Figure8NetComparison.mat). Usable as precomputed outputs on those fixed sets only."
+      "available": "actually_run_validated",
+      "as_of": "2026-11-08",
+      "reason": "shapecomp_port.py loads net/keras/im2sc22d.h5 and runs it via numpy (40x40 binary image route). Scores ANY contour, including MPEG-7 and new drawings.",
+      "validation": "vs published H2 KerNet2 coords: per-dim r 0.9982, pairwise Spearman 0.9989, RMSE 0.0065 (essentially exact). Retrieval arm S0K2.",
+      "evidence": "results/shapecomp_port_validation.json"
     }
   },
   "correction_2026_11_07": {
@@ -138,6 +148,34 @@
     "not_done": "No Figure 8 retrieval arm was run. It is recorded as a next-step option, not as a result.",
     "evidence_file": "results/figure8_network_audit.json",
     "reproduce": ".venv/Scripts/python.exe scripts/audit_figure8_networks.py"
+  },
+  "translation_2026_11_08": {
+    "trigger": "User manually downloaded the official toolbox to shapeComp_17_12_2024/ and asked for a MATLAB->Python translation to run and compare. Via AskUserQuestion the user chose the h5py+numpy route (no TensorFlow, no retraining) and the full bounded scope: both networks + validation + retrieval comparison.",
+    "what_was_translated": "ONLY the preprocessing of getShapeComp22netkeras.m / getShapeComp22netimagekeras.m and the geom2d helpers (centroid, resamplePolygon, resamplePolyline, parametrize, adjustContourPos, clockwise, inpolygon->shapely.covers). The network weights are the authors' own .h5, loaded verbatim and run through a numpy forward pass (Dense matmul+ReLU; Conv2D 'same' cross-correlation; MaxPool; C-order flatten for the CNN).",
+    "what_was_NOT_translated": "No descriptor engine, no retraining, no TensorFlow. The 109-descriptor original ShapeComp and MatNet remain unavailable; S0 (published original-ShapeComp coords) is unchanged.",
+    "input_contract_preserved": "The port feeds the ORIGINAL contour (BenchmarkShape.display_points), NOT EarthGlyph's 128-point standardised contract, so the official 384-point / [0,1] / leftmost-start / column-major (KerNet1) and 40x40 binary flipud (KerNet2) contracts are intact. The official clockwise enforcement (getShapeComp22netkeras.m lines 9-13) is KEPT; on Figure8 it is a near-no-op (999/1000 contours already clockwise).",
+    "validation_headline": {
+      "kernet2_vs_published_H2": {"per_dim_pearson_mean": 0.9982, "pairwise_spearman": 0.9989, "rmse_raw": 0.0065, "verdict": "essentially exact reproduction of the official KerNet2"},
+      "kernet1_vs_published_Figure8": {"pairwise_spearman": 0.980, "per_dim_pearson_mean": 0.951, "verdict": "strong; residual is input provenance (deposited c is a raw display contour, not the exact network input)"},
+      "kernet2_vs_published_Figure8": {"pairwise_spearman": 0.957, "per_dim_pearson_mean": 0.905, "verdict": "same input-provenance residual"},
+      "H1_is_not_a_faithfulness_test": "H1 shape1SC/shape2SC are the ORIGINAL 91-descriptor ShapeComp MDS coords (view_rating_expt line 21), a different basis (per-dim r negative); KerNet-vs-H1 there measures approximation to the original model, reported separately."
+    },
+    "retrieval_integration": {
+      "arms_added": ["S0K1", "S0K2"],
+      "where": "earthglyph/shape_benchmark/retrieval.py (lazy h5py load; gallery coords cached; search_shape + pair_distance). Production earthglyph/retrieval defaults UNCHANGED.",
+      "D1_human_prediction_H1_agreement": {"E0": 0.683, "E1": 0.782, "E3": 0.839, "S0K1": 0.903, "S0K2": 0.901, "S0_published": 0.911},
+      "D1_paired_bootstrap": "S0K1/S0K2 beat E0/E1/E3 with two-level paired CIs excluding zero (E3-S0K1 = -0.064 [-0.125,-0.013]); S0K1/S0K2 are statistically indistinguishable from S0 published (CI includes 0).",
+      "D2_D4": "see results/d2_metrics.json, d3_metrics.json, d4_metrics.json and metrics.json (S0K arms now participate in MPEG-7 retrieval, which published-coordinate S0 never could)."
+    },
+    "license_boundary": "The toolbox (407 MB, no formal redistribution licence, only 'please cite') is gitignored (.gitignore line: shapeComp_17_12_2024/). Only this project's own port code, validation script, tests and result metadata are committed. geom2d helpers are BSD-3 (INRA/D. Legland). Cite Morgenstern et al. 2021 (10.1371/journal.pcbi.1008981) and Carbajal Chavez et al. PsyArXiv.",
+    "evidence_file": "results/shapecomp_port_validation.json",
+    "reproduce": [
+      ".venv/Scripts/python.exe scripts/validate_shapecomp_port.py",
+      ".venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2",
+      ".venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2",
+      ".venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary",
+      ".venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure all"
+    ]
   },
   "reproduction_commands": [
     ".venv/Scripts/python.exe scripts/fetch_shape_benchmark_sources.py",

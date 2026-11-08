@@ -1,0 +1,77 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark.shapecomp_port_validation/1",
+  "port": "earthglyph.shape_benchmark.shapecomp_port (h5py + numpy, official weights)",
+  "data_doi": "10.5281/zenodo.4730985",
+  "paper_doi": "10.1371/journal.pcbi.1008981",
+  "no_human_ratings": true,
+  "h2_kernet2_faithfulness": {
+    "reference": "lietal_ShapeCompSolution_keras_mds_image.mat stim[i].c -> sc[i]",
+    "reference_semantics": "published KerNet2 (40x40 binary image route) output, paired with its own input contour in the same file — a clean input->output pair for the ported network",
+    "network": "kernet2",
+    "headline_faithfulness": {
+      "n_shapes": 15,
+      "n_pairs": 105,
+      "pairwise_distance_spearman": 0.9989425668670951,
+      "pairwise_distance_pearson": 0.9991928716760008,
+      "per_dim_pearson_mean": 0.9982260545967314,
+      "per_dim_pearson_min": 0.9948795881419294,
+      "rmse_raw": 0.006496161383207664,
+      "rmse_procrustes": 0.004404596639302104
+    }
+  },
+  "figure8_network_faithfulness": {
+    "reference": "Figure8NetComparison.mat published kernet1/kernet2 columns",
+    "reference_semantics": "official network output for the SAME network we ported",
+    "input_provenance_caveat": "Deposited shapes[i].c is a RAW 384-point GAN display contour (not centred, non-uniform arc length), not the exact normalised input the authors fed the network. A small residual is expected from re-resampling this display contour and is an input-provenance effect, not a port bug; skipping the resample collapses agreement to ~0.56, confirming the pipeline is required and correct.",
+    "kernet1": {
+      "n_shapes": 1000,
+      "n_pairs": 499500,
+      "pairwise_distance_spearman": 0.9797919893488333,
+      "pairwise_distance_pearson": 0.9670262052499136,
+      "per_dim_pearson_mean": 0.950538577211556,
+      "per_dim_pearson_min": 0.8695230293904351,
+      "rmse_raw": 0.05965536505570316,
+      "rmse_procrustes": 0.04752166428513874
+    },
+    "kernet2": {
+      "n_shapes": 1000,
+      "n_pairs": 499500,
+      "pairwise_distance_spearman": 0.9566051474715425,
+      "pairwise_distance_pearson": 0.9595168111013023,
+      "per_dim_pearson_mean": 0.9053297191926977,
+      "per_dim_pearson_min": 0.8102380333709109,
+      "rmse_raw": 0.0747002777445126,
+      "rmse_procrustes": 0.06207936909183727
+    },
+    "orientation": {
+      "n_clockwise": 999,
+      "n_anticlockwise": 1,
+      "note": "getShapeComp22netkeras.m enforces clockwise (lines 9-13); the port keeps that official step. On Figure 8 it is a near-no-op because almost all deposited contours are already clockwise, so it cannot explain the residual."
+    }
+  },
+  "h1_approximation_to_original_shapecomp": {
+    "reference": "Fig5B_shapeStim4RatingExpt.mat shape1SC/shape2SC",
+    "reference_semantics": "ORIGINAL 91-descriptor ShapeComp 22-D MDS coordinates, NOT a Keras network output (view_rating_expt_stim_and_resp.m line 21). This measures how well the neural approximation tracks the original model — explicitly NOT port faithfulness.",
+    "is_faithfulness_test": false,
+    "kernet1": {
+      "n_shapes": 500,
+      "n_pairs": 124750,
+      "pairwise_distance_spearman": 0.9266275390706213,
+      "pairwise_distance_pearson": 0.9297840779441038,
+      "per_dim_pearson_mean": -0.0637877464244578,
+      "per_dim_pearson_min": -0.9516573472652039,
+      "rmse_raw": 0.37001494105017113,
+      "rmse_procrustes": 0.12709268271890042
+    },
+    "kernet2": {
+      "n_shapes": 500,
+      "n_pairs": 124750,
+      "pairwise_distance_spearman": 0.9288898912655359,
+      "pairwise_distance_pearson": 0.9325665492384356,
+      "per_dim_pearson_mean": -0.0550303979340407,
+      "per_dim_pearson_min": -0.9413606725294795,
+      "rmse_raw": 0.3690403813650858,
+      "rmse_procrustes": 0.13741422428450614
+    }
+  }
+}
