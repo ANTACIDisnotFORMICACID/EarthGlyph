@@ -667,3 +667,104 @@ port code, scripts, tests and result artefacts are committed.
 Git checkpoint: CP5 work commit `31e6b00` (`feat: run official ShapeComp KerNet1/KerNet2 via numpy
 port`), pushed to `origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main`
 == `git rev-parse HEAD` == `31e6b00efc754938217bb0ea68a7ee3e831c3d9a`, author `ANTACIDisnotFORMICACID`.
+
+---
+
+## Checkpoint 6 — rotation-search added to the ShapeComp port, compared under identical rotation (2026-11-08)
+
+**Project goal this checkpoint:** EarthGlyph must retrieve under rotation. Checkpoint 5 established the
+official KerNet weights win on human similarity but are **not rotation-invariant** (D4 overlap 0.00, target
+rank up to 301). The user directed: give the ShapeComp port a rotation-analysis capability and compare it
+against the arms that already handle rotation, **under the same rotation condition**. Nothing here changes
+the production retrieval default; it is a bounded method-optimisation study.
+
+### What was added (and what was deliberately not)
+
+* `retrieval.py`: a query-side **rotation-grid search** wraps the S0K arms —
+  `d(q, g) = min_θ ‖net(R_θ q) − net(g)‖` over the **same 24-step / 15° grid** E3's `orientation="sample"`
+  uses, exposed as `search_shape(..., rotation_search=True)` and `pair_distance(..., rotation_search=True)`.
+  The gallery is scored once in its stored pose; only the query contour is turned before the network call.
+  New helper `kernet_rotation_frames(network, contour)` returns the `(24, 22)` rotated-frame matrix (row 0 is
+  the plain score), which `run_d5` caches per shape so a whole sweep reuses it.
+* **The official input contract is untouched**: `kernet1_input` / `kernet2_input` are not modified; the
+  rotation is applied to the raw contour *before* the unmodified preprocessing. The weights are the authors'
+  own, used verbatim. This rotation robustness is an **added wrapper**, not a property of the official network,
+  and is labelled as such everywhere (`details["rotation_search"]`).
+* Not added: no retraining, no orientation canonicalisation of the network itself, no change to E0/E1/E3.
+
+### Same-condition protocol (`--stage d5`, rotation is the only variable)
+
+* **(a) rotation-stress human agreement (H1)** — one member of every rated pair is turned by each stress
+  angle; each arm must recover the *published human dissimilarity* it was scored on. Shared ground truth,
+  two-level bootstrap (pairs AND observers, 2000 reps, seed 20261107). Arms: E0, E1, E3, S0K1, S0K1+rot,
+  S0K2, S0K2+rot. Stress angles mix on-grid multiples of 15 (15/45/90/135/270) with off-grid 37/191, plus 0
+  as the control.
+* **(b) rotation-stress retrieval (MPEG-7 stratified, D4 gallery)** — the query is turned by each angle and
+  ranked; stability = Top-10 Jaccard overlap with its own untransformed ranking + the exact target's rank.
+
+### Results (`results/d5_rotation_metrics.json`, figure `figures/rotation_stress.png`)
+
+Agreement under rotation stress (pooled over the rotated angles, two-level bootstrap CI):
+
+| arm | pooled ρ | 95% CI | ρ at φ=0 | worst rotated ρ |
+|-----|---------:|:------:|---------:|----------------:|
+| E0 (invariant) | +0.683 | [0.635, 0.704] | 0.683 | +0.683 (flat) |
+| E1 (canonical) | +0.782 | [0.731, 0.798] | 0.782 | +0.782 (flat) |
+| **E3 (sample grid)** | **+0.839** | [0.785, 0.848] | 0.839 | +0.837 (flat) |
+| S0K1 naive | +0.434 | [0.378, 0.470] | 0.903 | **−0.002** (270°) |
+| **S0K1 +rot** | **+0.747** | [0.695, 0.763] | 0.763 | +0.706 |
+| S0K2 naive | +0.458 | [0.399, 0.495] | 0.901 | +0.073 (90°) |
+| **S0K2 +rot** | **+0.774** | [0.723, 0.789] | 0.775 | +0.746 |
+
+Retrieval Top-10 overlap vs untransformed, over the rotated angles (mean / worst):
+
+| arm | mean | worst | target rank |
+|-----|-----:|------:|-------------|
+| E0 / E1 | 1.000 | 1.000 | 1 everywhere |
+| E3 | 0.916 | 0.674 | 1 everywhere |
+| S0K1 naive | 0.162 | 0.037 | up to **297** (fork 90°) |
+| **S0K1 +rot** | **0.943** | 0.725 | **1 in 20/24**, 6 at off-grid fork 37° |
+| S0K2 naive | 0.148 | 0.018 | up to 244 |
+| **S0K2 +rot** | **0.910** | 0.632 | **1 in 22/24**, 2 at off-grid bat 37°/191° |
+
+**Read-out.** The added rotation search turns the official networks from *rotation-blind* into
+*rotation-searchable*: retrieval stability jumps from ~0.15 to ~0.91–0.94 (E3-comparable), and the exact
+target returns to rank 1 in almost every rotated query (the few misses are off-grid 37°/191°, precisely
+the half-grid-step limitation E3 documents). Human agreement under rotation rises from ~0.44 to ~0.75–0.77,
+recovering most of the port's Checkpoint-5 advantage — but it does **not** exceed E3 (0.839) or even E1
+(0.782). The wrapper also **costs peak accuracy**: at φ=0 the search drops S0K1 from 0.903 to 0.763, because
+minimising over rotations lets distinct shapes collide. This trade is reported, not hidden.
+
+**Consistency check:** the cached frames scorer reproduces the committed D1 numbers exactly at φ=0
+(S0K1 0.903, S0K2 0.901 vs D1 0.9032 / 0.9005), confirming `run_d5`'s shortcut equals `pair_distance`.
+
+### Determinism
+
+E0/E1/E3 and the **naive** S0K paths are arithmetically unchanged by this checkpoint: `rotation_search`
+defaults to `False`, the new code sits behind that flag, and the S0K `pair_distance` naive branch was only
+rewritten to the numerically identical symmetric form `‖net(right)−net(left)‖`. The committed D1–D4 result
+files were therefore **not re-run**; their rows remain the Checkpoint-5 values. Only `d5_*` artefacts and
+`metrics.json` (which now folds in a `rotation_stress` headline) are new.
+
+### Checkpoint 6 artefacts and verify
+
+New code: `kernet_rotation_frames` + `rotation_search` in `retrieval.py`; `run_d5` + `_rotated`/`_d5_arms`
+in `run_shape_benchmark.py`; `plot_rotation_stress` in `plot_shape_benchmark.py`; 6 new tests in
+`test_shapecomp_port.py` (frames row-0 identity, rotated-copy distance recovery, cached==public, rank-1
+recovery). New results: `d5_rotation_metrics.json`, `d5_rotation_results.csv`, `run_d5.log`,
+`rotation_stress.png`; regenerated `metrics.json`.
+
+```bash
+.venv/Scripts/python.exe -m pytest -q        # 792 passed, 0 skipped (incl. 15 port tests)
+.venv/Scripts/python.exe -m ruff check .     # All checks passed
+.venv/Scripts/python.exe -m mypy             # 39 source files, no issues
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
+.venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure rotation
+```
+
+d5 took ~39 min wall (the S0K frame builds and E3 retrieval sweep dominate; the frames cache keeps the
+250-pair sweep tractable). Toolbox and weights remain gitignored and uncommitted; the wrapper inherits the
+same licence boundary as Checkpoint 5.
+
+Git checkpoint: CP6 work commit `<pending>`.

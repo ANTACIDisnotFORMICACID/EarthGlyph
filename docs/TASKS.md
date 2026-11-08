@@ -470,6 +470,41 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 `run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2` → `--stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`
 → `--stage summary` → `plot_shape_benchmark.py --figure all`。工具箱与权重不入库（gitignored）。
 
+### Checkpoint 6：给 ShapeComp 端口加旋转搜索并与各臂同旋转条件对比 ✅（`<pending>`）
+
+> 触发：用户明确"本项目的目的就是实现旋转可查找"，要求对 shapecomp 加上旋转分析能力、
+> 与有旋转设计的方案在**同一旋转条件**下对比。属方法优化研究，**不改正式检索默认、不跨 P0 门禁**。
+
+- **加了什么**：`retrieval.py` 新增 `kernet_rotation_frames()` + `search_shape/pair_distance` 的
+  `rotation_search` 开关（**默认 False**）。在 **E3 同款 24 步 / 15° 网格**上旋转**查询原始轮廓**，
+  取 `min_θ ‖net(R_θ q) − net(g)‖`；图库只按存量姿态打分一次。
+  **官方输入契约不动**：旋转发生在 `kernet1_input`/`kernet2_input` 之前，预处理与权重逐字不变，
+  不重训练、不改网络；新臂标 `S0K1+rot` / `S0K2+rot`。
+- **协议**（`--stage d5`，同条件）：φ ∈ {0, 15, 37, 45, 90, 135, 191, 270}（含 15 的整倍数与网格外 37/191，0 为对照）。
+  (a) 250 对 H1 逐 φ 人类一致性；(b) 分层 MPEG-7 图库旋转查询 vs 未变换基线的 Top-10 overlap + 自匹配 rank。
+  七臂同 φ 同候选集：E0 / E1 / E3 / S0K1 / S0K1+rot / S0K2 / S0K2+rot。
+- **检索（关键结论）**：Top-10 overlap 均值/最差 —
+  E0 与 E1 **1.000/1.000**；E3 0.916/0.674；**S0K1 naive 0.162/0.037 → +rot 0.943/0.725**；
+  **S0K2 naive 0.148/0.018 → +rot 0.910/0.632**。自匹配 rank：**+rot 把 naive 下最坏 297（fork-1 90°）/244
+  拉到 24 个旋转查询中 20 个 rank 1（S0K1，例外 fork-1 37° rank 6）、22 个 rank 1（S0K2，例外 bat-1 37°/191° rank 2）**
+  → **旋转可查找已实现**，且与 E3 同档（仍不及 E0/E1 的严格不变）。
+- **人类一致性**（agreement，正=更好；φ>0 池化，两级 bootstrap）：E0 0.683、E1 0.782、E3 **0.839**；
+  S0K1 naive 0.434 → **+rot 0.747**；S0K2 naive 0.458 → **+rot 0.774**。
+  **代价要诚实**：φ=0 峰值由 0.903/0.900 降至 0.763/0.775（旋转搜索取 min 会拉高"相似"下限、压缩判别），
+  故 +rot 在**无旋转**时不如 naive；在**有旋转**时远优于 naive 但**不胜 E3**。
+- **一致性/确定性核验**：`d5` 的 φ=0 naive 臂与 CP5 D1 统计不可区分（S0K1 0.903 vs 0.9032、S0K2 0.901 vs 0.9005）；
+  缓存的帧打分器与公开 `pair_distance` 差 ≤1e-12。**D1–D4 结果文件故意未重跑**：`rotation_search` 默认关，
+  naive 分支只改写为算术等价的对称形式 → 其数值仍为 CP5 值。
+- **产物**：`results/d5_rotation_metrics.json`、`d5_rotation_results.csv`、`figures/rotation_stress.png`
+  （左：一致性 vs 角度；右：Top-10 overlap vs 角度；实线=naive，虚线=+rot）。
+- **边界**：网格分辨率决定不变性精度（15° 网格 → 半格误差，故 37° 仍有残差）；权重与工具箱仍 gitignored、
+  无再分发许可；是否把旋转包装整合进 EarthGlyph 正式流水线**由用户决定**。
+  下一步可选：更细网格 / 朝向规范化（canonical orientation）以收回 φ=0 峰值并补 37° 残差。
+
+验证：`pytest -q` **792 passed**（含 15 端口测试，0 跳过）、`ruff` 全过、`mypy` 39 文件无问题。
+复现：`validate_shapecomp_port.py` → `--stage d1` → `--stage d2 d3 d4` → **`--stage d5 --methods E0 E1 E3 S0K1 S0K2`**
+→ `--stage summary` → `plot_shape_benchmark.py --figure all`（d5 墙钟约 2322 s；需本地工具箱）。
+
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 
 **门禁：P0 未通过前不进行大规模 Web 产品开发。**

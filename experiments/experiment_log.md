@@ -658,3 +658,35 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
 - **Git 检查点**：CP5 工作提交 `31e6b00`（`feat: run official ShapeComp KerNet1/KerNet2 via numpy port`），
   已推送 `origin main`（ssh.github.com:443）；核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`
   == `31e6b00efc754938217bb0ea68a7ee3e831c3d9a`，作者 `ANTACIDisnotFORMICACID`。CP1–CP4 见上。
+
+## shape_perception_benchmark · Checkpoint 6（P0-4.6 · 给 ShapeComp 端口加旋转搜索并同条件对比，2026-11-08）
+
+- **本轮目标（用户指令）**：项目目的是"旋转可查找"。CP5 证实官方 KerNet 权重人类预测力强但**不旋转不变**
+  （D4 overlap 0.00、自匹配 rank 至 301）。本轮给端口**加旋转分析能力**，并与已有旋转设计的方案在
+  **同一旋转条件**下对比。属方法优化的有界研究，**不改正式检索默认、不重训练、不动官方输入契约**。
+- **加什么**：`retrieval.py` 给 S0K 臂加**查询侧旋转网格搜索** `d(q,g)=min_θ‖net(R_θ q)−net(g)‖`，
+  用与 E3 `orientation="sample"` **相同的 24 步 / 15° 网格**；图库只按存储姿态打分一次，仅查询轮廓在送网络前旋转。
+  新助手 `kernet_rotation_frames(network, contour)`→`(24,22)`（第 0 行=普通打分），`run_d5` 按形状缓存整段扫描复用。
+  开关 `rotation_search=False` 默认关，**官方网络输入契约 `kernet1_input`/`kernet2_input` 一字未改**，权重仍为作者原始；
+  旋转鲁棒性是**外加包装**、非网络属性，处处标注 `details["rotation_search"]`。
+- **同条件协议（`--stage d5`，旋转是唯一变量）**：
+  (a) **旋转压力人类一致性**——把每对已评分 H1 的一侧按各应力角旋转，各臂须在旋转后仍恢复其被评分的**发布人类相异度**；
+  共享真值、两级配对 bootstrap（对+被试、2000 次、seed 20261107）。应力角混 15 的整数倍（15/45/90/135/270）与网格外 37/191，另 0 作对照。
+  (b) **旋转压力检索**——查询按各角旋转后在 D4 分层图库排名，稳定性=与其自身未旋转 Top-10 的 Jaccard overlap + 精确目标 rank。
+- **结果（`results/d5_rotation_metrics.json`，图 `figures/rotation_stress.png`）**：
+  (a) 旋转压力下合并 agreement ρ：E0 **+0.683**、E1 **+0.782**、E3 **+0.839**（三者随角度近乎恒定=旋转鲁棒）；
+  S0K1 naive **+0.434**（φ=0 为 0.903，90°→0.075、270°→**−0.002** 塌方）→ **S0K1+rot +0.747**（曲线 0.706–0.772 持平）；
+  S0K2 naive +0.458 → **S0K2+rot +0.774**。**加旋转搜索把网络在旋转下的人类预测力从 ~0.44 救回 ~0.75–0.77**，
+  但**仍不胜 E3（0.839）甚至 E1（0.782）**；且**牺牲峰值**：φ=0 时 S0K1 由 0.903 降到 0.763（多姿态取最小让不同形状相互"撞近"）。
+  (b) 旋转下 Top-10 overlap（均值/最差）：E0/E1 1.000/1.000、E3 0.916/0.674；S0K1 naive 0.162/0.037（rank 至 **297**）
+  → **S0K1+rot 0.943/0.725（24 例中 20 例 rank 1，仅网格外 fork 37° 落 rank 6）**；S0K2 naive 0.148/0.018 → **S0K2+rot 0.910/0.632（22/24 rank 1）**。
+  **结论：旋转搜索使官方网络由"旋转失明"变为"旋转可查找"，检索稳定性达 E3 同级、目标基本回到 rank 1；
+  少数失配正是 E3 已披露的半步网格（37°/191° 网格外）局限。**
+- **一致性核验**：`run_d5` 缓存打分器在 φ=0 复现 CP5 D1 值（S0K1 0.903、S0K2 0.901 vs D1 0.9032/0.9005）→ 捷径 == `pair_distance`。
+- **确定性**：E0/E1/E3 与 **naive** S0K 路径本轮算术未变（`rotation_search` 默认 False，新代码在其后；S0K naive 分支仅改写为
+  数值等价的对称式 `‖net(right)−net(left)‖`）；故 **D1–D4 结果文件未重跑**，行值仍为 CP5。仅新增 `d5_*` 与折入 `rotation_stress` 的 `metrics.json`。
+- **验证**：`pytest -q` **792 passed**（含 15 端口测试，0 跳过）；`ruff check .` 全过；`mypy` 39 文件无问题。
+  d5 实跑约 **39 分钟**（S0K 帧构建 + E3 检索扫描为主，帧缓存使 250 对扫描可控）。工具箱与权重仍 gitignored、不入库，许可边界同 CP5。
+- **工程整合判断（交用户决定）**：加旋转搜索后的实跑网络在**旋转检索**上已可用（rank 1 恢复、overlap≈E3），
+  但**人类 agreement 未超 E3**、且牺牲无旋转峰值——故**不替换正式默认**；是否把"旋转可查找的 ShapeComp"纳入产品由用户定。
+- **Git 检查点**：CP6 工作提交 `<pending>`。

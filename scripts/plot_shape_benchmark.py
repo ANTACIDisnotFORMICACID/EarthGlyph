@@ -12,6 +12,7 @@ Figures:
                comparison_<kind>_original_pose.png — same ranks, published pose
     human      human_similarity_scatter.png, human_pairwise_agreement.png,
                human_similarity_failure_cases.png
+    rotation   rotation_stress.png                    — D5, agreement + overlap vs angle
 
 Usage:
     python scripts/plot_shape_benchmark.py --figure all
@@ -509,6 +510,72 @@ def plot_human_failures(
     return path
 
 
+# --------------------------------------------------------------------------- rotation stress
+
+
+def plot_rotation_stress(metrics: dict[str, Any]) -> Path:
+    """D5: agreement and retrieval overlap vs rotation-stress angle, every arm on one footing.
+
+    Reads only ``d5_rotation_metrics.json``; no re-ranking. Rotation is the single variable,
+    the human ratings (panel a) and the untransformed Top-10 (panel b) are shared references.
+    """
+    angles = [float(a) for a in metrics["angles_deg"]]
+    curve_a = metrics["agreement_curve_by_arm"]
+    curve_b = metrics["retrieval_overlap_curve_by_arm"]
+    order = list(curve_a)
+    palette = {
+        "E0": "#1f4e9c", "E1": "#1a7f37", "E3": "#e07b00",
+        "S0K1": "#b3261e", "S0K1+rot": "#b3261e",
+        "S0K2": "#6f42c1", "S0K2+rot": "#6f42c1",
+    }
+    fig, axes = plt.subplots(1, 2, figsize=(12.4, 5.0))
+
+    for label in order:
+        values = [curve_a[label][f"rotate_{a:g}"] for a in angles]
+        style = "--" if label.endswith("+rot") else "-"
+        axes[0].plot(angles, values, style, marker="o", ms=4, lw=1.6,
+                      color=palette.get(label, "#444444"), label=label)
+        values_b = [curve_b[label][f"rotate_{a:g}"] for a in angles]
+        axes[1].plot(angles, values_b, style, marker="s", ms=4, lw=1.6,
+                      color=palette.get(label, "#444444"), label=label)
+
+    step = metrics.get("rotation_step_deg", 15.0)
+    axes[0].set_title(
+        "(a)  agreement with human dissimilarity vs rotation stress\n"
+        "one member of every rated H1 pair turned by the angle; flat = rotation-robust",
+        fontsize=8.5,
+    )
+    axes[0].set_xlabel("rotation stress applied to one stimulus (deg)", fontsize=8)
+    axes[0].set_ylabel("agreement rho (positive = better)", fontsize=8)
+    axes[1].set_title(
+        "(b)  Top-10 retrieval stability vs rotation stress\n"
+        "query turned by the angle; overlap with its own untransformed Top-10",
+        fontsize=8.5,
+    )
+    axes[1].set_xlabel("rotation stress applied to the query (deg)", fontsize=8)
+    axes[1].set_ylabel("Jaccard overlap with untransformed Top-10", fontsize=8)
+    for ax in axes:
+        ax.tick_params(labelsize=7.5)
+        ax.grid(alpha=0.25, linewidth=0.5)
+        ax.set_ylim(0, 1.0)
+        ax.legend(fontsize=7, loc="lower left", ncol=2)
+    fig.suptitle(
+        "D5 — rotation-search added to the ShapeComp port, compared under identical rotation.\n"
+        "E0/E1 are rotation-invariant by construction, E3 already searches a rotation grid; "
+        "S0K1/S0K2 are the official KerNet weights run locally (naive, solid) vs the same "
+        f"weights wrapped in a query-side {metrics.get('rotations_searched', 24)}-step grid "
+        f"(dashed, {step:.0f} deg).\n"
+        "On-grid angles (multiples of 15) and off-grid 37/191 are both swept. "
+        "The official input contract and the authors' weights are unchanged by the wrapper.",
+        fontsize=8.4, y=0.99,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    path = FIGURES / "rotation_stress.png"
+    fig.savefig(path, dpi=DPI, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
 # --------------------------------------------------------------------------- queries
 
 
@@ -543,7 +610,8 @@ def write_query_contours(index: dict[str, BenchmarkShape]) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--figure", required=True, choices=["overview", "comparison", "human", "all"]
+        "--figure", required=True,
+        choices=["overview", "comparison", "human", "rotation", "all"],
     )
     parser.add_argument("--kind", choices=KINDS, default=None)
     parser.add_argument("--condition", default="T2")
@@ -565,6 +633,10 @@ def main() -> None:
         written.append(plot_human_scatter(metrics, predictions))
         written.append(plot_human_agreement(metrics))
         written.append(plot_human_failures(index, metrics, failures))
+    if args.figure in ("rotation", "all"):
+        d5_path = RESULTS / "d5_rotation_metrics.json"
+        if d5_path.exists():
+            written.append(plot_rotation_stress(read_json(d5_path)))
     if args.figure in ("overview", "comparison", "all"):
         written.append(write_query_contours(index))
     for path in written:

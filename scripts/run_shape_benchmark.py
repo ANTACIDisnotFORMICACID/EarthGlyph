@@ -5,6 +5,8 @@ Stages:
     d2  exact-target-removal retrieval on MPEG-7 (T0/T1/T2/T3)
     d3  structure stress probes (star / heart / crescent / forked / natural)
     d4  rotation, scale, translation, start-point, deformation and mirror stability
+    d5  rotation-search capability added to the S0K port, compared to E0/E1/E3 under
+        identical rotation stress (human agreement + retrieval stability)
 
 Every stage writes real distances and timings. S0 appears only where the authors published
 official coordinates; it is never fabricated for MPEG-7.
@@ -21,7 +23,7 @@ import csv
 import itertools
 import json
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -40,11 +42,14 @@ from earthglyph.shape_benchmark.probes import (
     TRANSFORMS,
     build_structure_probe,
     make_probe,
+    rotate,
 )
 from earthglyph.shape_benchmark.retrieval import (
+    _RUN_NETWORK,
     EARTHGLYPH_METHODS,
     SHAPECOMP_RUN_METHODS,
     Gallery,
+    kernet_rotation_frames,
     pair_distance,
     search_shape,
 )
@@ -60,6 +65,9 @@ T2_THRESHOLD = 0.05
 D2_QUERIES = ["Heart-1", "fork-1", "bat-1", "tree-1", "apple-1", "butterfly-1"]
 D4_TARGETS = ["Heart-1", "fork-1", "bat-1"]
 D4_GALLERY_PER_CLASS = 5
+# P0-4.6 d5 rotation-study: stress angles that mix on-grid multiples of 15 (15/45/90/135/270)
+# with off-grid angles (37/191) the 24-step grid cannot land exactly on, plus 0 as the control.
+D5_ANGLES = [0.0, 15.0, 37.0, 45.0, 90.0, 135.0, 191.0, 270.0]
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -640,6 +648,239 @@ def run_d4(methods: list[str], top_k: int) -> dict[str, Any]:
     return summary
 
 
+# --------------------------------------------------------------------------- D5
+
+
+def _rotated(shape: BenchmarkShape, degrees: float) -> BenchmarkShape:
+    """A copy of ``shape`` turned by ``degrees``, with BOTH contour contracts rotated.
+
+    E0/E1/E3 read ``points`` (the shared 128-point ring); the S0K arms read
+    ``display_points`` (the original published contour). Rotating both keeps every arm
+    facing the identical rotated stimulus, which is the whole point of a same-condition test.
+    """
+    return replace(
+        shape,
+        points=rotate(shape.points, degrees),
+        display_points=rotate(shape.display_points, degrees),
+    )
+
+
+def _d5_arms(methods: list[str]) -> list[tuple[str, str, bool]]:
+    """(label, method, rotation_search) triples that put every arm on the same footing.
+
+    S0K arms appear twice (naive and with the added rotation search); E0/E1/E3 appear once
+    because rotation is already handled by construction (E0/E1) or by their own E3 sample
+    grid, so the flag is inert for them.
+    """
+    arms: list[tuple[str, str, bool]] = []
+    for method in methods:
+        if method in SHAPECOMP_RUN_METHODS:
+            arms.append((method, method, False))
+            arms.append((f"{method}+rot", method, True))
+        else:
+            arms.append((method, method, False))
+    return arms
+
+
+def run_d5(methods: list[str], top_k: int) -> dict[str, Any]:
+    """Add rotation-search to the ShapeComp port and compare it under identical rotation.
+
+    Two same-condition studies, with rotation as the only variable:
+
+    * **(a) rotation-stress human agreement (H1)** — one member of every rated pair is
+      turned by each stress angle; each arm must recover the human dissimilarity it was
+      scored on regardless of that rotation. Ground truth is the published ratings, shared
+      by all arms.
+    * **(b) rotation-stress retrieval (MPEG-7 stratified)** — the query is turned by each
+      angle and ranked against the D4 subset; stability is the Top-10 overlap with the
+      untransformed ranking and the target's own rank.
+
+    The S0K+rot score is the same arithmetic ``pair_distance``/``search_shape`` perform, just
+    cached: a query-side grid min over the network's rotated frames, with the official input
+    contract untouched.
+    """
+    from earthglyph.shape_benchmark.retrieval import KERNET_ROTATION_STEPS
+
+    arms = _d5_arms([m for m in methods if m != "S0"])
+    angles = [a for a in D5_ANGLES]
+
+    # --- shared cache for the S0K network frames (row 0 is the plain no-search score)
+    frames_cache: dict[tuple[str, str], np.ndarray] = {}
+    coord_cache: dict[tuple[str, str, float], np.ndarray] = {}
+
+    def frames(network: str, shape: BenchmarkShape) -> np.ndarray:
+        key = (network, shape.shape_id)
+        if key not in frames_cache:
+            frames_cache[key] = kernet_rotation_frames(network, shape.display_points)
+        return frames_cache[key]
+
+    def coord(network: str, shape: BenchmarkShape, degrees: float) -> np.ndarray:
+        key = (network, shape.shape_id, degrees)
+        if key not in coord_cache:
+            rotated = _rotated(shape, degrees)
+            coord_cache[key] = kernet_rotation_frames(network, rotated.display_points)[0]
+        return coord_cache[key]
+
+    def s0k_pair_distance(
+        left: BenchmarkShape, right: BenchmarkShape, method: str, rotation_search: bool, phi: float
+    ) -> float:
+        left_frames = frames(_RUN_NETWORK[method], left)
+        right_coord = coord(_RUN_NETWORK[method], right, phi)
+        deltas = np.linalg.norm(left_frames - right_coord, axis=1)
+        return float(deltas.min()) if rotation_search else float(deltas[0])
+
+    # ---------------------------------------------------------------- (a) H1 agreement
+    h1 = load_h1(CACHE)
+    h1_gallery = Gallery(list(h1.shapes.values()), official_coords=h1.official_coords, name="h1")
+    ratings = h1.pair_matrix()
+    mean_rating = ratings.mean(axis=1)
+
+    curve: dict[str, dict[str, float]] = {label: {} for label, _, _ in arms}
+    pooled_dists: dict[str, list[float]] = {label: [] for label, _, _ in arms}
+    a_rows: list[dict[str, Any]] = []
+    for label, method, rot in arms:
+        for phi in angles:
+            values = np.empty(len(h1.pairs))
+            for i, pair in enumerate(h1.pairs):
+                left = h1.shapes[pair.left]
+                right = h1.shapes[pair.right]
+                if method in SHAPECOMP_RUN_METHODS:
+                    values[i] = s0k_pair_distance(left, right, method, rot, phi)
+                else:
+                    values[i] = pair_distance(
+                        left,
+                        _rotated(right, phi),
+                        method,
+                        normalizer=h1_gallery.e1_normalizer,
+                    )
+                a_rows.append(
+                    {
+                        "study": "agreement",
+                        "arm": label,
+                        "method": method,
+                        "rotation_search": rot,
+                        "stress_deg": phi,
+                        "pair_id": pair.pair_id,
+                        "model_distance": float(values[i]),
+                        "human_mean_similarity": float(mean_rating[i]),
+                    }
+                )
+            obs = metrics.correlate(values, mean_rating)
+            curve[label][f"rotate_{phi:g}"] = -float(obs.spearman)
+            if phi != 0.0:
+                pooled_dists[label].extend(values.tolist())
+        line = " ".join(f"{k}={v:+.3f}" for k, v in curve[label].items())
+        print(f"  (a) {label}: {line}", flush=True)
+
+    # Pooled agreement over every rotated pair (rotation stress averaged across the sweep),
+    # with a two-level bootstrap so pairs AND observers are resampled.
+    stress_matrix = np.tile(ratings, (len(angles) - 1, 1))
+    headline_a: dict[str, Any] = {}
+    for label, _, _ in arms:
+        d = np.array(pooled_dists[label], dtype=float)
+        obs = metrics.correlate(d, stress_matrix.mean(axis=1))
+        boot = metrics.bootstrap_two_level(d, stress_matrix, n_boot=N_BOOT, seed=SEED)
+        headline_a[label] = {
+            "agreement_pooled": -float(obs.spearman),
+            "ci_low": -float(boot["spearman_ci_high"]),
+            "ci_high": -float(boot["spearman_ci_low"]),
+            "n_rows": int(len(d)),
+        }
+
+    # ---------------------------------------------------------------- (b) MPEG-7 retrieval
+    shapes, _ = load_mpeg7(CACHE)
+    per_class: dict[str, list[BenchmarkShape]] = {}
+    for shape in shapes:
+        per_class.setdefault(str(shape.category), []).append(shape)
+    subset = [
+        members[i]
+        for _, members in sorted(per_class.items())
+        for i in range(min(D4_GALLERY_PER_CLASS, len(members)))
+    ]
+    retrieval_gallery = Gallery(subset, name="mpeg7_stratified")
+    by_stem = {s.shape_id.removeprefix("mpeg7_"): s for s in subset}
+    b_rows: list[dict[str, Any]] = []
+    # overlap[(label, angle)] collects the Top-10 overlap vs the untransformed query, one per
+    # target stem; target_rank[(label, stem, angle)] records where the exact target landed.
+    overlap: dict[tuple[str, float], list[float]] = {}
+    target_rank: dict[tuple[str, str, float], int | None] = {}
+    for stem in D4_TARGETS:
+        base = by_stem.get(stem)
+        if base is None:
+            print(f"  !! {stem} not in stratified subset, skipping", flush=True)
+            continue
+        untransformed = {
+            label: search_shape(base, retrieval_gallery, method, top_k=top_k, rotation_search=rot)
+            for label, method, rot in arms
+        }
+        for phi in angles:
+            query = _rotated(base, phi)
+            for label, method, rot in arms:
+                result = search_shape(
+                    query, retrieval_gallery, method, top_k=top_k, rotation_search=rot
+                )
+                ref = untransformed[label]
+                original_rank = result.rank_of(base.shape_id, retrieval_gallery)
+                k_overlap = metrics.top_k_overlap(ref.order, result.order, top_k)
+                overlap.setdefault((label, phi), []).append(k_overlap)
+                target_rank[(label, stem, phi)] = original_rank
+                for hit in result.hits:
+                    b_rows.append(
+                        RetrievalRow(
+                            "d5", f"rotate_{phi:g}", query.shape_id, label, hit.rank,
+                            hit.shape_id, hit.category, hit.distance,
+                        ).as_dict()
+                    )
+            print(
+                f"  (b) {stem} rotate_{phi:g}: "
+                + ", ".join(
+                    f"{label} r={target_rank[(label, stem, phi)]}" for label, _, _ in arms
+                ),
+                flush=True,
+            )
+    # Per-arm Top-10 overlap vs the untransformed query, averaged over the D4 targets, per
+    # angle; and the mean over the rotated (non-control) angles as the headline robustness.
+    overlap_curve: dict[str, dict[str, float]] = {}
+    robustness: dict[str, dict[str, float]] = {}
+    for label, _, _ in arms:
+        per_angle = {f"rotate_{phi:g}": float(np.mean(overlap[(label, phi)])) for phi in angles}
+        overlap_curve[label] = per_angle
+        rotated_vals = [per_angle[f"rotate_{phi:g}"] for phi in angles if phi != 0.0]
+        control = per_angle["rotate_0"]
+        robustness[label] = {
+            "mean_overlap_rotated": float(np.mean(rotated_vals)),
+            "worst_overlap_rotated": float(np.min(rotated_vals)),
+            "unrotated_control_overlap": control,
+        }
+
+    summary = {
+        "seed": SEED,
+        "n_boot": N_BOOT,
+        "angles_deg": angles,
+        "rotation_step_deg": 360.0 / float(KERNET_ROTATION_STEPS),
+        "rotations_searched": KERNET_ROTATION_STEPS,
+        "note": (
+            "Rotation is the only variable. (a) turns one member of each rated H1 pair; a "
+            "rotation-robust arm keeps its agreement with the published human dissimilarity. "
+            "(b) turns each retrieval query against the D4 stratified gallery; a robust arm "
+            "keeps the Top-10 it returned unrotated. S0K+rot wraps the official network in the "
+            "query-side grid search; the official input contract is unchanged and the network "
+            "weights are the authors' own."
+        ),
+        "agreement_curve_by_arm": curve,
+        "agreement_pooled_by_arm": headline_a,
+        "retrieval_overlap_curve_by_arm": overlap_curve,
+        "retrieval_robustness_by_arm": robustness,
+        "retrieval_target_rank": {
+            f"{label}|{stem}@{phi:g}": value for (label, stem, phi), value in target_rank.items()
+        },
+        "rows_written": {"agreement": len(a_rows), "retrieval": len(b_rows)},
+    }
+    write_csv(RESULTS / "d5_rotation_results.csv", a_rows + b_rows)
+    write_json(RESULTS / "d5_rotation_metrics.json", summary)
+    return summary
+
+
 def write_summary() -> None:
     """Combine whatever stages have run into one headline table with full provenance."""
     import platform
@@ -647,6 +888,7 @@ def write_summary() -> None:
 
     stages = {name: RESULTS / f"{name}_metrics.json" for name in ("d2", "d3", "d4")}
     stages["d1"] = RESULTS / "human_metrics.json"
+    stages["d5"] = RESULTS / "d5_rotation_metrics.json"
     present = {name: read_json(path) for name, path in stages.items() if path.exists()}
     manifest_path = BENCH / "dataset_manifest.json"
     manifest = read_json(manifest_path) if manifest_path.exists() else {}
@@ -771,6 +1013,23 @@ def write_summary() -> None:
             "metric": "Jaccard overlap of Top-10 with the untransformed query, per transform",
             "by_method": stability,
         }
+    if "d5" in present:
+        d5 = present["d5"]
+        headline["rotation_stress_agreement"] = {
+            "study": "one member of every rated H1 pair turned by each stress angle (a)",
+            "metric": (
+                "agreement with the published human dissimilarity, restated positive; rotation "
+                "is the only variable and the human ground truth is shared by all arms"
+            ),
+            "grid": f"{d5['rotations_searched']} steps x {d5['rotation_step_deg']:.1f} deg",
+            "by_arm": d5["agreement_pooled_by_arm"],
+            "curve_by_arm": d5["agreement_curve_by_arm"],
+        }
+        headline["rotation_stress_retrieval"] = {
+            "study": "each D4 query turned by each stress angle against the stratified gallery (b)",
+            "metric": "mean Top-10 overlap with the untransformed ranking over the rotated angles",
+            "by_arm": d5["retrieval_robustness_by_arm"],
+        }
 
     payload = {
         "schema": "earthglyph.shape_perception_benchmark/1",
@@ -788,6 +1047,7 @@ def write_summary() -> None:
             "python scripts/validate_shapecomp_port.py",
             "python scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2",
+            "python scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/plot_shape_benchmark.py --figure all",
         ],
         "arm_availability": {
@@ -832,7 +1092,7 @@ def write_summary() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--stage", nargs="+", required=True, choices=["d1", "d2", "d3", "d4", "summary"]
+        "--stage", nargs="+", required=True, choices=["d1", "d2", "d3", "d4", "d5", "summary"]
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
@@ -850,6 +1110,8 @@ def main() -> None:
             run_d3(args.methods, args.top_k)
         elif stage == "d4":
             run_d4(args.methods, args.top_k)
+        elif stage == "d5":
+            run_d5(args.methods, args.top_k)
         else:
             write_summary()
         print(f"=== {stage} done in {time.perf_counter() - started:.1f}s ===", flush=True)

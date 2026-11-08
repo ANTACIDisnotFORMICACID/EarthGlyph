@@ -8,8 +8,14 @@ Every method scores the *same* candidate set. E0/E1/E3 share one preprocessing c
 * **S0K1 / S0K2** — the official KerNet1/KerNet2 weights *actually run* locally through the
   numpy port (``shapecomp_port``). These feed the network the ORIGINAL contour
   (``display_points``) under the official input contract, deliberately NOT EarthGlyph's
-  128-point contract, and can score any shape including MPEG-7. They are not rotation/mirror
-  invariant, exactly as the official networks are not.
+  128-point contract, and can score any shape including MPEG-7. The official networks are
+  NOT rotation-invariant, so the raw arm is not either.
+* **S0K1 / S0K2 with ``rotation_search=True``** — the same official weights wrapped in a
+  query-side rotation-grid search, ``d(q, g) = min_theta ||net(R_theta q) - net(g)||``, over
+  the same 360/``rotation_steps`` grid E3's ``orientation="sample"`` uses. The gallery is
+  scored once in its stored pose; only the query contour is turned through the grid before
+  the network call. This ADDS rotation robustness the official network lacks without touching
+  ``kernet1_input``/``kernet2_input``, so the official input contract is preserved exactly.
 
 That asymmetry is reported, never hidden. Loading the weights is lazy and optional (h5py),
 so E0/E1/E3 still run without the ``shapecomp`` extra installed.
@@ -37,7 +43,35 @@ SHAPECOMP_RUN_METHODS = ("S0K1", "S0K2")
 ALL_METHODS = ("E0", "E1", "E3", "S0", "S0K1", "S0K2")
 _RUN_NETWORK = {"S0K1": "kernet1", "S0K2": "kernet2"}
 
+#: Rotation-grid resolution for the ``rotation_search`` S0K wrapper, inherited from E3 so the
+#: "same rotation condition" comparison searches the identical grid.
+KERNET_ROTATION_STEPS = e3.ROTATION_STEPS
+
 _SHAPECOMP_NETS: ShapeCompNets | None = None
+
+
+def _rotate_contour(points: np.ndarray, angle_deg: float) -> np.ndarray:
+    """Turn a raw contour counter-clockwise by ``angle_deg`` (E3's rotation convention)."""
+    theta = np.deg2rad(float(angle_deg))
+    matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+    return np.asarray(points @ matrix.T, dtype=float)
+
+
+def kernet_rotation_frames(
+    network: str, contour: np.ndarray, steps: int = KERNET_ROTATION_STEPS
+) -> np.ndarray:
+    """Run the official network on one contour turned through the rotation grid, (steps, 22).
+
+    Row ``i`` is ``net(R_angles[i] contour)`` with ``R_0`` first, so row 0 is the plain
+    no-search score. Precomputing the frames lets a whole sweep reuse them instead of
+    re-running the network for every pair; the query-side search in ``search_shape`` and
+    ``pair_distance`` is exactly a min over these rows.
+    """
+    nets = _load_shapecomp_nets()
+    fn = nets.kernet1 if network == "kernet1" else nets.kernet2
+    angles = e3.rotation_grid_deg(steps)
+    frames = [np.asarray(fn(_rotate_contour(contour, angle)), dtype=float) for angle in angles]
+    return np.stack(frames)
 
 
 def _load_shapecomp_nets() -> ShapeCompNets:
@@ -174,12 +208,20 @@ def search_shape(
     *,
     allow_mirror: bool = False,
     exclude: Iterable[str] = (),
+    rotation_search: bool = False,
+    rotation_steps: int = KERNET_ROTATION_STEPS,
 ) -> SearchResult:
     """Rank the whole gallery against ``query`` and return the Top-K plus the full order.
 
     ``exclude`` removes shape_ids from the candidate set (Part D2's T1/T2/T3). Excluded
     entries stay in ``distances`` as +inf so the array remains gallery-aligned, but they
     are dropped from ``order`` and ``hits``.
+
+    ``rotation_search`` applies only to the S0K arms: it wraps the official network in a
+    query-side rotation-grid min, ``d(q, g) = min_theta ||net(R_theta q) - net(g)||``, on the
+    same grid E3's ``orientation="sample"`` uses. It is a capability ADDED to the port, not a
+    property of the official network; E0/E1 are rotation-invariant by construction and E3
+    already searches, so the flag is inert for them.
     """
     if method not in ALL_METHODS:
         raise ValueError(f"unknown method {method!r}; expected one of {ALL_METHODS}")
@@ -200,18 +242,38 @@ def search_shape(
             if isinstance(query, BenchmarkShape)
             else np.asarray(query, dtype=float)
         )
-        run_coords = gallery.score_contour(network, query_contour)
         gallery_coords = gallery.kernet_coords(network)
         indices = np.flatnonzero(mask)
         distances = np.full(len(gallery), np.inf)
-        distances[indices] = np.linalg.norm(gallery_coords[indices] - run_coords, axis=1)
-        details = {
-            "kind": "official_network_actually_run",
-            "network": network,
-            "note": "Official KerNet weights run locally via the numpy port on the original "
-            "contour (official input contract); scores shapes with no published coordinates. "
-            "Not rotation/mirror invariant, as the official networks are not.",
-        }
+        if rotation_search:
+            query_frames = kernet_rotation_frames(network, query_contour, rotation_steps)
+            per_angle = np.linalg.norm(
+                gallery_coords[indices][None, :, :] - query_frames[:, None, :], axis=2
+            )
+            distances[indices] = per_angle.min(axis=0)
+            details = {
+                "kind": "official_network_actually_run",
+                "network": network,
+                "rotation_search": True,
+                "rotation_step_deg": 360.0 / float(rotation_steps),
+                "rotations_searched": int(query_frames.shape[0]),
+                "note": "Official KerNet weights run locally via the numpy port with a query-side "
+                "rotation-grid min over the same 360/steps grid as E3's orientation='sample'; "
+                "the gallery is scored once in its stored pose. This rotation robustness is an "
+                "ADDED wrapper, not a property of the official network, and the input contract "
+                "(kernet1_input/kernet2_input) is unchanged.",
+            }
+        else:
+            run_coords = gallery.score_contour(network, query_contour)
+            distances[indices] = np.linalg.norm(gallery_coords[indices] - run_coords, axis=1)
+            details = {
+                "kind": "official_network_actually_run",
+                "network": network,
+                "rotation_search": False,
+                "note": "Official KerNet weights run locally via the numpy port on the original "
+                "contour (official input contract); scores shapes with no published coordinates. "
+                "Not rotation/mirror invariant, as the official networks are not.",
+            }
     elif method == "S0":
         if not gallery.has_official_coords():
             raise ValueError(
@@ -281,10 +343,16 @@ def pair_distance(
     *,
     normalizer: e1.FeatureNormalizer | None = None,
     allow_mirror: bool = False,
+    rotation_search: bool = False,
+    rotation_steps: int = KERNET_ROTATION_STEPS,
 ) -> float:
     """Distance between exactly two shapes — the unit of the human-rating experiment.
 
     Computing only the pairs that were actually rated avoids ranking 500 shapes 250 times.
+
+    ``rotation_search`` (S0K arms only) turns the LEFT contour through the shared rotation
+    grid and keeps the smallest network distance, so a rotated copy scores near the
+    un-rotated distance; E0/E1/E3 already handle rotation and the flag is inert for them.
     """
     if method in SHAPECOMP_RUN_METHODS:
         network = _RUN_NETWORK[method]
@@ -296,7 +364,11 @@ def pair_distance(
         right_contour = (
             right.display_points if isinstance(right, BenchmarkShape) else np.asarray(right, float)
         )
-        return float(np.linalg.norm(fn(left_contour) - fn(right_contour)))
+        right_coords = np.asarray(fn(right_contour), dtype=float)
+        if rotation_search:
+            left_frames = kernet_rotation_frames(network, left_contour, rotation_steps)
+            return float(np.min(np.linalg.norm(left_frames - right_coords, axis=1)))
+        return float(np.linalg.norm(np.asarray(fn(left_contour), dtype=float) - right_coords))
     left_points, _ = _query_points(left)
     right_points, _ = _query_points(right)
     if method == "S0":

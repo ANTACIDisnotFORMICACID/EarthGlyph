@@ -1,0 +1,33 @@
+=== d5 ===
+  (a) E0: rotate_0=+0.683 rotate_15=+0.683 rotate_37=+0.683 rotate_45=+0.683 rotate_90=+0.683 rotate_135=+0.683 rotate_191=+0.683 rotate_270=+0.683
+  (a) E1: rotate_0=+0.782 rotate_15=+0.782 rotate_37=+0.782 rotate_45=+0.782 rotate_90=+0.782 rotate_135=+0.782 rotate_191=+0.782 rotate_270=+0.782
+  (a) E3: rotate_0=+0.839 rotate_15=+0.837 rotate_37=+0.842 rotate_45=+0.838 rotate_90=+0.839 rotate_135=+0.837 rotate_191=+0.839 rotate_270=+0.839
+  (a) S0K1: rotate_0=+0.903 rotate_15=+0.833 rotate_37=+0.541 rotate_45=+0.405 rotate_90=+0.075 rotate_135=+0.351 rotate_191=+0.725 rotate_270=-0.002
+  (a) S0K1+rot: rotate_0=+0.763 rotate_15=+0.739 rotate_37=+0.742 rotate_45=+0.750 rotate_90=+0.759 rotate_135=+0.772 rotate_191=+0.767 rotate_270=+0.706
+  (a) S0K2: rotate_0=+0.901 rotate_15=+0.851 rotate_37=+0.582 rotate_45=+0.439 rotate_90=+0.103 rotate_135=+0.357 rotate_191=+0.712 rotate_270=+0.073
+  (a) S0K2+rot: rotate_0=+0.775 rotate_15=+0.781 rotate_37=+0.756 rotate_45=+0.746 rotate_90=+0.793 rotate_135=+0.783 rotate_191=+0.790 rotate_270=+0.781
+  (b) Heart-1 rotate_0: E0 r=1, E1 r=1, E3 r=1, S0K1 r=1, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) Heart-1 rotate_15: E0 r=1, E1 r=1, E3 r=1, S0K1 r=1, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) Heart-1 rotate_37: E0 r=1, E1 r=1, E3 r=1, S0K1 r=2, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) Heart-1 rotate_45: E0 r=1, E1 r=1, E3 r=1, S0K1 r=3, S0K1+rot r=1, S0K2 r=4, S0K2+rot r=1
+  (b) Heart-1 rotate_90: E0 r=1, E1 r=1, E3 r=1, S0K1 r=23, S0K1+rot r=1, S0K2 r=27, S0K2+rot r=1
+  (b) Heart-1 rotate_135: E0 r=1, E1 r=1, E3 r=1, S0K1 r=12, S0K1+rot r=1, S0K2 r=12, S0K2+rot r=1
+  (b) Heart-1 rotate_191: E0 r=1, E1 r=1, E3 r=1, S0K1 r=2, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) Heart-1 rotate_270: E0 r=1, E1 r=1, E3 r=1, S0K1 r=26, S0K1+rot r=1, S0K2 r=13, S0K2+rot r=1
+  (b) fork-1 rotate_0: E0 r=1, E1 r=1, E3 r=1, S0K1 r=1, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) fork-1 rotate_15: E0 r=1, E1 r=1, E3 r=1, S0K1 r=8, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) fork-1 rotate_37: E0 r=1, E1 r=1, E3 r=1, S0K1 r=86, S0K1+rot r=6, S0K2 r=76, S0K2+rot r=1
+  (b) fork-1 rotate_45: E0 r=1, E1 r=1, E3 r=1, S0K1 r=219, S0K1+rot r=1, S0K2 r=185, S0K2+rot r=1
+  (b) fork-1 rotate_90: E0 r=1, E1 r=1, E3 r=1, S0K1 r=297, S0K1+rot r=1, S0K2 r=244, S0K2+rot r=1
+  (b) fork-1 rotate_135: E0 r=1, E1 r=1, E3 r=1, S0K1 r=226, S0K1+rot r=1, S0K2 r=123, S0K2+rot r=1
+  (b) fork-1 rotate_191: E0 r=1, E1 r=1, E3 r=1, S0K1 r=33, S0K1+rot r=1, S0K2 r=124, S0K2+rot r=1
+  (b) fork-1 rotate_270: E0 r=1, E1 r=1, E3 r=1, S0K1 r=191, S0K1+rot r=1, S0K2 r=180, S0K2+rot r=1
+  (b) bat-1 rotate_0: E0 r=1, E1 r=1, E3 r=1, S0K1 r=1, S0K1+rot r=1, S0K2 r=1, S0K2+rot r=1
+  (b) bat-1 rotate_15: E0 r=1, E1 r=1, E3 r=1, S0K1 r=43, S0K1+rot r=1, S0K2 r=54, S0K2+rot r=1
+  (b) bat-1 rotate_37: E0 r=1, E1 r=1, E3 r=1, S0K1 r=161, S0K1+rot r=1, S0K2 r=183, S0K2+rot r=2
+  (b) bat-1 rotate_45: E0 r=1, E1 r=1, E3 r=1, S0K1 r=176, S0K1+rot r=1, S0K2 r=191, S0K2+rot r=1
+  (b) bat-1 rotate_90: E0 r=1, E1 r=1, E3 r=1, S0K1 r=209, S0K1+rot r=1, S0K2 r=180, S0K2+rot r=1
+  (b) bat-1 rotate_135: E0 r=1, E1 r=1, E3 r=1, S0K1 r=96, S0K1+rot r=1, S0K2 r=117, S0K2+rot r=1
+  (b) bat-1 rotate_191: E0 r=1, E1 r=1, E3 r=1, S0K1 r=189, S0K1+rot r=1, S0K2 r=209, S0K2+rot r=2
+  (b) bat-1 rotate_270: E0 r=1, E1 r=1, E3 r=1, S0K1 r=65, S0K1+rot r=1, S0K2 r=87, S0K2+rot r=1
+=== d5 done in 2322.0s ===
