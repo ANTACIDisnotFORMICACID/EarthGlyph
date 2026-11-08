@@ -727,7 +727,7 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   40×40 **单像素翻转 = 嵌入范数 18.5%**（中位 0.2887，D59）；`inpolygon` 直译替换 GEOS `covers` 后在 75 条官方轮廓
   （含自交）**逐像素 0 差异**；不合法输入显式 `ShapeCompInputError` 拒绝（全协点 / <3 顶点 / 非有限 / 无 extent）。
   `tests/test_shapecomp_port.py` 15 → **34** 项（含 `resamplePolyline` MATLAB 循环字面翻译的逐位等价测试）。
-- **CP7-B D5 统计单位修正**：见下一节标题行，数值与判读同 notes §B1–B6。
+- **CP7-B D5 统计单位修正**（工作提交 `193c0f8`）：数值与判读见 notes §B1–B6。
   新阶段 `python scripts/run_shape_benchmark.py --stage d5b`（约 30 s，**只读** `d5_rotation_results.csv`，
   不需要工具箱）→ `results/d5_grouped_metrics.json` + `d5_grouped_results.csv`；随后 `--stage summary` 折入
   **新增**块 `rotation_stress_agreement_grouped`。**既有 `d5_*` 文件一字未改**（其 SHA256+字节数记入新产物，测试再哈希）。

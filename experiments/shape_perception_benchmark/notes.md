@@ -1041,3 +1041,9 @@ set is sampled; ragged designs and every misaligned / non-crossed / incomplete /
 must be refused with a message. `_interval` now raises instead of crashing inside `np.quantile`
 when every replicate was degenerate — the only behaviour change to a shared helper, unreachable on
 the real data (2000/2000 valid replicates for all arms).
+
+Git checkpoint: CP7-B work commit `193c0f8ca796b65fadd51be3de629487b46328e8`
+(`fix: sample the D5 rotation sweep by rated pair, not by angle-row (P0-4.6 CP7-B)`), pushed to
+`origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main` ==
+`git rev-parse HEAD` == that sha, author `ANTACIDisnotFORMICACID`. Full suite 818 passed (7 new),
+`ruff check .` clean, `mypy` 39 source files no issues.

@@ -561,7 +561,7 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 - **测试**：`tests/test_shapecomp_port.py` 由 15 例增至 **34 例**（13 s 全过），新增逐函数对照 / 异常输入 /
   确定性 / 像素敏感性 / 输入对齐 / GEOS 一致性 / 重采样逐位等价。
 
-#### CP7-B：修 D5 重复测量统计——以"形状对"而非 1750 行为统计单位 ✅
+#### CP7-B：修 D5 重复测量统计——以"形状对"而非 1750 行为统计单位 ✅（`193c0f8`，已推送并核验）
 
 - **缺陷定位**：`run_d5` 用 `np.tile(ratings, (7,1))` 把 250 对堆成 1750 行（`run_shape_benchmark.py:777`），
   再交给 `bootstrap_two_level` 按**行**独立重抽样（`metrics.py:96`）⇒ 同一形状被计成 7 个独立受试材料、
@@ -602,7 +602,8 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 验证：`pytest` **818 passed**（新增 7 项 grouped/产物审计测试）、`ruff check .` 全过、`mypy` 无问题；
 复现：`--stage d5` → **`--stage d5b`**（约 30 s，不需要工具箱，只读存量产物）→ `--stage summary`。
 详细表格与解读见 `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7 B1–B6；
-决策记录 **D61–D63**。Git 检查点 sha 由紧随的 docs 提交补记。
+决策记录 **D61–D63**。Git 检查点：工作提交 `193c0f8`（`fix: sample the D5 rotation sweep by rated
+pair, not by angle-row (P0-4.6 CP7-B)`），已推送 `origin main` 并核验 `git ls-remote` == `HEAD`。
 
 #### CP7-C：旋转方案与判别式检索（待做）
 R0 = 现有 24 步查询侧搜索；R1 = 24/36/72 步细网格；R2 = 查询与图库双向朝向规范化（须处理主轴 180° 歧义、
