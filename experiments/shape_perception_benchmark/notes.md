@@ -1255,7 +1255,10 @@ New module `earthglyph/shape_benchmark/rotation_methods.py` with
 `tests/test_shape_benchmark_rotation_methods.py` (48 collected tests over 35 functions, which run
 **without** the toolbox because the scorer is injected).
 
-Git checkpoint: recorded after push (see `docs/TASKS.md`, CP7-C).
+Git checkpoint: CP7-C/CP7-D work commit `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
+(`feat: freeze the rotation-method comparison and audit the mirror interface (P0-4.6 CP7-C/D)`),
+pushed to `origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main` ==
+`git rev-parse HEAD`, author `ANTACIDisnotFORMICACID`.
 
 ## Checkpoint 7 — CP7-D: interface truth, terminology, licence, five figures (2026-11-09)
 

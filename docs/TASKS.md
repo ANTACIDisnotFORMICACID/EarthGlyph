@@ -519,7 +519,14 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 复现：`validate_shapecomp_port.py` → `--stage d1` → `--stage d2 d3 d4` → **`--stage d5 --methods E0 E1 E3 S0K1 S0K2`**
 → `--stage summary` → `plot_shape_benchmark.py --figure all`（d5 墙钟约 2322 s；需本地工具箱）。
 
-### Checkpoint 7：先证官方复刻正确，再修统计与旋转实验，最后按双目标定夺（2026-11-09，进行中）
+### Checkpoint 7：先证官方复刻正确，再修统计与旋转实验，最后按双目标定夺 ✅（2026-11-09 完成，CP7-A→CP7-D）
+
+> 结论（十问完整版在 `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7 — the ten acceptance questions）：
+> KerNet2 端口在可重建输入上已到机器精度且已验证路径无退化，KerNet1 只钉住输入次序；
+> D5 统计修正只改变**精度**不改变**排序**；随机旋转且删去原图后 **E1 仍是最强检索臂（T2 同族 Top-1 0.833）**，
+> 而人类一致性最高是 **E3/sample 0.839**；两个目标由不同方案胜出，**不得合并成单一"最优方法"**；
+> **不建议**把 ShapeComp 纳入生产默认检索（能对新轮廓打分的路线无法同时赢下两个目标，
+> 赢下感知一侧的发布坐标在查询时根本不可用；权重亦不可再分发）。**本轮到此停止。**
 
 > 触发：用户要求把 CP7 拆成四个可复现检查点 —— **CP7-A** 逐函数忠实度审计 + 哈希 + 异常输入测试，
 > **CP7-B** 修 D5 的重复测量 bootstrap，**CP7-C** R0/R1/R2(/R3) 旋转方案 + T0/T1/T2 判别式检索，
@@ -605,7 +612,7 @@ E0/E1/E3 重跑逐位等于 CP4（确定性）。复现：`validate_shapecomp_po
 决策记录 **D61–D63**。Git 检查点：工作提交 `193c0f8`（`fix: sample the D5 rotation sweep by rated
 pair, not by angle-row (P0-4.6 CP7-B)`），已推送 `origin main` 并核验 `git ls-remote` == `HEAD`。
 
-#### CP7-C：旋转方案与判别式检索 ✅（工作提交待补，已推送并核验）
+#### CP7-C：旋转方案与判别式检索 ✅（`2edce1a8`，已推送并核验）
 
 - **冻结设计（跑前写死，产物 `design.frozen_before_run=true`）**：12 查询（星状/心形/新月/分叉/细长/近圆/对称多解）
   × 5 角度槽（`on_grid`×1、`mid_grid`×2、`random`×2，步长 15°，`random` 距栅格与中点均 ≥2°）+ control
@@ -632,8 +639,12 @@ pair, not by angle-row (P0-4.6 CP7-B)`），已推送 `origin main` 并核验 `g
 
 验证：`--stage d6` → `--stage summary` → `scripts/plot_rotation_checkpoint7.py`；`pytest` **874 passed**、
 `ruff check .` 全过、`mypy` 40 源文件无问题。数值与判读见 notes §C1–C7；决策 **D64–D71**。
+Git 检查点：工作提交 `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
+（`feat: freeze the rotation-method comparison and audit the mirror interface (P0-4.6 CP7-C/D)`），
+文档提交 `b4840d1cf301d792218205b7388034534e0f815c`；已推送 `origin main` 并核验
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 后者，作者 `ANTACIDisnotFORMICACID`。
 
-#### CP7-D：接口、术语、许可与交付 ✅（工作提交待补，已推送并核验）
+#### CP7-D：接口、术语、许可与交付 ✅（同一提交 `2edce1a8`，已推送并核验）
 
 - **F1（实测，故意不修）**：`principal_frame()` 手构特征向量在**协方差对角且大方差在 y**时下溢走 `+x` 兜底，
   交付帧与自身主轴差 **90°** 而状态仍写 `canonical`（5 探针各 2 姿态命中，漂移 ~80×）；

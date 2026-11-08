@@ -827,3 +827,9 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
 
 **边界**：未改生产默认检索器；未引入真实水体数据；官方 MATLAB 与 `.h5` 只读未改；本轮到此停止，
 不做 Web UI、不扩大图库。
+
+Git 检查点：工作提交 `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
+（`feat: freeze the rotation-method comparison and audit the mirror interface (P0-4.6 CP7-C/D)`），
+文档提交 `b4840d1cf301d792218205b7388034534e0f815c`；已推送 `origin main`（ssh.github.com:443）并核验
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD`，作者 `ANTACIDisnotFORMICACID`。
+CP7-A `82af902`、CP7-B `193c0f8` 见上节。
