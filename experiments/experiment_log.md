@@ -655,3 +655,6 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   工具箱与权重**不入库**（gitignored、无再分发许可）。复现：`validate_shapecomp_port.py` →
   `run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2` → `--stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2`
   → `--stage summary` → `plot_shape_benchmark.py --figure all`。
+- **Git 检查点**：CP5 工作提交 `31e6b00`（`feat: run official ShapeComp KerNet1/KerNet2 via numpy port`），
+  已推送 `origin main`（ssh.github.com:443）；核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`
+  == `31e6b00efc754938217bb0ea68a7ee3e831c3d9a`，作者 `ANTACIDisnotFORMICACID`。CP1–CP4 见上。

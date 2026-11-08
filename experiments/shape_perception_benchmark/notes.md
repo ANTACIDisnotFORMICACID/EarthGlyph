@@ -663,3 +663,7 @@ Determinism: re-running with S0K1/S0K2 leaves E0/E1/E3 **bit-identical** to Chec
 (D2 T2/T3 recall 0.717/0.833/0.917; D4 E0 mirror overlap 0.00, E3 rotate_37 0.54, E1 mirror 0.33).
 The toolbox and `.h5` weights are **not** in Git (gitignored, no redistribution licence); only the
 port code, scripts, tests and result artefacts are committed.
+
+Git checkpoint: CP5 work commit `31e6b00` (`feat: run official ShapeComp KerNet1/KerNet2 via numpy
+port`), pushed to `origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main`
+== `git rev-parse HEAD` == `31e6b00efc754938217bb0ea68a7ee3e831c3d9a`, author `ANTACIDisnotFORMICACID`.
