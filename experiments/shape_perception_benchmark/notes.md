@@ -716,16 +716,23 @@ Agreement under rotation stress (pooled over the rotated angles, two-level boots
 | S0K2 naive | +0.458 | [0.399, 0.495] | 0.901 | +0.073 (90°) |
 | **S0K2 +rot** | **+0.774** | [0.723, 0.789] | 0.775 | +0.746 |
 
-Retrieval Top-10 overlap vs untransformed, over the rotated angles (mean / worst):
+Retrieval Top-10 overlap vs untransformed, over the rotated angles (mean / worst). Target-rank counts use the
+same rotated-only denominator: **21 = 3 targets × 7 non-zero angles**; the 0° control is excluded from every
+headline cell (it is stored separately as `unrotated_control_overlap` = 1.000 for all seven arms).
 
-| arm | mean | worst | target rank |
+| arm | mean | worst | target rank (rotated) |
 |-----|-----:|------:|-------------|
-| E0 / E1 | 1.000 | 1.000 | 1 everywhere |
-| E3 | 0.916 | 0.674 | 1 everywhere |
-| S0K1 naive | 0.162 | 0.037 | up to **297** (fork 90°) |
-| **S0K1 +rot** | **0.943** | 0.725 | **1 in 20/24**, 6 at off-grid fork 37° |
-| S0K2 naive | 0.148 | 0.018 | up to 244 |
-| **S0K2 +rot** | **0.910** | 0.632 | **1 in 22/24**, 2 at off-grid bat 37°/191° |
+| E0 / E1 | 1.000 | 1.000 | 1 in 21/21 |
+| E3 | 0.916 | 0.674 | 1 in 21/21 |
+| S0K1 naive | 0.162 | 0.037 | 1 in **1/21**, up to **297** (fork 90°) |
+| **S0K1 +rot** | **0.943** | 0.725 | 1 in **20/21** (23/24 with control), 6 at off-grid fork 37° |
+| S0K2 naive | 0.148 | 0.018 | 1 in 4/21, up to 244 |
+| **S0K2 +rot** | **0.910** | 0.632 | 1 in **19/21** (22/24 with control), 2 at off-grid bat 37°/191° |
+
+The agreement pool above is likewise control-free: `n_rows = 1750 = 250 pairs × 7 rotated angles`
+(`scripts/run_shape_benchmark.py` drops `phi == 0.0` in both studies), so the headline numbers answer exactly
+the operating question — *the query's rotation is unknown, so the search always runs*. The φ=0 column is kept
+only as the sanity check that the wrapper does not break the already-correct case, not as an operating point.
 
 **Read-out.** The added rotation search turns the official networks from *rotation-blind* into
 *rotation-searchable*: retrieval stability jumps from ~0.15 to ~0.91–0.94 (E3-comparable), and the exact
@@ -734,6 +741,14 @@ the half-grid-step limitation E3 documents). Human agreement under rotation rise
 recovering most of the port's Checkpoint-5 advantage — but it does **not** exceed E3 (0.839) or even E1
 (0.782). The wrapper also **costs peak accuracy**: at φ=0 the search drops S0K1 from 0.903 to 0.763, because
 minimising over rotations lets distinct shapes collide. This trade is reported, not hidden.
+
+**Why the Checkpoint-5 lead does not survive rotation.** S0's +0.072 over E3 was earned with the pose already
+aligned. Taking `min` over 24 poses replaces each pair by its most optimistic distance, which flattens exactly
+the fine ordering the network is sensitive to — the flatness we wanted (robustness) is bought with a lower
+level. Human-validated similarity and rotation invariance are therefore *independent* properties: the search
+repairs the second and, in doing so, spends the first. Under the unknown-rotation operating point the ranking
+is E3 > E1 > S0K2+rot > S0K1+rot > E0 for agreement, and E0=E1 > S0K1+rot > E3 ≈ S0K2+rot for retrieval
+stability, with E0/E1/E3 all recovering the exact target at rank 1 in every rotated query.
 
 **Consistency check:** the cached frames scorer reproduces the committed D1 numbers exactly at φ=0
 (S0K1 0.903, S0K2 0.901 vs D1 0.9032 / 0.9005), confirming `run_d5`'s shortcut equals `pair_distance`.
