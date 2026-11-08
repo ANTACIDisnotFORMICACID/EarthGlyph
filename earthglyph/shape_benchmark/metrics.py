@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import combinations
 from typing import Any
 
 import numpy as np
@@ -107,6 +108,11 @@ def _interval(
     values: np.ndarray, *, n_boot: int, seed: int, alpha: float, scheme: str
 ) -> dict[str, Any]:
     finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        raise ValueError(
+            "every bootstrap replicate was degenerate, so there is no variance to resample; "
+            "a constant distance or a constant rating vector cannot be correlated"
+        )
     return {
         "scheme": scheme,
         "n_boot": n_boot,
@@ -118,6 +124,144 @@ def _interval(
         "spearman_boot_mean": float(finite.mean()),
         "spearman_boot_std": float(finite.std(ddof=1)),
     }
+
+
+def _crossed_grid(
+    groups: np.ndarray, conditions: np.ndarray, unique_groups: np.ndarray
+) -> np.ndarray:
+    """Row index grid of shape (n_clusters, n_conditions) for a complete crossed design."""
+    if len(conditions) != len(groups):
+        raise ValueError("condition_ids must align with group_ids")
+    unique_conditions = np.unique(conditions)
+    group_slot = {key: position for position, key in enumerate(unique_groups)}
+    condition_slot = {key: position for position, key in enumerate(unique_conditions)}
+    grid = np.full((len(unique_groups), len(unique_conditions)), -1, dtype=np.int64)
+    for row, (group, condition) in enumerate(zip(groups, conditions, strict=True)):
+        slot = grid[group_slot[group], condition_slot[condition]]
+        if slot != -1:
+            raise ValueError("a (stimulus, condition) cell appears twice; design is not crossed")
+        grid[group_slot[group], condition_slot[condition]] = row
+    if (grid < 0).any():
+        raise ValueError("the design is incomplete: some stimulus has no row for some condition")
+    return grid
+
+
+def bootstrap_grouped_two_level(
+    distances: dict[str, np.ndarray],
+    ratings: np.ndarray,
+    group_ids: np.ndarray,
+    *,
+    condition_ids: np.ndarray | None = None,
+    resample_conditions: bool = False,
+    n_boot: int = 2000,
+    seed: int = 20261107,
+    alpha: float = 0.05,
+) -> dict[str, Any]:
+    """Repeated-measures bootstrap: resample whole stimulus clusters, never single rows.
+
+    ``ratings`` is (n_rows, n_observers) and ``group_ids`` labels the stimulus each row belongs
+    to. A rotation sweep contributes one row per (stimulus, angle), so the same stimulus appears
+    several times and those rows are *not* independent observations — they share one stimulus and
+    one rating panel. Each replicate therefore draws clusters with replacement and keeps every
+    row of a drawn cluster together, then applies one observer-panel draw.
+
+    By default the conditioning factor stays fixed, so the intervals answer "this protocol, a
+    different sample of stimuli and observers". Pass ``condition_ids`` with
+    ``resample_conditions=True`` to treat the conditions themselves as a random sample (the
+    angles drawn with replacement too), which is the wider claim "any rotation of this kind"
+    would need — reported as a sensitivity, not as the headline.
+
+    Every arm is scored on the *same* replicate, so the per-arm intervals and the arm-vs-arm
+    difference intervals come from one shared resampling — the requirement for a paired
+    comparison of correlated estimates.
+    """
+    matrix = np.asarray(ratings, dtype=float)
+    groups = np.asarray(group_ids)
+    if matrix.ndim != 2 or matrix.shape[0] != len(groups):
+        raise ValueError("rating rows must align with group_ids")
+    arrays = {name: np.asarray(value, dtype=float) for name, value in distances.items()}
+    if any(len(value) != len(groups) for value in arrays.values()):
+        raise ValueError("every arm must cover exactly the same rows")
+    unique = np.unique(groups)
+    cluster_rows = [np.flatnonzero(groups == key) for key in unique]
+    sizes = np.array([len(rows) for rows in cluster_rows])
+    uniform = bool((sizes == sizes[0]).all())
+    stacked: np.ndarray | None = np.array(cluster_rows) if uniform else None
+    grid: np.ndarray | None = None
+    if resample_conditions:
+        if condition_ids is None:
+            raise ValueError("resample_conditions needs condition_ids of the same length")
+        grid = _crossed_grid(groups, np.asarray(condition_ids), unique)
+    rng = np.random.default_rng(seed)
+    n_clusters, n_observers = len(unique), matrix.shape[1]
+    values = {name: np.full(n_boot, np.nan) for name in arrays}
+    for replicate in range(n_boot):
+        drawn = rng.integers(0, n_clusters, n_clusters)
+        if grid is not None:
+            drawn_conditions = rng.integers(0, grid.shape[1], grid.shape[1])
+            cells = grid[
+                np.repeat(drawn, grid.shape[1]), np.tile(drawn_conditions, drawn.size)
+            ]
+            rows = cells.ravel()
+        elif stacked is not None:
+            rows = stacked[drawn].ravel()
+        else:
+            rows = np.concatenate([cluster_rows[key] for key in drawn])
+        observers = rng.integers(0, n_observers, n_observers)
+        mean = matrix[rows][:, observers].mean(axis=1)
+        for name, array in arrays.items():
+            xb = array[rows]
+            if np.ptp(xb) == 0 or np.ptp(mean) == 0:
+                continue
+            values[name][replicate] = spearmanr(xb, mean).statistic
+    names = list(arrays)
+    fixed = not resample_conditions
+    out: dict[str, Any] = {
+        "scheme": (
+            "clusters(stimuli)+observers, condition factor fixed"
+            if fixed
+            else "clusters(stimuli)+conditions+observers, all three resampled"
+        ),
+        "n_boot": n_boot,
+        "seed": seed,
+        "alpha": alpha,
+        "n_clusters": int(n_clusters),
+        "rows_per_cluster": int(sizes[0]) if uniform else None,
+        "cluster_size_min": int(sizes.min()),
+        "cluster_size_max": int(sizes.max()),
+        "n_rows": int(len(groups)),
+        "condition_factor": (
+            "fixed: the rotation angles are a pre-declared design set and are never resampled, "
+            "so inference is over stimuli and observers only"
+            if fixed
+            else "random: the rotation angles are themselves drawn with replacement, so the "
+            "interval also covers 'some other set of angles of the same size'"
+        ),
+        "per_arm": {
+            name: _interval(
+                values[name], n_boot=n_boot, seed=seed, alpha=alpha,
+                scheme="clusters+observers" if fixed else "clusters+conditions+observers",
+            )
+            for name in names
+        },
+        "differences": {},
+    }
+    for first, second in combinations(names, 2):
+        both = np.isfinite(values[first]) & np.isfinite(values[second])
+        delta = values[first][both] - values[second][both]
+        if delta.size < 2:
+            continue
+        low = float(np.quantile(delta, alpha / 2.0))
+        high = float(np.quantile(delta, 1.0 - alpha / 2.0))
+        out["differences"][f"{first}|{second}"] = {
+            "n_valid_replicates": int(delta.size),
+            "mean": float(delta.mean()),
+            "std": float(delta.std(ddof=1)),
+            "ci_low": low,
+            "ci_high": high,
+            "excludes_zero": bool(low > 0.0 or high < 0.0),
+        }
+    return out
 
 
 def per_observer_correlations(

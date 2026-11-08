@@ -7,6 +7,8 @@ Stages:
     d4  rotation, scale, translation, start-point, deformation and mirror stability
     d5  rotation-search capability added to the S0K port, compared to E0/E1/E3 under
         identical rotation stress (human agreement + retrieval stability)
+    d5b re-analysis of d5 (a): the rated stimulus pair, not the 1750 angle-rows, is the
+        sampling unit; reads the committed d5 outputs and writes new grouped artefacts
 
 Every stage writes real distances and timings. S0 appears only where the authors published
 official coordinates; it is never fabricated for MPEG-7.
@@ -881,6 +883,316 @@ def run_d5(methods: list[str], top_k: int) -> dict[str, Any]:
     return summary
 
 
+def _file_sha256(path: Path) -> str:
+    import hashlib
+
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def run_d5_grouped(n_boot: int = N_BOOT, seed: int = SEED) -> dict[str, Any]:
+    """CP7-B: re-infer the D5 rotation sweep with the *stimulus pair* as the sampling unit.
+
+    ``run_d5`` stacked its seven rotated angles into 1750 rows and handed them to
+    ``bootstrap_two_level``, which resamples rows as though each were an independent stimulus.
+    They are not independent: 1750 rows are 250 rated pairs seen seven times, judged by one
+    shared rating panel, and the angles are a pre-declared design set rather than a sample.
+    This stage keeps every committed point estimate as a descriptive number and re-derives only
+    the uncertainty — whole pairs are resampled (all angles of a drawn pair move together), the
+    observer panel is resampled at its own level, and one shared replicate stream scores all
+    seven arms so the arm-vs-arm differences are properly paired.
+
+    Nothing is re-ranked or re-scored here: the distances are read back from
+    ``d5_rotation_results.csv`` and the stage refuses to continue unless they reproduce the
+    committed pooled values exactly. The committed files are only ever read, so this is a new
+    version with an explicit audit relation, not an overwrite.
+    """
+    src_csv = RESULTS / "d5_rotation_results.csv"
+    src_json = RESULTS / "d5_rotation_metrics.json"
+    if not src_csv.exists() or not src_json.exists():
+        raise RuntimeError(
+            "d5b re-analyses the committed d5 outputs; run "
+            "`python scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2` first"
+        )
+    source = read_json(src_json)
+    committed = source["agreement_pooled_by_arm"]
+    arms = list(committed)
+    angles = [float(a) for a in source["angles_deg"] if float(a) != 0.0]
+
+    h1 = load_h1(CACHE)
+    ratings = h1.pair_matrix()
+    slot = {pair.pair_id: index for index, pair in enumerate(h1.pairs)}
+    with src_csv.open(newline="", encoding="utf-8") as handle:
+        agreement_rows = [
+            row
+            for row in csv.DictReader(handle)
+            if row["study"] == "agreement" and float(row["stress_deg"]) != 0.0
+        ]
+
+    dist: dict[str, np.ndarray] = {}
+    group_ids: np.ndarray | None = None
+    condition_ids: np.ndarray | None = None
+    expected = len(angles) * len(h1.pairs)
+    for label in arms:
+        ordered = sorted(
+            (row for row in agreement_rows if row["arm"] == label),
+            key=lambda row: (float(row["stress_deg"]), slot[int(row["pair_id"])]),
+        )
+        if len(ordered) != expected:
+            raise RuntimeError(f"d5b: arm {label} has {len(ordered)} rotated rows, want {expected}")
+        groups = np.array([slot[int(row["pair_id"])] for row in ordered])
+        conditions = np.array([float(row["stress_deg"]) for row in ordered])
+        if group_ids is None:
+            group_ids, condition_ids = groups, conditions
+        elif not (
+            np.array_equal(groups, group_ids) and np.array_equal(conditions, condition_ids)
+        ):
+            raise RuntimeError(f"d5b: arm {label} does not cover the same rows as {arms[0]}")
+        dist[label] = np.array([float(row["model_distance"]) for row in ordered])
+
+    # --- reproduction gate: the committed numbers must come out of the committed rows
+    stress_matrix = np.tile(ratings, (len(angles), 1))
+    mean_pooled = stress_matrix.mean(axis=1)
+    naive: dict[str, dict[str, float]] = {}
+    deviations: list[float] = []
+    for label in arms:
+        ref = committed[label]
+        obs = metrics.correlate(dist[label], mean_pooled)
+        boot = metrics.bootstrap_two_level(dist[label], stress_matrix, n_boot=n_boot, seed=seed)
+        point = -float(obs.spearman)
+        low = -float(boot["spearman_ci_high"])
+        high = -float(boot["spearman_ci_low"])
+        naive[label] = {"agreement_pooled": point, "ci_low": low, "ci_high": high}
+        deviations.extend(
+            abs(got - want)
+            for got, want in (
+                (point, ref["agreement_pooled"]),
+                (low, ref["ci_low"]),
+                (high, ref["ci_high"]),
+            )
+        )
+    max_deviation = max(deviations)
+    if max_deviation > 1e-6:
+        raise RuntimeError(
+            f"d5b could not reproduce the committed d5 values (max deviation {max_deviation:.3e}); "
+            "the stored CSV and JSON disagree, so this re-analysis is not comparable"
+        )
+
+    # the rating panel is tiled to the same 1750 rows as the distances; group_ids says which of
+    # the 250 rated pairs each row really belongs to, and that is the unit being resampled
+    fixed = metrics.bootstrap_grouped_two_level(
+        dist, stress_matrix, group_ids, n_boot=n_boot, seed=seed
+    )
+    randomised = metrics.bootstrap_grouped_two_level(
+        dist,
+        stress_matrix,
+        group_ids,
+        condition_ids=condition_ids,
+        resample_conditions=True,
+        n_boot=n_boot,
+        seed=seed,
+    )
+
+    def interval(block: dict[str, Any], label: str) -> dict[str, Any]:
+        entry = block["per_arm"][label]
+        return {
+            "ci_low": -float(entry["spearman_ci_high"]),
+            "ci_high": -float(entry["spearman_ci_low"]),
+            "boot_mean": -float(entry["spearman_boot_mean"]),
+            "boot_std": float(entry["spearman_boot_std"]),
+            "valid_replicates": int(entry["valid_replicates"]),
+        }
+
+    def delta(block: dict[str, Any], key: str) -> dict[str, Any]:
+        raw = block["differences"][key]
+        return {
+            "delta_agreement": -float(raw["mean"]),
+            "std": float(raw["std"]),
+            "ci_low": -float(raw["ci_high"]),
+            "ci_high": -float(raw["ci_low"]),
+            "excludes_zero": bool(raw["excludes_zero"]),
+            "n_valid_replicates": int(raw["n_valid_replicates"]),
+        }
+
+    per_arm: dict[str, Any] = {}
+    for label in arms:
+        grouped = interval(fixed, label)
+        sensitivity = interval(randomised, label)
+        width_naive = naive[label]["ci_high"] - naive[label]["ci_low"]
+        width_grouped = grouped["ci_high"] - grouped["ci_low"]
+        per_arm[label] = {
+            "agreement_pooled": naive[label]["agreement_pooled"],
+            "naive_ci_low": naive[label]["ci_low"],
+            "naive_ci_high": naive[label]["ci_high"],
+            "naive_ci_width": width_naive,
+            "grouped_ci_low": grouped["ci_low"],
+            "grouped_ci_high": grouped["ci_high"],
+            "grouped_ci_width": width_grouped,
+            "width_ratio_grouped_over_naive": width_grouped / width_naive,
+            "grouped_boot_mean": grouped["boot_mean"],
+            "grouped_boot_std": grouped["boot_std"],
+            "angle_randomised_ci_low": sensitivity["ci_low"],
+            "angle_randomised_ci_high": sensitivity["ci_high"],
+            "angle_randomised_ci_width": sensitivity["ci_high"] - sensitivity["ci_low"],
+            "point_estimate_changed": False,
+        }
+
+    differences: dict[str, Any] = {}
+    for first, second in itertools.combinations(arms, 2):
+        key = f"{first}|{second}"
+        if key not in fixed["differences"]:
+            continue
+        differences[key] = {
+            "grouped_fixed_angle": delta(fixed, key),
+            "angle_randomised": delta(randomised, key),
+            "naive_intervals_overlap": bool(
+                naive[first]["ci_low"] <= naive[second]["ci_high"]
+                and naive[second]["ci_low"] <= naive[first]["ci_high"]
+            ),
+        }
+
+    summary = {
+        "schema": "earthglyph.shape_perception_benchmark/d5_grouped/1",
+        "study": "CP7-B re-analysis of the d5 rotation-stress agreement (H1)",
+        "sampling_unit": (
+            f"the rated stimulus pair ({fixed['n_clusters']} pairs), not the row; "
+            f"{fixed['n_rows']} rows = {fixed['n_clusters']} pairs x {len(angles)} rotated angles "
+            "and resampling rows independently understates the interval"
+        ),
+        "angle_factor": fixed["condition_factor"],
+        "angle_factor_sensitivity": randomised["condition_factor"],
+        "metric": "Spearman of model distance vs human similarity, restated positive",
+        "reproduction": {
+            "n_boot": n_boot,
+            "seed": seed,
+            "max_abs_deviation_vs_committed": max_deviation,
+            "tolerance": 1e-6,
+            "passed": True,
+            "note": (
+                "the naive (row-as-independent) bootstrap re-run from the stored CSV reproduces "
+                "every committed d5 point estimate and CI, so the grouped numbers below are "
+                "directly comparable to them"
+            ),
+        },
+        "audit_relation": {
+            "read_only_sources": [
+                {
+                    "path": path.relative_to(REPO).as_posix(),
+                    "sha256": _file_sha256(path),
+                    "bytes": path.stat().st_size,
+                }
+                for path in (src_csv, src_json)
+            ],
+            "written_by_this_stage": [
+                (RESULTS / "d5_grouped_results.csv").relative_to(REPO).as_posix(),
+                (RESULTS / "d5_grouped_metrics.json").relative_to(REPO).as_posix(),
+            ],
+            "d5_outputs_modified": False,
+        },
+        "assumptions": [
+            (
+                "rotating one member of a pair does not change how the *human observers* rated "
+                "that pair, so the published rating is reused for every angle; this is an "
+                "assumption carried over from d5, not new human data — no rotated pair was ever "
+                "re-rated"
+            ),
+            (
+                "the seven rotated angles are a fixed design set (headline); treating them as a "
+                "random sample of angles widens the intervals further and is reported as a "
+                "sensitivity, not as the headline"
+            ),
+            (
+                "the rating panel is exchangeable across stimuli, so one observer draw is applied "
+                "per replicate for every arm"
+            ),
+        ],
+        "n_boot": n_boot,
+        "seed": seed,
+        "n_clusters": fixed["n_clusters"],
+        "rows_per_cluster": fixed["rows_per_cluster"],
+        "n_rows": fixed["n_rows"],
+        "angles_deg": angles,
+        "by_arm": per_arm,
+        "paired_differences": differences,
+        "differences_supported": sorted(
+            key
+            for key, entry in differences.items()
+            if entry["grouped_fixed_angle"]["excludes_zero"]
+        ),
+    }
+    write_csv(RESULTS / "d5_grouped_results.csv", _d5_grouped_rows(summary, fixed, randomised))
+    write_json(RESULTS / "d5_grouped_metrics.json", summary)
+    print(
+        "  reproduction max abs deviation vs committed d5 = "
+        f"{max_deviation:.3e} (tolerance 1e-6)",
+        flush=True,
+    )
+    for label in arms:
+        entry = per_arm[label]
+        print(
+            f"  {label}: {entry['agreement_pooled']:+.4f} "
+            f"naive [{entry['naive_ci_low']:+.4f},{entry['naive_ci_high']:+.4f}] "
+            f"grouped [{entry['grouped_ci_low']:+.4f},{entry['grouped_ci_high']:+.4f}] "
+            f"x{entry['width_ratio_grouped_over_naive']:.2f} wide",
+            flush=True,
+        )
+    return summary
+
+
+def _d5_grouped_rows(
+    summary: dict[str, Any],
+    fixed: dict[str, Any],
+    randomised: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Tidy table for d5_grouped_results.csv: one row per interval, arm-level then paired."""
+    source_sha = summary["audit_relation"]["read_only_sources"][0]["sha256"]
+    rows: list[dict[str, Any]] = []
+    for label, entry in summary["by_arm"].items():
+        schemes = (
+            ("naive_rows_as_independent", entry["naive_ci_low"], entry["naive_ci_high"],
+             fixed["n_rows"]),
+            ("grouped_pairs_fixed_angle", entry["grouped_ci_low"], entry["grouped_ci_high"],
+             fixed["n_clusters"]),
+            ("grouped_pairs_angle_randomised", entry["angle_randomised_ci_low"],
+             entry["angle_randomised_ci_high"], randomised["n_clusters"]),
+        )
+        for scheme, low, high, unit_rows in schemes:
+            rows.append({
+                "record_type": "arm_interval",
+                "scheme": scheme,
+                "arm": label,
+                "other_arm": "",
+                "point_or_delta": entry["agreement_pooled"],
+                "ci_low": low,
+                "ci_high": high,
+                "ci_width": high - low,
+                "excludes_zero": "",
+                "n_valid_replicates": "",
+                "sampling_unit_rows": unit_rows,
+                "d5_csv_sha256": source_sha,
+            })
+    for key, entry in summary["paired_differences"].items():
+        first, second = key.split("|", 1)
+        for scheme, block in (
+            ("grouped_pairs_fixed_angle", entry["grouped_fixed_angle"]),
+            ("grouped_pairs_angle_randomised", entry["angle_randomised"]),
+        ):
+            rows.append({
+                "record_type": "paired_difference",
+                "scheme": scheme,
+                "arm": first,
+                "other_arm": second,
+                "point_or_delta": block["delta_agreement"],
+                "ci_low": block["ci_low"],
+                "ci_high": block["ci_high"],
+                "ci_width": block["ci_high"] - block["ci_low"],
+                "excludes_zero": block["excludes_zero"],
+                "n_valid_replicates": block["n_valid_replicates"],
+                "sampling_unit_rows": fixed["n_clusters"],
+                "d5_csv_sha256": source_sha,
+            })
+    return rows
+
+
 def write_summary() -> None:
     """Combine whatever stages have run into one headline table with full provenance."""
     import platform
@@ -889,6 +1201,7 @@ def write_summary() -> None:
     stages = {name: RESULTS / f"{name}_metrics.json" for name in ("d2", "d3", "d4")}
     stages["d1"] = RESULTS / "human_metrics.json"
     stages["d5"] = RESULTS / "d5_rotation_metrics.json"
+    stages["d5b"] = RESULTS / "d5_grouped_metrics.json"
     present = {name: read_json(path) for name, path in stages.items() if path.exists()}
     manifest_path = BENCH / "dataset_manifest.json"
     manifest = read_json(manifest_path) if manifest_path.exists() else {}
@@ -1030,6 +1343,32 @@ def write_summary() -> None:
             "metric": "mean Top-10 overlap with the untransformed ranking over the rotated angles",
             "by_arm": d5["retrieval_robustness_by_arm"],
         }
+    if "d5b" in present:
+        d5b = present["d5b"]
+        headline["rotation_stress_agreement_grouped"] = {
+            "study": (
+                "CP7-B re-analysis of rotation_stress_agreement: identical point estimates, "
+                "uncertainty resampled by rated stimulus pair instead of by row"
+            ),
+            "why": (
+                "d5 stacked 7 rotated angles onto each of 250 rated pairs and resampled the "
+                "resulting 1750 rows independently, which counts one stimulus seven times as "
+                "seven independent observations and makes every interval too narrow"
+            ),
+            "sampling_unit": d5b["sampling_unit"],
+            "angle_factor": d5b["angle_factor"],
+            "angle_factor_sensitivity": d5b["angle_factor_sensitivity"],
+            "reproduction_of_committed_values": d5b["reproduction"],
+            "ci": (
+                "grouped two-level bootstrap (pairs + observers) with a shared replicate stream "
+                "across arms; the angle-randomised interval is a sensitivity, not the headline"
+            ),
+            "by_arm": d5b["by_arm"],
+            "paired_differences": d5b["paired_differences"],
+            "differences_supported": d5b["differences_supported"],
+            "assumptions": d5b["assumptions"],
+            "audit_relation": d5b["audit_relation"],
+        }
 
     payload = {
         "schema": "earthglyph.shape_perception_benchmark/1",
@@ -1048,6 +1387,9 @@ def write_summary() -> None:
             "python scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2",
             "python scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2",
+            "# d5b re-analyses d5 (a) by stimulus pair; it reads the files above and never "
+            "rewrites them",
+            "python scripts/run_shape_benchmark.py --stage d5b",
             "python scripts/plot_shape_benchmark.py --figure all",
         ],
         "arm_availability": {
@@ -1092,7 +1434,10 @@ def write_summary() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--stage", nargs="+", required=True, choices=["d1", "d2", "d3", "d4", "d5", "summary"]
+        "--stage",
+        nargs="+",
+        required=True,
+        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "summary"],
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
@@ -1112,6 +1457,8 @@ def main() -> None:
             run_d4(args.methods, args.top_k)
         elif stage == "d5":
             run_d5(args.methods, args.top_k)
+        elif stage == "d5b":
+            run_d5_grouped()
         else:
             write_summary()
         print(f"=== {stage} done in {time.perf_counter() - started:.1f}s ===", flush=True)

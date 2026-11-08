@@ -2,10 +2,16 @@
 
 These run offline: no source cache, no network. The invariants that matter are the ones the
 benchmark's honesty rests on — participant-level resampling, sign conventions, and probes
-that are genuinely valid closed rings rather than self-intersecting artefacts.
+that are genuinely valid closed rings rather than self-intersecting artefacts. One test audits
+the committed d5/d5b artefacts against each other; it skips when they have not been generated.
 """
 
 from __future__ import annotations
+
+import csv
+import hashlib
+import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -23,6 +29,9 @@ from earthglyph.shape_benchmark.probes import (
 )
 
 # --------------------------------------------------------------------------- correlations
+
+REPO = Path(__file__).resolve().parents[1]
+RESULTS = REPO / "experiments" / "shape_perception_benchmark" / "results"
 
 
 def test_correlate_sign_carries_direction() -> None:
@@ -96,6 +105,227 @@ def test_paired_difference_rejects_misaligned_inputs() -> None:
         metrics.bootstrap_agreement_difference(
             np.arange(5.0), np.arange(4.0), np.ones((5, 3)), n_boot=10
         )
+
+
+# --------------------------------------------------------------------------- grouped repeats
+
+
+def sweep_design(
+    seed: int = 13,
+    n_pairs: int = 60,
+    angles: tuple[float, ...] = (0.0, 30.0, 90.0, 150.0),
+    n_observers: int = 6,
+) -> tuple[dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    """One row per (rated pair, angle) — the shape benchmark's rotation-sweep design.
+
+    The signal lives at the *stimulus* level; the angles only add noise. Two arms differ in how
+    much they keep that stimulus signal under rotation.
+    """
+    rng = np.random.default_rng(seed)
+    similarity = rng.uniform(0.0, 1.0, n_pairs)
+    panel = np.repeat(similarity[:, None], n_observers, axis=1)
+    panel += rng.normal(0.0, 0.05, panel.shape)
+    n_rows = n_pairs * len(angles)
+    distances = {
+        name: (1.0 - np.tile(similarity, len(angles))) + rng.normal(0.0, noise, n_rows)
+        for name, noise in (("strong", 0.03), ("weak", 0.35))
+    }
+    ratings = np.tile(panel, (len(angles), 1))
+    groups = np.tile(np.arange(n_pairs), len(angles))
+    conditions = np.repeat(np.asarray(angles), n_pairs)
+    return distances, ratings, groups, conditions
+
+
+def test_grouped_bootstrap_widens_the_interval_that_double_counted_stimuli() -> None:
+    """Rows of one stimulus are repeated measures, not independent observations."""
+    distances, ratings, groups, _ = sweep_design()
+    naive = metrics.bootstrap_two_level(distances["strong"], ratings, n_boot=400, seed=4)
+    grouped = metrics.bootstrap_grouped_two_level(
+        distances, ratings, groups, n_boot=400, seed=4
+    )
+    entry = grouped["per_arm"]["strong"]
+    naive_width = naive["spearman_ci_high"] - naive["spearman_ci_low"]
+    grouped_width = entry["spearman_ci_high"] - entry["spearman_ci_low"]
+    assert grouped_width > naive_width
+    assert grouped["n_clusters"] == 60
+    assert grouped["rows_per_cluster"] == 4
+    assert grouped["n_rows"] == 240
+    assert grouped["scheme"] == "clusters(stimuli)+observers, condition factor fixed"
+    assert "pre-declared design set" in grouped["condition_factor"]
+    assert entry["valid_replicates"] == 400
+
+
+def test_grouped_bootstrap_scores_every_arm_on_the_same_replicate() -> None:
+    """One shared replicate stream: a duplicated arm must differ from its twin by exactly zero."""
+    distances, ratings, groups, conditions = sweep_design()
+    distances = dict(distances, twin=distances["strong"])
+    kwargs = dict(n_boot=400, seed=4)
+    result = metrics.bootstrap_grouped_two_level(distances, ratings, groups, **kwargs)
+    delta = result["differences"]["strong|weak"]
+    # strong tracks the panel more closely, so it sits further from zero on the *negative*
+    # distance-vs-rating scale; as agreement the same gap reads positive
+    assert delta["mean"] < 0.0
+    assert delta["excludes_zero"]
+    assert delta["n_valid_replicates"] == 400
+    twin = result["differences"]["strong|twin"]
+    assert twin["mean"] == 0.0
+    assert twin["std"] == 0.0
+    assert not twin["excludes_zero"]
+    assert result == metrics.bootstrap_grouped_two_level(distances, ratings, groups, **kwargs)
+    assert result != metrics.bootstrap_grouped_two_level(
+        distances, ratings, groups, condition_ids=conditions, resample_conditions=True, **kwargs
+    )
+
+
+def test_grouped_bootstrap_treats_the_condition_as_random_when_asked() -> None:
+    """Angles that differ in difficulty must add variance once the angle set itself is sampled."""
+    rng = np.random.default_rng(29)
+    n_pairs, angles = 45, (0.0, 90.0)
+    similarity = rng.uniform(0.0, 1.0, n_pairs)
+    panel = np.repeat(similarity[:, None], 5, axis=1)
+    distance = np.concatenate(
+        [
+            1.0 - similarity + rng.normal(0.0, 0.02, n_pairs),
+            1.0 - similarity + rng.normal(0.0, 0.55, n_pairs),
+        ]
+    )
+    ratings = np.tile(panel, (len(angles), 1))
+    groups = np.tile(np.arange(n_pairs), len(angles))
+    conditions = np.repeat(np.asarray(angles), n_pairs)
+    kwargs = dict(n_boot=400, seed=8)
+    fixed = metrics.bootstrap_grouped_two_level({"a": distance}, ratings, groups, **kwargs)
+    randomised = metrics.bootstrap_grouped_two_level(
+        {"a": distance}, ratings, groups, condition_ids=conditions, resample_conditions=True,
+        **kwargs,
+    )
+
+    fixed_width = (
+        fixed["per_arm"]["a"]["spearman_ci_high"] - fixed["per_arm"]["a"]["spearman_ci_low"]
+    )
+    random_width = (
+        randomised["per_arm"]["a"]["spearman_ci_high"]
+        - randomised["per_arm"]["a"]["spearman_ci_low"]
+    )
+    assert randomised["scheme"] == "clusters(stimuli)+conditions+observers, all three resampled"
+    assert "drawn with replacement" in randomised["condition_factor"]
+    assert random_width > fixed_width
+
+
+def test_grouped_bootstrap_accepts_a_ragged_design() -> None:
+    """Unequal repeat counts are legal; the report must then refuse a single rows_per_cluster."""
+    groups = np.array([0, 0, 0, 1, 1, 2])
+    similarity = np.array([0.9, 0.55, 0.2])
+    panel = np.repeat(similarity[:, None], 3, axis=1)
+    ratings = panel[groups] + np.linspace(0.0, 0.01, len(groups))[:, None]
+    distance = 1.0 - similarity[groups] + np.array([0.0, 0.1, -0.1, 0.05, -0.05, 0.02])
+    result = metrics.bootstrap_grouped_two_level({"a": distance}, ratings, groups, n_boot=40)
+    assert result["rows_per_cluster"] is None
+    assert (result["cluster_size_min"], result["cluster_size_max"]) == (1, 3)
+    assert result["n_clusters"] == 3
+    # three clusters is tiny: a replicate can draw only the one-row cluster, which has no
+    # variance and is dropped, so the valid count is at most n_boot rather than equal to it
+    assert 35 <= result["per_arm"]["a"]["valid_replicates"] <= 40
+
+
+def test_grouped_bootstrap_refuses_a_replicate_with_no_variance() -> None:
+    groups = np.array([0, 0, 1, 1])
+    with pytest.raises(ValueError, match="no variance to resample"):
+        metrics.bootstrap_grouped_two_level(
+            {"a": np.ones(4)}, np.ones((4, 2)), groups, n_boot=10
+        )
+
+
+def test_grouped_bootstrap_rejects_misaligned_and_non_crossed_inputs() -> None:
+    groups = np.array([0, 0, 1, 1])
+    rows = np.ones((4, 2))
+    distance = {"a": np.arange(4.0)}
+    with pytest.raises(ValueError, match="rating rows must align"):
+        metrics.bootstrap_grouped_two_level(distance, np.ones((5, 2)), groups, n_boot=5)
+    with pytest.raises(ValueError, match="same rows"):
+        metrics.bootstrap_grouped_two_level({"a": np.arange(3.0)}, rows, groups, n_boot=5)
+    with pytest.raises(ValueError, match="resample_conditions needs condition_ids"):
+        metrics.bootstrap_grouped_two_level(
+            distance, rows, groups, resample_conditions=True, n_boot=5
+        )
+    with pytest.raises(ValueError, match="condition_ids must align"):
+        metrics.bootstrap_grouped_two_level(
+            distance,
+            rows,
+            groups,
+            condition_ids=np.array([0.0, 1.0, 2.0]),
+            resample_conditions=True,
+            n_boot=5,
+        )
+    with pytest.raises(ValueError, match="not crossed"):
+        metrics.bootstrap_grouped_two_level(
+            distance,
+            rows,
+            groups,
+            condition_ids=np.array([0.0, 0.0, 1.0, 1.0]),
+            resample_conditions=True,
+            n_boot=5,
+        )
+    with pytest.raises(ValueError, match="incomplete"):
+        metrics.bootstrap_grouped_two_level(
+            distance,
+            rows,
+            groups,
+            condition_ids=np.array([0.0, 1.0, 0.0, 2.0]),
+            resample_conditions=True,
+            n_boot=5,
+        )
+
+
+@pytest.mark.skipif(
+    not (RESULTS / "d5_grouped_metrics.json").exists(),
+    reason="the d5b re-analysis has not been run in this checkout",
+)
+def test_d5b_artefacts_agree_with_the_committed_d5_values() -> None:
+    """A re-analysis that moves no number must also leave no committed file touched."""
+    grouped = json.loads((RESULTS / "d5_grouped_metrics.json").read_text(encoding="utf-8"))
+    committed = json.loads((RESULTS / "d5_rotation_metrics.json").read_text(encoding="utf-8"))
+    assert grouped["reproduction"]["passed"] is True
+    assert grouped["reproduction"]["max_abs_deviation_vs_committed"] < 1e-6
+
+    source = committed["agreement_pooled_by_arm"]
+    assert set(grouped["by_arm"]) == set(source)
+    assert (grouped["n_clusters"], grouped["rows_per_cluster"]) == (250, 7)
+    assert grouped["n_rows"] == 250 * len(grouped["angles_deg"])
+    for arm, entry in grouped["by_arm"].items():
+        assert entry["agreement_pooled"] == pytest.approx(source[arm]["agreement_pooled"])
+        assert entry["naive_ci_low"] == pytest.approx(source[arm]["ci_low"], abs=1e-6)
+        assert entry["naive_ci_high"] == pytest.approx(source[arm]["ci_high"], abs=1e-6)
+        assert entry["grouped_ci_width"] > entry["naive_ci_width"]
+        assert entry["point_estimate_changed"] is False
+
+    arms = len(grouped["by_arm"])
+    assert len(grouped["paired_differences"]) == arms * (arms - 1) // 2
+    assert grouped["audit_relation"]["d5_outputs_modified"] is False
+    for item in grouped["audit_relation"]["read_only_sources"]:
+        path = REPO / item["path"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
+        assert path.stat().st_size == item["bytes"]
+    for key, entry in grouped["paired_differences"].items():
+        first, second = key.split("|", 1)
+        ordering = (
+            grouped["by_arm"][first]["agreement_pooled"]
+            - grouped["by_arm"][second]["agreement_pooled"]
+        )
+        delta = entry["grouped_fixed_angle"]["delta_agreement"]
+        assert np.sign(delta) == np.sign(ordering), key
+
+    with (RESULTS / "d5_grouped_results.csv").open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    csv_sha = grouped["audit_relation"]["read_only_sources"][0]["sha256"]
+    assert rows and all(row["d5_csv_sha256"] == csv_sha for row in rows)
+    assert {row["scheme"] for row in rows} == {
+        "naive_rows_as_independent",
+        "grouped_pairs_fixed_angle",
+        "grouped_pairs_angle_randomised",
+    }
+    intervals = [row for row in rows if row["record_type"] == "arm_interval"]
+    assert len(intervals) == 3 * arms
+    assert all(float(row["ci_width"]) > 0.0 for row in rows)
 
 
 # --------------------------------------------------------------------------- observers

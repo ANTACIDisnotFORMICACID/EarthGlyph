@@ -934,3 +934,110 @@ Git checkpoint: CP7-A work commit `82af902db79d6a7b2cce31d75625e7b82710744a`
 `origin main` (ssh.github.com:443); verified `git ls-remote origin refs/heads/main` ==
 `git rev-parse HEAD` == that sha, author `ANTACIDisnotFORMICACID`. Full suite 811 passed (34 port
 tests), `ruff check .` clean, `mypy` 39 source files no issues.
+
+## Checkpoint 7 — CP7-B: the rated pair, not the angle-row, is the sampling unit (2026-11-09)
+
+### B1. The defect, stated precisely
+
+`run_d5` (a) turns one member of each of the 250 rated H1 pairs by each of seven non-zero stress
+angles and stacks the result into 1 750 rows, then computes its confidence intervals with
+`metrics.bootstrap_two_level`. That function resamples *rows* (`scripts/run_shape_benchmark.py:777`
+built the tile, `earthglyph/shape_benchmark/metrics.py:96` does the draw), so it treats 1 750
+rows as 1 750 independent stimuli. They are 250 stimuli seen seven times, all judged by one
+shared 14-observer panel: rows of the same pair are **repeated measures**, and the seven angles
+are a pre-declared design set, not a sample. The point estimates were always fine as descriptive
+numbers; only the intervals were wrong, and every one of them was too narrow.
+
+### B2. The fix, and what it deliberately does not touch
+
+`metrics.bootstrap_grouped_two_level` resamples whole stimulus clusters — drawing a pair takes all
+seven of its rows with it — then applies one observer-panel draw, and scores **every arm on the
+same replicate**, which is what makes the arm-vs-arm intervals paired (`_crossed_grid` enforces a
+complete, non-duplicated (stimulus, condition) design). New stage `--stage d5b`
+(`run_d5_grouped`) re-analyses the committed sweep. It re-ranks and re-scores nothing: it reads
+`results/d5_rotation_results.csv`, and refuses to continue unless re-running the *old* bootstrap on
+those stored distances reproduces every committed value of `d5_rotation_metrics.json` — the gate
+came out at **max abs deviation 0.000e+00**, i.e. bit-identical, so the two artefacts are directly
+comparable. The committed d5 files are read-only (their SHA256 + byte counts are written into the
+new artefact, and a test re-hashes them), and **no d5 output was overwritten**: d5b writes only
+`d5_grouped_results.csv` / `d5_grouped_metrics.json`, plus one additive block in `metrics.json`.
+
+### B3. Interval change (agreement, positive = better; 2000 replicates, seed 20261107)
+
+| arm | point (unchanged) | CP6 CI, rows independent | CP7-B CI, pairs grouped | wider by | angle set also resampled |
+|---|---|---|---|---|---|
+| E0 | +0.6831 | [+0.6352, +0.7040] | [+0.5893, +0.7361] | x2.13 | [+0.5879, +0.7385] |
+| E1 | +0.7824 | [+0.7305, +0.7981] | [+0.7028, +0.8187] | x1.72 | [+0.7002, +0.8185] |
+| E3 | +0.8387 | [+0.7852, +0.8477] | [+0.7617, +0.8671] | x1.69 | [+0.7533, +0.8640] |
+| S0K1 naive | +0.4341 | [+0.3778, +0.4704] | [+0.3445, +0.4907] | x1.58 | [+0.1737, +0.6269] |
+| S0K1+rot | +0.7472 | [+0.6954, +0.7630] | [+0.6727, +0.7808] | x1.60 | [+0.6650, +0.7837] |
+| S0K2 naive | +0.4582 | [+0.3987, +0.4954] | [+0.3716, +0.5159] | x1.49 | [+0.2095, +0.6390] |
+| S0K2+rot | +0.7735 | [+0.7235, +0.7886] | [+0.7003, +0.8052] | x1.61 | [+0.6978, +0.8071] |
+
+250 clusters x 7 rows. Headline = angle set **fixed**; the last column is the sensitivity in which
+the seven angles are themselves drawn with replacement, i.e. the wider claim "some other set of
+angles of the same size". It barely moves the rotation-robust arms but blows out the naive ones
+(S0K1: width 0.113 -> 0.453), because their agreement genuinely depends on which angle was drawn.
+
+**Independent corroboration from a study CP7-B never touches.** D1 estimates the same arms'
+agreement on the **250 rated pairs once** (no rotation, so its bootstrap already had the pair as the
+sampling unit). For an arm that is unchanged by rotation, replicating each pair seven times cannot
+change a rank correlation, so the grouped D5 interval must reproduce D1's — and it does:
+
+| arm | D1 width (250 pairs, unrotated) | CP6 D5 width (1750 rows) | CP7-B D5 width | grouped − D1 |
+|---|---|---|---|---|
+| E0 | 0.1468 | 0.0689 | 0.1468 | -0.0000 |
+| E1 | 0.1159 | 0.0675 | 0.1159 | -0.0000 |
+| E3 | 0.1066 | 0.0625 | 0.1054 | -0.0012 |
+
+E0 and E1 match D1 to the last printed digit (they are exactly rotation-invariant, so their rotated
+distances are the same seven times over); E3 misses by 0.0012 because its rotation search genuinely
+changes the distance with the angle. The two naive arms go the other way — grouped 0.146 vs D1 0.065
+— which is also right: their agreement truly depends on which angle was drawn, and the paired design
+now admits that instead of averaging it away as if it were 1750 independent stimuli. Nothing about
+this check required the corrected intervals to line up with D1, so it is real evidence that the
+grouped unit is the intended one and that CP6's D5 intervals were about twice too narrow.
+
+### B4. Do the conclusions change?
+
+The ordering of the point estimates cannot change — the numbers are unchanged by construction. What
+changes is what the intervals license, and CP6 never ran a paired test at all (it compared marginal
+intervals, which is the wrong test for arms measured on the same stimuli). With the paired, grouped
+contrast: 19 of 21 arm orderings are supported; 7 pairs have overlapping naive marginals, and 5 of
+those 7 are still resolved by the paired contrast — E3 > S0K1+rot (+0.0891 [+0.0495,+0.1312]),
+E3 > S0K2+rot (+0.0627 [+0.0231,+0.1039]), S0K2+rot > S0K1+rot (+0.0264 [+0.0068,+0.0448]),
+E1 > S0K1+rot (+0.0349 [+0.0020,+0.0694]) and S0K1+rot > E0 (the naive arm E0 sits below the
+rotation-searched arms, gap +0.0614 [+0.0090,+0.1191] in favour of S0K1+rot).
+Two gaps that CP6's numbers invited the reader to treat as ordered are **not** distinguishable:
+E1 vs S0K2+rot (+0.0085 [-0.0287,+0.0467]) and S0K1 naive vs S0K2 naive (-0.0239
+[-0.0496,+0.0015]). No claim that the naive marginals made is *reversed* by the correct test
+(zero cases of "non-overlapping naive but unsupported grouped"), so CP6's ranking survives; what
+does not survive is its precision. Under the angle-randomised sensitivity two of the 19 fall away
+(E1 > S0K1+rot and S0K2+rot > S0K1+rot) — those two are worth stating only for *this* declared
+angle set. The retrieval criterion (b) of CP6 is untouched by this stage; per the 2026-11-08
+decision it remains the primary criterion, and this note changes no ranking claim.
+
+### B5. The assumption this study rests on, restated
+
+Reusing one published rating for all seven rotated versions of a pair **assumes that rotating one
+member does not change what the human observers felt**. It is an assumption inherited from d5, not
+new human data: no rotated pair was ever re-rated, and no new ratings exist. A model that keeps its
+agreement under rotation therefore demonstrates *invariance to an image transformation*, not
+agreement with human judgements of rotated shapes.
+
+### B6. Verification and artefacts
+
+```bash
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5b    # ~30 s, reads d5 only
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
+.venv/Scripts/python.exe -m pytest tests/test_shape_benchmark_metrics.py -q   # 38 passed
+.venv/Scripts/python.exe -m ruff check . ; .venv/Scripts/python.exe -m mypy
+```
+
+New tests: the grouped interval must exceed the row-independent one on a synthetic
+repeated-measures sweep; a duplicated arm must differ from its twin by exactly zero (the proof that
+all arms share one replicate stream); the condition factor must widen the interval once the angle
+set is sampled; ragged designs and every misaligned / non-crossed / incomplete / zero-variance input
+must be refused with a message. `_interval` now raises instead of crashing inside `np.quantile`
+when every replicate was degenerate — the only behaviour change to a shared helper, unreachable on
+the real data (2000/2000 valid replicates for all arms).

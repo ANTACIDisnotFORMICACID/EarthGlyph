@@ -1,7 +1,7 @@
 {
   "schema": "earthglyph.shape_perception_benchmark/1",
   "task": "P0-4.6",
-  "git_commit": "0e9193df68bd09d7c9417054f55fd4528c2ad834",
+  "git_commit": "a4170613bf774e38864585b65795e8440507b32f",
   "python": "3.12.10",
   "numpy": "2.5.4",
   "seed": 20261107,
@@ -11,7 +11,8 @@
     "d2",
     "d3",
     "d4",
-    "d5"
+    "d5",
+    "d5b"
   ],
   "reproduce": [
     "python scripts/fetch_shape_benchmark_sources.py",
@@ -20,6 +21,8 @@
     "python scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2",
     "python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2",
     "python scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2",
+    "# d5b re-analyses d5 (a) by stimulus pair; it reads the files above and never rewrites them",
+    "python scripts/run_shape_benchmark.py --stage d5b",
     "python scripts/plot_shape_benchmark.py --figure all"
   ],
   "arm_availability": {
@@ -719,6 +722,582 @@
           "unrotated_control_overlap": 1.0
         }
       }
+    },
+    "rotation_stress_agreement_grouped": {
+      "study": "CP7-B re-analysis of rotation_stress_agreement: identical point estimates, uncertainty resampled by rated stimulus pair instead of by row",
+      "why": "d5 stacked 7 rotated angles onto each of 250 rated pairs and resampled the resulting 1750 rows independently, which counts one stimulus seven times as seven independent observations and makes every interval too narrow",
+      "sampling_unit": "the rated stimulus pair (250 pairs), not the row; 1750 rows = 250 pairs x 7 rotated angles and resampling rows independently understates the interval",
+      "angle_factor": "fixed: the rotation angles are a pre-declared design set and are never resampled, so inference is over stimuli and observers only",
+      "angle_factor_sensitivity": "random: the rotation angles are themselves drawn with replacement, so the interval also covers 'some other set of angles of the same size'",
+      "reproduction_of_committed_values": {
+        "n_boot": 2000,
+        "seed": 20261107,
+        "max_abs_deviation_vs_committed": 0.0,
+        "tolerance": 1e-06,
+        "passed": true,
+        "note": "the naive (row-as-independent) bootstrap re-run from the stored CSV reproduces every committed d5 point estimate and CI, so the grouped numbers below are directly comparable to them"
+      },
+      "ci": "grouped two-level bootstrap (pairs + observers) with a shared replicate stream across arms; the angle-randomised interval is a sensitivity, not the headline",
+      "by_arm": {
+        "E0": {
+          "agreement_pooled": 0.6830963752997362,
+          "naive_ci_low": 0.6351714728244362,
+          "naive_ci_high": 0.7040353007231043,
+          "naive_ci_width": 0.06886382789866807,
+          "grouped_ci_low": 0.5893212067505771,
+          "grouped_ci_high": 0.7361122851661966,
+          "grouped_ci_width": 0.14679107841561956,
+          "width_ratio_grouped_over_naive": 2.131613691757305,
+          "grouped_boot_mean": 0.6676419151393131,
+          "grouped_boot_std": 0.03762506360354579,
+          "angle_randomised_ci_low": 0.5878588847633309,
+          "angle_randomised_ci_high": 0.738455795540722,
+          "angle_randomised_ci_width": 0.15059691077739112,
+          "point_estimate_changed": false
+        },
+        "E1": {
+          "agreement_pooled": 0.7824069631343956,
+          "naive_ci_low": 0.7305390607287104,
+          "naive_ci_high": 0.7980548473307756,
+          "naive_ci_width": 0.06751578660206514,
+          "grouped_ci_low": 0.702769569194495,
+          "grouped_ci_high": 0.8186996399364029,
+          "grouped_ci_width": 0.11593007074190798,
+          "width_ratio_grouped_over_naive": 1.7170809461969885,
+          "grouped_boot_mean": 0.7639163630708082,
+          "grouped_boot_std": 0.029521716765328603,
+          "angle_randomised_ci_low": 0.7001918593431888,
+          "angle_randomised_ci_high": 0.8184657914332943,
+          "angle_randomised_ci_width": 0.1182739320901055,
+          "point_estimate_changed": false
+        },
+        "E3": {
+          "agreement_pooled": 0.8386821753544228,
+          "naive_ci_low": 0.7851902931352585,
+          "naive_ci_high": 0.8477001344186824,
+          "naive_ci_width": 0.06250984128342396,
+          "grouped_ci_low": 0.7616689292417292,
+          "grouped_ci_high": 0.867069303729181,
+          "grouped_ci_width": 0.10540037448745176,
+          "width_ratio_grouped_over_naive": 1.6861404912157616,
+          "grouped_boot_mean": 0.8181585850394067,
+          "grouped_boot_std": 0.027123435856968036,
+          "angle_randomised_ci_low": 0.7533430166104602,
+          "angle_randomised_ci_high": 0.8639689523703786,
+          "angle_randomised_ci_width": 0.11062593575991841,
+          "point_estimate_changed": false
+        },
+        "S0K1": {
+          "agreement_pooled": 0.43407073722514883,
+          "naive_ci_low": 0.37781764774574206,
+          "naive_ci_high": 0.47042287382174747,
+          "naive_ci_width": 0.09260522607600541,
+          "grouped_ci_low": 0.3445214706994953,
+          "grouped_ci_high": 0.4907076192294338,
+          "grouped_ci_width": 0.1461861485299385,
+          "width_ratio_grouped_over_naive": 1.5785950180603925,
+          "grouped_boot_mean": 0.4213537221371034,
+          "grouped_boot_std": 0.03665923883735507,
+          "angle_randomised_ci_low": 0.17368716502879356,
+          "angle_randomised_ci_high": 0.6269341364564552,
+          "angle_randomised_ci_width": 0.4532469714276617,
+          "point_estimate_changed": false
+        },
+        "S0K1+rot": {
+          "agreement_pooled": 0.7471504496796112,
+          "naive_ci_low": 0.6954003078520499,
+          "naive_ci_high": 0.7629541938280247,
+          "naive_ci_width": 0.06755388597597478,
+          "grouped_ci_low": 0.672699548658402,
+          "grouped_ci_high": 0.7808234973540852,
+          "grouped_ci_width": 0.1081239486956832,
+          "width_ratio_grouped_over_naive": 1.600558533881189,
+          "grouped_boot_mean": 0.7290127299095451,
+          "grouped_boot_std": 0.02785102117245941,
+          "angle_randomised_ci_low": 0.6649655215332427,
+          "angle_randomised_ci_high": 0.7837089618925619,
+          "angle_randomised_ci_width": 0.11874344035931916,
+          "point_estimate_changed": false
+        },
+        "S0K2": {
+          "agreement_pooled": 0.45819892659885375,
+          "naive_ci_low": 0.3987384084524057,
+          "naive_ci_high": 0.4954177470667756,
+          "naive_ci_width": 0.09667933861436989,
+          "grouped_ci_low": 0.3715898441320947,
+          "grouped_ci_high": 0.5158586829588679,
+          "grouped_ci_width": 0.14426883882677322,
+          "width_ratio_grouped_over_naive": 1.4922406472206655,
+          "grouped_boot_mean": 0.4452088870256427,
+          "grouped_boot_std": 0.036757786820671656,
+          "angle_randomised_ci_low": 0.20952509020775018,
+          "angle_randomised_ci_high": 0.6389539526398457,
+          "angle_randomised_ci_width": 0.4294288624320955,
+          "point_estimate_changed": false
+        },
+        "S0K2+rot": {
+          "agreement_pooled": 0.7735268929290696,
+          "naive_ci_low": 0.7234733980348165,
+          "naive_ci_high": 0.7886191662063036,
+          "naive_ci_width": 0.0651457681714871,
+          "grouped_ci_low": 0.700318700431187,
+          "grouped_ci_high": 0.8051747472450551,
+          "grouped_ci_width": 0.10485604681386806,
+          "width_ratio_grouped_over_naive": 1.609560371409686,
+          "grouped_boot_mean": 0.755438627847367,
+          "grouped_boot_std": 0.027342091936619066,
+          "angle_randomised_ci_low": 0.6977851641467933,
+          "angle_randomised_ci_high": 0.8071203761662865,
+          "angle_randomised_ci_width": 0.10933521201949326,
+          "point_estimate_changed": false
+        }
+      },
+      "paired_differences": {
+        "E0|E1": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.09627444793149513,
+            "std": 0.03173926979790427,
+            "ci_low": -0.16133637573042253,
+            "ci_high": -0.037605402013859646,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.09569424445247593,
+            "std": 0.03245112475725092,
+            "ci_low": -0.1621889105571822,
+            "ci_high": -0.03050289208930289,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E0|E3": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.15051666990009355,
+            "std": 0.032360170874232305,
+            "ci_low": -0.21667629724953824,
+            "ci_high": -0.08694264725765204,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.1503707076492012,
+            "std": 0.03394446851276505,
+            "ci_low": -0.22087444991633778,
+            "ci_high": -0.08608376294584892,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E0|S0K1": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.24628819300220967,
+            "std": 0.04853649900557342,
+            "ci_low": 0.14807998242722697,
+            "ci_high": 0.34344850466612903,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.2500846810763433,
+            "std": 0.12047291548688394,
+            "ci_low": 0.027042434196354246,
+            "ci_high": 0.50142045595664,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E0|S0K1+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.06137081477023212,
+            "std": 0.02816280268345275,
+            "ci_low": -0.11914109218330572,
+            "ci_high": -0.009047706907436098,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.06098311910685595,
+            "std": 0.030985783336787705,
+            "ci_low": -0.12295874771066306,
+            "ci_high": -0.0010076490977422067,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "E0|S0K2": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.22243302811367038,
+            "std": 0.049150255925912496,
+            "ci_low": 0.12208058963160483,
+            "ci_high": 0.31944740330547405,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.22541798986446068,
+            "std": 0.11459678817569448,
+            "ci_low": 0.011516860431232857,
+            "ci_high": 0.46396482054431537,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E0|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.08779671270805392,
+            "std": 0.032012571606664486,
+            "ci_low": -0.1538451519758416,
+            "ci_high": -0.026803642816005568,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.08783630127846687,
+            "std": 0.034324305199078184,
+            "ci_low": -0.15723287469460373,
+            "ci_high": -0.022862295642254494,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E1|E3": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.05424222196859843,
+            "std": 0.025753330470441527,
+            "ci_low": -0.1046459433610938,
+            "ci_high": -0.004144429090821827,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.0546764631967253,
+            "std": 0.02606673780861454,
+            "ci_low": -0.105076458373909,
+            "ci_high": -0.0036536779494257933,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "E1|S0K1": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.3425626409337048,
+            "std": 0.040727245753865736,
+            "ci_low": 0.2631755592117901,
+            "ci_high": 0.4234095558777837,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.3457789255288193,
+            "std": 0.11882808382983609,
+            "ci_low": 0.13215482081370983,
+            "ci_high": 0.5945044437016023,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E1|S0K1+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.03490363316126301,
+            "std": 0.01754520374502968,
+            "ci_low": 0.002017347371733481,
+            "ci_high": 0.06940902561089901,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.03471112534561998,
+            "std": 0.021574553709315374,
+            "ci_low": -0.007058580375791051,
+            "ci_high": 0.07926649464540718,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "E1|S0K2": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.3187074760451655,
+            "std": 0.04038078490050977,
+            "ci_low": 0.24053304267187298,
+            "ci_high": 0.3978402554875385,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.32111223431693664,
+            "std": 0.11218591785145658,
+            "ci_low": 0.11688539496802329,
+            "ci_high": 0.556139619061956,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E1|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.00847773522344123,
+            "std": 0.018767978377355356,
+            "ci_low": -0.02865591550656819,
+            "ci_high": 0.046700214431613596,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.007857943174009067,
+            "std": 0.020806758739386557,
+            "ci_low": -0.031315050211140866,
+            "ci_high": 0.050726677060280966,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "E3|S0K1": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.39680486290230316,
+            "std": 0.04045498607837671,
+            "ci_low": 0.3192844301345828,
+            "ci_high": 0.47477680512086523,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.4004553887255446,
+            "std": 0.11704084967228394,
+            "ci_low": 0.19248125135063088,
+            "ci_high": 0.6520944911667281,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E3|S0K1+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.08914585512986145,
+            "std": 0.02038263285396518,
+            "ci_low": 0.0495236502461824,
+            "ci_high": 0.131239621502475,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.08938758854234528,
+            "std": 0.022551936168457503,
+            "ci_low": 0.04369561865932515,
+            "ci_high": 0.13442562135131808,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E3|S0K2": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.372949698013764,
+            "std": 0.03973301186188691,
+            "ci_low": 0.29914086639495624,
+            "ci_high": 0.45094548839488324,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.37578869751366195,
+            "std": 0.11030170422666241,
+            "ci_low": 0.17461389170509128,
+            "ci_high": 0.6106328752950808,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "E3|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.06271995719203965,
+            "std": 0.02043220874558353,
+            "ci_low": 0.023143332455490884,
+            "ci_high": 0.10387153126767641,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.06253440637073436,
+            "std": 0.02166163827147554,
+            "ci_low": 0.01977753138908678,
+            "ci_high": 0.10536730636440547,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "S0K1|S0K1+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.30765900777244176,
+            "std": 0.037524251741105796,
+            "ci_low": -0.38201409243169393,
+            "ci_high": -0.23657979136532245,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.31106780018319935,
+            "std": 0.11454055017674993,
+            "ci_low": -0.5535767094333636,
+            "ci_high": -0.09944982053363723,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "S0K1|S0K2": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.02385516488853927,
+            "std": 0.013068501258789554,
+            "ci_low": -0.04961767225581575,
+            "ci_high": 0.0014545888912581239,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.02466669121188265,
+            "std": 0.018892700146674546,
+            "ci_low": -0.06388623821836786,
+            "ci_high": 0.010360087050456039,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "S0K1|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.33408490571026356,
+            "std": 0.038044885501883806,
+            "ci_low": -0.4102327893742992,
+            "ci_high": -0.26161170339210055,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.3379209823548102,
+            "std": 0.11827923863744497,
+            "ci_low": -0.5892385760155876,
+            "ci_high": -0.12328504701888517,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "S0K1+rot|S0K2": {
+          "grouped_fixed_angle": {
+            "delta_agreement": 0.28380384288390254,
+            "std": 0.03711249844039583,
+            "ci_low": 0.21375752296989473,
+            "ci_high": 0.3572651304501721,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": 0.2864011089713166,
+            "std": 0.10859256064849089,
+            "ci_low": 0.08124971346683339,
+            "ci_high": 0.5128401552673729,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        },
+        "S0K1+rot|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.026425897937821782,
+            "std": 0.009708272780667108,
+            "ci_low": -0.044800839986096,
+            "ci_high": -0.0068101665867563,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.02685318217161091,
+            "std": 0.015389675487694328,
+            "ci_low": -0.05817284727650236,
+            "ci_high": 0.0023978408230477858,
+            "excludes_zero": false,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": true
+        },
+        "S0K2|S0K2+rot": {
+          "grouped_fixed_angle": {
+            "delta_agreement": -0.3102297408217243,
+            "std": 0.036483709026025796,
+            "ci_low": -0.38140288097983327,
+            "ci_high": -0.24030916213910575,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "angle_randomised": {
+            "delta_agreement": -0.3132542911429276,
+            "std": 0.1114775181466416,
+            "ci_low": -0.5509373714218457,
+            "ci_high": -0.10661236072641839,
+            "excludes_zero": true,
+            "n_valid_replicates": 2000
+          },
+          "naive_intervals_overlap": false
+        }
+      },
+      "differences_supported": [
+        "E0|E1",
+        "E0|E3",
+        "E0|S0K1",
+        "E0|S0K1+rot",
+        "E0|S0K2",
+        "E0|S0K2+rot",
+        "E1|E3",
+        "E1|S0K1",
+        "E1|S0K1+rot",
+        "E1|S0K2",
+        "E3|S0K1",
+        "E3|S0K1+rot",
+        "E3|S0K2",
+        "E3|S0K2+rot",
+        "S0K1+rot|S0K2",
+        "S0K1+rot|S0K2+rot",
+        "S0K1|S0K1+rot",
+        "S0K1|S0K2+rot",
+        "S0K2|S0K2+rot"
+      ],
+      "assumptions": [
+        "rotating one member of a pair does not change how the *human observers* rated that pair, so the published rating is reused for every angle; this is an assumption carried over from d5, not new human data — no rotated pair was ever re-rated",
+        "the seven rotated angles are a fixed design set (headline); treating them as a random sample of angles widens the intervals further and is reported as a sensitivity, not as the headline",
+        "the rating panel is exchangeable across stimuli, so one observer draw is applied per replicate for every arm"
+      ],
+      "audit_relation": {
+        "read_only_sources": [
+          {
+            "path": "experiments/shape_perception_benchmark/results/d5_rotation_results.csv",
+            "sha256": "7d4e3eca42f80a347d6de9b2b7848a705ef6f1ef35207184771001f4b6968665",
+            "bytes": 1244294
+          },
+          {
+            "path": "experiments/shape_perception_benchmark/results/d5_rotation_metrics.json",
+            "sha256": "9bfe5ffd47a89d4e1a72147274857cdd7388af8773bc518ed323bea2a9a29750",
+            "bytes": 12018
+          }
+        ],
+        "written_by_this_stage": [
+          "experiments/shape_perception_benchmark/results/d5_grouped_results.csv",
+          "experiments/shape_perception_benchmark/results/d5_grouped_metrics.json"
+        ],
+        "d5_outputs_modified": false
+      }
     }
   },
   "data_provenance": {
@@ -750,6 +1329,7 @@
     "d3": "experiments/shape_perception_benchmark/results/d3_metrics.json",
     "d4": "experiments/shape_perception_benchmark/results/d4_metrics.json",
     "d1": "experiments/shape_perception_benchmark/results/human_metrics.json",
-    "d5": "experiments/shape_perception_benchmark/results/d5_rotation_metrics.json"
+    "d5": "experiments/shape_perception_benchmark/results/d5_rotation_metrics.json",
+    "d5b": "experiments/shape_perception_benchmark/results/d5_grouped_metrics.json"
   }
 }

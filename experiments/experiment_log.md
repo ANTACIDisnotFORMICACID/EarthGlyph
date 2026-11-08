@@ -710,3 +710,42 @@ Python 以运行和对比。经 AskUserQuestion 用户选定 **(a) h5py + numpy 
   identical rotation (P0-4.6 CP6)`），已推送 `origin main`（ssh.github.com:443）；核验
   `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` ==
   `e43f587107faa4bb7bed9666338464c680febd3d`，作者 `ANTACIDisnotFORMICACID`。CP1–CP5 见上。
+
+## shape_perception_benchmark · Checkpoint 7 A/B（P0-4.6 · 先证官方复刻正确，再修 D5 统计单位，2026-11-09）
+
+详细逐函数对照表与结果在 `experiments/shape_perception_benchmark/notes.md` §Checkpoint 7（A1–A5、B1–B6）；
+决策记录 **D57–D63**。本节只留复现命令与关键数值。
+
+- **CP7-A 端口忠实度审计**（工作提交 `82af902`）：官方 MATLAB ↔ `shapecomp_port.py` 逐函数对照 + 输入契约 + SHA256。
+  新脚本 `scripts/hash_shapecomp_toolbox.py` → `results/official_toolbox_hashes.json`（工具箱 2340 文件 / 333 个 `.m` /
+  3 个 `.h5`；`shape2sc22a.h5` sha `a6fd1f06cee40626…`、`im2sc22d.h5` sha `035f655b5c9af13b…`；`redistribution` 字段说明
+  CC BY 不覆盖工具箱二进制）。`validate_shapecomp_port.py` schema 升 `/2` 并加 flatten 次序消融与"相位对齐"搜索。
+  **关键数值**：H2 逐维 Spearman 0.99894 / 0.99823、RMSE **0.0064962**（与 CP5 逐位相同 ⇒ KerNet2 已验证路径**无精度退化**）；
+  **8/15** 个 H2 形状在"起点 × 方向 × 存档文件"对齐后与发布 22 维坐标差 **中位 1.5e-07**（原生相位中位 1.5e-02）；
+  其余 7 例 **4.8e-3–1.8e-2** 记为**未归因**（禁止说成全部来自预处理，D57）；KerNet1 只钉住 768 维**次序**
+  （列主序 x-then-y 0.184 ≪ 行主序 1.922 ≪ y-then-x 2.622），网络级忠实度未到机器精度；
+  40×40 **单像素翻转 = 嵌入范数 18.5%**（中位 0.2887，D59）；`inpolygon` 直译替换 GEOS `covers` 后在 75 条官方轮廓
+  （含自交）**逐像素 0 差异**；不合法输入显式 `ShapeCompInputError` 拒绝（全协点 / <3 顶点 / 非有限 / 无 extent）。
+  `tests/test_shapecomp_port.py` 15 → **34** 项（含 `resamplePolyline` MATLAB 循环字面翻译的逐位等价测试）。
+- **CP7-B D5 统计单位修正**：见下一节标题行，数值与判读同 notes §B1–B6。
+  新阶段 `python scripts/run_shape_benchmark.py --stage d5b`（约 30 s，**只读** `d5_rotation_results.csv`，
+  不需要工具箱）→ `results/d5_grouped_metrics.json` + `d5_grouped_results.csv`；随后 `--stage summary` 折入
+  **新增**块 `rotation_stress_agreement_grouped`。**既有 `d5_*` 文件一字未改**（其 SHA256+字节数记入新产物，测试再哈希）。
+  新函数 `metrics.bootstrap_grouped_two_level()`：整簇（一对的 7 行同进同出）+ 观察者两级重抽样、所有臂共用
+  replicate 流 ⇒ 配对差；角度默认作**固定设计因子**，`resample_conditions=True` 为敏感性。
+  **关键数值**：复现闸门最大偏差 **0.000e+00**；区间宽度 ×1.49–2.13（E0 0.0689→**0.1468**、E1 0.0675→0.1159、
+  E3 0.0625→0.1054、S0K1 0.0926→0.1462、S0K2 0.0967→0.1443）；**点估计逐位不动**（E0 +0.6831 / E1 +0.7824 /
+  E3 +0.8387 / S0K1 +0.4341 / S0K1+rot +0.7472 / S0K2 +0.4582 / S0K2+rot +0.7735）。
+  **独立复核**：D1（未旋转、本就 250 对为单位）给出 E0 宽度 0.1468、E1 0.1159、E3 0.1066 ⇒ 修正后的旋转鲁棒臂
+  **逐位重合**（E3 差 0.0012，因其旋转搜索确实随角度改变距离），naive 臂则合理变宽。
+  配对后 21 个臂序 **19 成立**；**E1 vs S0K2+rot**（+0.0085 [−0.0287,+0.0467]）与 **S0K1 vs S0K2 naive**
+  （−0.0239 [−0.0496,+0.0015]）**不可区分**；角度随机化敏感性下再失 2 条（E1>S0K1+rot、S0K2+rot>S0K1+rot）。
+  检索判据 (b) 与本阶段无关，未触碰任何检索数字（主判据仍 D54）。
+- **假设声明**：D5(a) 旋转一个成员后**沿用原有人类评分**＝假设"旋转不改变被试感知到的相似度"；本轮未复测任何旋转对、
+  不存在新评分 ⇒ (a) 度量"对图像变换的不变性"，不是"人类对旋转形状的判断"。已写入产物 `assumptions` 与 D63。
+- **验证**：`pytest` **818 passed**（新增 7 项：grouped 区间必须宽于行独立、复制臂差恰为 0 证明共用 replicate、
+  条件随机化须变宽、ragged 设计、退化/错位/非交叉/不完整输入显式拒绝、产物审计与 SHA256 复核）；
+  `ruff check .` 全过；`mypy` 无问题。唯一触及共享辅助函数的改动是 `_interval()` 在全 replicate 退化时改抛
+  `ValueError`（原先在 `np.quantile` 内崩），真实数据不触发（各臂 2000/2000 有效 replicate）。
+- **边界**：本轮**未**改生产默认检索器、**未**引入真实水体数据、**未**重跑 D1–D5 打分；CP7-C（R0/R1/R2 + T0/T1/T2）
+  与 CP7-D（F1–F4、图与最终报告）仍未做。
