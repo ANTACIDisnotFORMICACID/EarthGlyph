@@ -600,7 +600,7 @@ mypy                             # Success: no issues found in 32 source files
   Figure 8D：r = 0.928/0.945/0.910（论文 0.93/0.94/0.91）；`SC` 是 40 维 MDS（前 22 列仅 88.76%
   方差，**不**等于规范 22 维空间）。该 1000 形状无人类评分、与 H1 不相交、2 个自交 → 仅模型对模型，
   **未跑其检索臂**，列为下一步选项。
-- Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 见 `docs/TASKS.md`。
+- Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 `a70c7bd`（十问回答 + 下一步建议）。
   验证：`pytest -q` 777 passed；`ruff check .` 全过；`mypy` 38 文件无问题。
 - **结论与边界**：官方 ShapeComp 现成 footprint 不适合 EarthGlyph（新形状投影不可得）；
   但发布空间在人类评分上显著胜过所有可跑臂，E3→S0 的 +0.072 是近似/混合方案的头部空间。

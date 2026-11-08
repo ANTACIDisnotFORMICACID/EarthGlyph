@@ -404,7 +404,7 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 验证：`pytest -q` → **777 passed**；`ruff check .` 全过；`mypy` 38 文件无问题。
 复现：`run_shape_benchmark.py --stage d2 d3 d4` → `--stage summary` → `plot_shape_benchmark.py --figure all`。
 
-### Checkpoint 4：人类评分相关性 + 工程结论 ✅（sha 见收尾 docs 提交）
+### Checkpoint 4：人类评分相关性 + 工程结论 ✅（`a70c7bd`）
 
 十问逐条回答在 [`notes.md` Checkpoint 4](../experiments/shape_perception_benchmark/notes.md)，此处摘要：
 
