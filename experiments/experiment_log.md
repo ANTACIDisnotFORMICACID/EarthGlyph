@@ -1161,3 +1161,12 @@ seed 20261110 / 档案 sha 已实盘核验 / 2 张 pocket GIF 按既有规则由
 未收新的人类评分（人类感知一侧仍只有 H1，本轮**不**宣称独立验证了感知相似度）；未进 P1 Web 开发。
 下一步 CP8-C：按此文件跑 6 臂 × T2（+T0 校验），存 Top-10 与完整可重算排名、候选 ID、距离、
 同类集合、耗时、排除清单，并按原查询聚类给区间。
+
+Git 检查点：设计冻结提交 `8d15fd2d6779c8773f2340206363ceb55834a815`（9 files / +3 159 / −5：
+新库模块 `earthglyph/shape_benchmark/independent_validation.py`、新脚本
+`scripts/design_checkpoint8_validation.py`、新设计产物
+`checkpoint8/independent_validation_design.json`、新测试
+`tests/test_shape_benchmark_cp8_design.py` 与四处文档），已推送
+`2bc1a38..8d15fd2 main -> main` 并核验 `git ls-remote origin refs/heads/main` ==
+`git rev-parse HEAD` == 上式；记录本行的 `docs:` 提交无法写入自身 sha，故不再另立检查点。
+入库 blob 哈希即上表 `86821cf6…`（Git 按 LF 规范化后重算，与工作副本 `fdc4e019…` 不同字节、同一内容）。
