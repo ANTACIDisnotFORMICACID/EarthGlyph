@@ -13,6 +13,10 @@ Stages:
         R2 canonicalisation / R3 bilateral multi-direction) versus the EarthGlyph arms, under
         a frozen random-angle design on both goals at once: H1 human agreement (grouped
         bootstrap) and MPEG-7 T0/T1/T2 discriminative retrieval (T2 primary)
+    d6-correct  statistics-only correction of the d6 retrieval headline: rotated cells and
+        0-degree control cells reported as separate views, Precision@K renamed and a real
+        Recall@K added. Reads the frozen d6 tables, re-runs no inference, writes a new
+        versioned artefact and leaves every input byte-identical
 
 Every stage writes real distances and timings. S0 appears only where the authors published
 official coordinates; it is never fabricated for MPEG-7.
@@ -27,10 +31,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import itertools
 import json
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -101,6 +106,12 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read one stored tidy table back as strings; callers coerce with the stage's own helpers."""
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
 
 
 def read_json(path: Path) -> Any:
@@ -1286,6 +1297,14 @@ D6_ARTEFACTS = (
     "d6_top10_hits.csv",
     "d6_rotation_metrics.json",
 )
+#: The committed retrieval table is ``/1``, and its headline means included the 0-degree control
+#: cells. From CP8-A on the writer emits ``/2`` (two views, separately counted) and
+#: ``d6_corrected/1`` recomputes the same two views from the frozen per-cell table without running
+#: any inference. ``/1`` stays on disk as the audited history it is.
+D6_STORED_SCHEMA = "earthglyph.shape_perception_benchmark/d6/1"
+D6_WRITER_SCHEMA = "earthglyph.shape_perception_benchmark/d6/2"
+D6_CORRECTED_SCHEMA = "earthglyph.shape_perception_benchmark/d6_corrected/1"
+D6_CORRECTED_ARTEFACT = "d6_rotation_metrics_corrected.json"
 
 
 @dataclass(frozen=True)
@@ -1473,48 +1492,175 @@ def _d6_mean(values: list[Any]) -> float | None:
     return float(np.mean(finite)) if finite else None
 
 
+# The numeric columns of one stored cell, and the subset that counts rather than measures.
+D6_CELL_FLOAT_FIELDS: tuple[str, ...] = (
+    "angle_deg",
+    "n_kept",
+    "n_same_class_kept",
+    "top1_is_target",
+    "top1_is_same_class",
+    "top1_matches_unrotated",
+    "target_rank",
+    "self_distance",
+    "best_wrong_class_distance",
+    "class_recall_at_k",
+    "first_relevant_rank",
+    "ndcg_at_k",
+    "top_k_overlap_vs_unrotated",
+    "mean_abs_rank_shift",
+    "max_abs_rank_shift",
+    "spearman_between_rankings",
+    "elapsed_seconds",
+)
+D6_CELL_INT_FIELDS: tuple[str, ...] = (
+    "n_kept",
+    "n_same_class_kept",
+    "top1_is_target",
+    "top1_is_same_class",
+    "top1_matches_unrotated",
+    "target_rank",
+    "first_relevant_rank",
+)
+
+
+def _d6_cell(row: Mapping[str, Any]) -> dict[str, Any]:
+    """Coerce one cell back to measurable types, whether it came from memory or from the CSV.
+
+    ``csv.DictReader`` hands back strings, so the correction stage and the writer must normalise
+    through the same door or the two would average different types.
+    """
+    out: dict[str, Any] = dict(row)
+    for field in D6_CELL_FLOAT_FIELDS:
+        value = out.get(field)
+        out[field] = (
+            None if value is None or str(value).strip() in ("", "None", "nan") else float(value)
+        )
+    for field in D6_CELL_INT_FIELDS:
+        if out.get(field) is not None:
+            out[field] = int(round(float(out[field])))
+    return out
+
+
+def _d6_same_class_hits(cell: dict[str, Any], k: int) -> int:
+    """Same-class candidates inside the Top-K, recovered from the stored Precision@K column.
+
+    The frozen cell table stores the ratio rather than the count. Multiplying back is exact for
+    this design -- every condition keeps hundreds of candidates, so the denominator is always K --
+    and it is checked, not assumed: the ratio must reproduce under integer counts, and
+    tests/test_shape_benchmark_d6_correction.py re-derives the same counts for all 1,152 T2 cells
+    from the per-rank rows in ``d6_top10_hits.csv``.
+    """
+    returned = min(k, int(cell["n_kept"]))
+    if returned == 0:
+        return 0
+    hits = int(round(float(cell["class_recall_at_k"]) * returned))
+    if hits / returned != float(cell["class_recall_at_k"]):
+        raise ValueError(
+            f"stored class_recall_at_k={cell['class_recall_at_k']!r} is not a count over "
+            f"{returned} returned candidates; refusing to guess the numerator"
+        )
+    return hits
+
+
+def _d6_summarise_cells(
+    cells: list[dict[str, Any]],
+    k: int,
+    view: str,
+    condition: str,
+    n_rotated: int,
+    n_control: int,
+) -> dict[str, Any]:
+    """Headline for one (view, condition): every statistic over exactly the cells it may use."""
+    ranks = [int(row["target_rank"]) for row in cells if row["target_rank"]]
+    hits = [_d6_same_class_hits(row, k) for row in cells]
+    denominators = [int(row["n_same_class_kept"]) for row in cells]
+    recall = [h / d for h, d in zip(hits, denominators, strict=True) if d > 0]
+    ndcg_scored = [row["ndcg_at_k"] for row in cells if row["ndcg_at_k"] is not None]
+    out: dict[str, Any] = {
+        "view": view,
+        "cell_filter": (
+            'slot == "control"' if view == metrics.CONTROL_VIEW else 'slot != "control"'
+        ),
+        "n_cells": len(cells),
+        "n_rotated_cells": n_rotated,
+        "n_control_cells": n_control,
+        "exact_target_present": condition == "T0",
+        "top1_accuracy": _d6_mean([row["top1_is_target"] for row in cells]),
+        "top1_same_class_accuracy": _d6_mean([row["top1_is_same_class"] for row in cells]),
+        "top1_stability_vs_unrotated": _d6_mean(
+            [row["top1_matches_unrotated"] for row in cells]
+        ),
+        "target_rank_mean": _d6_mean(ranks),
+        "target_rank_median": float(np.median(ranks)) if ranks else None,
+        "target_rank_worst": int(max(ranks)) if ranks else None,
+        "self_distance_mean": _d6_mean([row["self_distance"] for row in cells]),
+        "self_distance_max": float(max(row["self_distance"] for row in cells)),
+        "attraction_gap_mean": _d6_mean(
+            [
+                row["best_wrong_class_distance"] - row["self_distance"]
+                for row in cells
+                if row["best_wrong_class_distance"] is not None
+            ]
+        ),
+        f"precision_at_{k}": _d6_mean([row["class_recall_at_k"] for row in cells]),
+        f"recall_at_{k}": float(np.mean(recall)) if recall else None,
+        f"recall_at_{k}_n_scored": len(recall),
+        f"recall_at_{k}_undefined_cells": len(cells) - len(recall),
+        "n_relevant_retained_mean": _d6_mean(denominators),
+        "n_relevant_retained_min": min(denominators),
+        "n_relevant_retained_max": max(denominators),
+        "class_mrr": metrics.mean_reciprocal_rank([row["first_relevant_rank"] for row in cells]),
+        f"ndcg_at_{k}": _d6_mean([row["ndcg_at_k"] for row in cells]),
+        f"ndcg_at_{k}_n_scored": len(ndcg_scored),
+        f"top_{k}_overlap_vs_unrotated": _d6_mean(
+            [row["top_k_overlap_vs_unrotated"] for row in cells]
+        ),
+        "top_k_overlap_min": float(min(row["top_k_overlap_vs_unrotated"] for row in cells)),
+        "mean_abs_rank_shift": _d6_mean([row["mean_abs_rank_shift"] for row in cells]),
+        "max_abs_rank_shift": float(max(row["max_abs_rank_shift"] for row in cells)),
+        "seconds_per_query_mean": _d6_mean([row["elapsed_seconds"] for row in cells]),
+        "seconds_per_query_max": float(max(row["elapsed_seconds"] for row in cells)),
+    }
+    if view == metrics.CONTROL_VIEW:
+        out["note"] = (
+            "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so "
+            "this view is a drift check on the pipeline and never a rotation measurement."
+        )
+    return out
+
+
 def _d6_summarise(rows: list[dict[str, Any]], k: int) -> dict[str, Any]:
-    """Collapse the tidy cells into the per-arm, per-condition headline."""
-    out: dict[str, Any] = {}
-    for condition in D6_CONDITIONS:
-        cells = [row for row in rows if row["condition"] == condition]
-        if not cells:
-            continue
-        ranks = [int(row["target_rank"]) for row in cells if row["target_rank"]]
-        out[condition] = {
-            "n_cells": len(cells),
-            "exact_target_present": condition == "T0",
-            "top1_accuracy": _d6_mean([row["top1_is_target"] for row in cells]),
-            "top1_same_class_accuracy": _d6_mean([row["top1_is_same_class"] for row in cells]),
-            "top1_stability_vs_unrotated": _d6_mean(
-                [row["top1_matches_unrotated"] for row in cells]
-            ),
-            "target_rank_mean": _d6_mean(ranks),
-            "target_rank_median": float(np.median(ranks)) if ranks else None,
-            "target_rank_worst": int(max(ranks)) if ranks else None,
-            "self_distance_mean": _d6_mean([row["self_distance"] for row in cells]),
-            "self_distance_max": float(max(row["self_distance"] for row in cells)),
-            "attraction_gap_mean": _d6_mean(
-                [
-                    row["best_wrong_class_distance"] - row["self_distance"]
-                    for row in cells
-                    if row["best_wrong_class_distance"] is not None
-                ]
-            ),
-            "class_recall_at_k": _d6_mean([row["class_recall_at_k"] for row in cells]),
-            "class_mrr": metrics.mean_reciprocal_rank(
-                [row["first_relevant_rank"] for row in cells]
-            ),
-            f"ndcg_at_{k}": _d6_mean([row["ndcg_at_k"] for row in cells]),
-            f"top_{k}_overlap_vs_unrotated": _d6_mean(
-                [row["top_k_overlap_vs_unrotated"] for row in cells]
-            ),
-            "top_k_overlap_min": float(min(row["top_k_overlap_vs_unrotated"] for row in cells)),
-            "mean_abs_rank_shift": _d6_mean([row["mean_abs_rank_shift"] for row in cells]),
-            "max_abs_rank_shift": float(max(row["max_abs_rank_shift"] for row in cells)),
-            "seconds_per_query_mean": _d6_mean([row["elapsed_seconds"] for row in cells]),
-            "seconds_per_query_max": float(max(row["elapsed_seconds"] for row in cells)),
+    """Collapse the tidy cells into per-view, per-condition headlines.
+
+    ``/1`` of this table averaged the 0-degree control rows into the rotated ones, which is what
+    made a pose-blind arm look twice as rotation-stable as it is. The two views are computed
+    separately from here on; nothing is deleted, and each block states how many cells it used.
+    """
+    cells = [_d6_cell(row) for row in rows]
+    cells_by_view = metrics.split_rotation_and_control(cells)
+    counts = {
+        view: {
+            condition: sum(1 for row in view_rows if row["condition"] == condition)
+            for condition in D6_CONDITIONS
         }
+        for view, view_rows in cells_by_view.items()
+    }
+    out: dict[str, Any] = {}
+    for view in metrics.VIEWS:
+        per_condition: dict[str, Any] = {}
+        for condition in D6_CONDITIONS:
+            view_cells = [row for row in cells_by_view[view] if row["condition"] == condition]
+            if not view_cells:
+                continue
+            per_condition[condition] = _d6_summarise_cells(
+                view_cells,
+                k,
+                view,
+                condition,
+                n_rotated=counts[metrics.ROTATION_VIEW][condition],
+                n_control=counts[metrics.CONTROL_VIEW][condition],
+            )
+        out[view] = per_condition
     return out
 
 
@@ -1888,7 +2034,7 @@ def run_d6(methods: list[str], top_k: int, allow_arm_subset: bool = False) -> di
 
     queries = [by_stem[stem] for stem, _ in D6_QUERIES]
     summary: dict[str, Any] = {
-        "schema": "earthglyph.shape_perception_benchmark/d6/1",
+        "schema": D6_WRITER_SCHEMA,
         "seed": SEED,
         "n_boot": N_BOOT,
         "design": {
@@ -1910,8 +2056,10 @@ def run_d6(methods: list[str], top_k: int, allow_arm_subset: bool = False) -> di
                 "Counts and families were declared before the run. No angle was redrawn and no "
                 "query swapped after seeing a result: an arm that skipped hard cases would not be "
                 "comparable with the arms that ran, so every cell runs for every arm. The "
-                "unrotated pose is carried as a control row (slot='control') and excluded from "
-                "the rotated headline."
+                "unrotated pose is carried as a control row (slot='control'), and from /2 the "
+                "summary reports it as its own view instead of averaging it into the rotated "
+                "headline: the control cells ask an unrotated question, so folding them in made a "
+                "pose-blind arm look as rotation-stable as the wrappers."
             ),
         },
         "arms": [
@@ -1965,6 +2113,436 @@ def run_d6(methods: list[str], top_k: int, allow_arm_subset: bool = False) -> di
     return summary
 
 
+# ------------------------------------------------------------------- CP8-A statistics correction
+
+D6_CORRECTION_FIELDS: tuple[str, ...] = (
+    "top1_accuracy",
+    "top1_same_class_accuracy",
+    "top1_stability_vs_unrotated",
+    "target_rank_mean",
+    "target_rank_median",
+    "target_rank_worst",
+    "self_distance_mean",
+    "self_distance_max",
+    "attraction_gap_mean",
+    "class_mrr",
+    "mean_abs_rank_shift",
+    "max_abs_rank_shift",
+    "seconds_per_query_mean",
+    "seconds_per_query_max",
+)
+#: Stored name -> corrected name, for the one field whose label was wrong rather than its mean.
+D6_RENAMED_FIELDS: dict[str, str] = {"class_recall_at_k": "precision_at_10"}
+#: Two views of one comparison, ranked by the metric a reader is most likely to quote.
+D6_RANKING_METRICS: tuple[str, ...] = (
+    "top1_same_class_accuracy",
+    "top1_stability_vs_unrotated",
+    "precision_at_10",
+    "recall_at_10",
+    "class_mrr",
+    "top_10_overlap_vs_unrotated",
+    "seconds_per_query_mean",
+)
+
+
+def _d6_pose_label(cell: Mapping[str, Any]) -> str:
+    """Reproduce the ``pose`` label the frozen Top-10 table used for this cell.
+
+    The hits table names a pose with ``%.6g``, which is why 162.14262526406276 is stored as
+    ``rotate_162.143``. Getting this wrong would silently drop cells from the cross-check, so the
+    join is asserted cell by cell, not assumed.
+    """
+    if cell["slot"] == "control":
+        return "unrotated"
+    return f"rotate_{float(cell['angle_deg']):.6g}"
+
+
+def _d6_independent_hit_check(
+    cells: list[dict[str, Any]], hits_rows: list[dict[str, str]], k: int
+) -> dict[str, Any]:
+    """Recount the Top-K same-class candidates straight from the stored per-rank rows.
+
+    This is the second witness the correction asks for: the summary is recomputed from the tidy
+    cell table, and the cell table's numerator is re-derived here from a THIRD table (one row per
+    rank), so a wrong mean cannot be checked only against the code that wrote it.
+    """
+    raw: dict[tuple[str, str, str], int] = {}
+    for row in hits_rows:
+        key = (row["arm"], row["query_id"], row["pose"])
+        raw[key] = raw.get(key, 0) + int(row["is_same_class"] == "1")
+    stored_keys = {(row["arm"], row["query_id"], row["pose"]) for row in hits_rows}
+    mismatches: list[dict[str, Any]] = []
+    unjoinable: list[str] = []
+    zero_hit = 0
+    for cell in cells:
+        key = (cell["arm"], cell["query_id"], _d6_pose_label(cell))
+        if key not in stored_keys:
+            unjoinable.append("|".join(key))
+            continue
+        counted = raw[key]
+        if counted == 0:
+            zero_hit += 1
+        derived = _d6_same_class_hits(cell, k)
+        if counted != derived:
+            mismatches.append({"cell": "|".join(key), "from_ranks": counted, "from_ratio": derived})
+    return {
+        "source": "d6_top10_hits.csv, one row per rank, counted by is_same_class",
+        "n_cells_checked": len(cells) - len(unjoinable),
+        "n_unjoinable": len(unjoinable),
+        "unjoinable_cells": unjoinable[:20],
+        "n_numerator_mismatches": len(mismatches),
+        "mismatches": mismatches[:20],
+        "n_zero_hit_cells": zero_hit,
+        "note": (
+            "The stored per-rank table covers the primary condition only, which is where the "
+            "headline is quoted from; T0 and T1 keep the ratio-based recompute."
+        ),
+    }
+
+
+def _d6_rank_arms(values: Mapping[str, float], higher_is_better: bool) -> list[str]:
+    """Order arms by one metric. Getting the direction backwards inverts the whole verdict."""
+    return sorted(values, key=lambda arm: values[arm], reverse=higher_is_better)
+
+
+def correct_d6_rotation_statistics(top_k: int = 10) -> dict[str, Any]:
+    """Recompute the D6 retrieval headline from the frozen per-cell table, without any inference.
+
+    Two defects are corrected here and both are statistics-only:
+
+    1. ``d6/1`` averaged the 12 zero-degree control cells into the 60 rotated cells of every
+       (arm, condition) block, so a pose-blind wrapper was scored on 12 cells that ask it no
+       rotation question at all.
+    2. the column named ``class_recall_at_k`` has always been Precision@K. The corrected table
+       renames it and adds a real Recall@K whose denominator is each query's own retained-relevant
+       count (2, 3 or 4 under T2), so it is never a fixed 10.
+
+    Nothing is re-run, deleted or overwritten: the inputs are hashed, the originals stay in place,
+    and the output is a versioned document with a field-by-field before/after table.
+    """
+    import platform
+    import subprocess
+
+    cells = [_d6_cell(row) for row in read_csv(RESULTS / "d6_retrieval_results.csv")]
+    hits_rows = read_csv(RESULTS / "d6_top10_hits.csv")
+    stored = read_json(RESULTS / "d6_rotation_metrics.json")
+    stored_arms = [arm["label"] for arm in stored["arms"]]
+    corrected = {
+        arm: _d6_summarise([row for row in cells if row["arm"] == arm], top_k)
+        for arm in stored_arms
+    }
+    views_by_cell = metrics.split_rotation_and_control(cells)
+    n_rotated = len(views_by_cell[metrics.ROTATION_VIEW])
+    n_control = len(views_by_cell[metrics.CONTROL_VIEW])
+
+    changes: dict[str, Any] = {}
+    unchanged_counts: dict[str, Any] = {}
+    material: list[dict[str, Any]] = []
+    for arm in stored_arms:
+        per_condition: dict[str, Any] = {}
+        untouched: dict[str, list[str]] = {}
+        for condition, block in stored["retrieval_by_arm"][arm].items():
+            rotated_block = corrected[arm][metrics.ROTATION_VIEW][condition]
+            moved: dict[str, Any] = {}
+            kept: list[str] = []
+            for field, before in block.items():
+                if field in ("n_cells", "exact_target_present"):
+                    continue
+                after_field = D6_RENAMED_FIELDS.get(field, field)
+                after = rotated_block.get(after_field)
+                if before is None or after is None:
+                    if before != after:
+                        raise ValueError(f"{arm}/{condition}/{field}: cannot compare {before!r}")
+                    kept.append(field)
+                    continue
+                delta = float(after) - float(before)
+                if abs(delta) <= 1e-12:
+                    kept.append(field)
+                    continue
+                entry: dict[str, Any] = {
+                    "stored_field": field,
+                    "corrected_field": after_field,
+                    "before": float(before),
+                    "after": float(after),
+                    "delta": delta,
+                    "control_only_value": (
+                        corrected[arm][metrics.CONTROL_VIEW][condition][after_field]
+                    ),
+                }
+                moved[field] = entry
+                if abs(delta) >= 0.05:
+                    material.append({"arm": arm, "condition": condition, **entry})
+            added = sorted(
+                set(rotated_block)
+                - set(block)
+                - {"view", "cell_filter", "n_rotated_cells", "n_control_cells", "note"}
+            )
+            dropped = sorted(set(block) - set(rotated_block) - {"n_cells", "exact_target_present"})
+            per_condition[condition] = {
+                "changed": moved,
+                "n_changed": len(moved),
+                "unchanged_fields": kept,
+                "renamed_fields": {
+                    before_field: after_field
+                    for before_field, after_field in D6_RENAMED_FIELDS.items()
+                    if before_field in block
+                },
+                "added_fields": {field: rotated_block[field] for field in added},
+                "dropped_field_names": dropped,
+            }
+            untouched[condition] = len(kept)
+        changes[arm] = per_condition
+        unchanged_counts[arm] = untouched
+    material.sort(key=lambda item: abs(item["delta"]), reverse=True)
+
+    ranking_shift: dict[str, Any] = {}
+    for condition in D6_CONDITIONS:
+        per_metric: dict[str, Any] = {}
+        for field in D6_RANKING_METRICS:
+            stored_field = next(
+                (name for name, new in D6_RENAMED_FIELDS.items() if new == field), field
+            )
+            after = {
+                arm: corrected[arm][metrics.ROTATION_VIEW][condition][field]
+                for arm in stored_arms
+            }
+            before = {
+                arm: stored["retrieval_by_arm"][arm][condition].get(stored_field)
+                for arm in stored_arms
+            }
+            if any(value is None for value in after.values()):
+                raise ValueError(
+                    f"the corrected rotation view has no {field} for every arm under {condition}; "
+                    "refusing to rank an incomplete table"
+                )
+            # Cost is the one column where "best" is the smallest number; everything else is
+            # higher-is-better, and getting that backwards would invert the whole verdict.
+            higher_is_better = field != "seconds_per_query_mean"
+            order_after = _d6_rank_arms(after, higher_is_better)
+            entry: dict[str, Any] = {
+                "direction": "higher_is_better" if higher_is_better else "lower_is_better",
+                "stored_field": stored_field,
+                "order_corrected": order_after,
+                "top1_corrected": order_after[0],
+            }
+            if any(value is None for value in before.values()):
+                # a metric the /1 table never published (true Recall@10) has no ranking to compare
+                entry["available_in_stored"] = False
+            else:
+                before_values = {arm: float(value) for arm, value in before.items()}
+                order_before = _d6_rank_arms(before_values, higher_is_better)
+                rank_before = {arm: index for index, arm in enumerate(order_before, start=1)}
+                rank_after = {arm: index for index, arm in enumerate(order_after, start=1)}
+                entry.update(
+                    {
+                        "available_in_stored": True,
+                        "order_stored": order_before,
+                        "position_change": {
+                            arm: rank_after[arm] - rank_before[arm] for arm in stored_arms
+                        },
+                        "n_arms_moved": sum(
+                            1 for arm in stored_arms if rank_before[arm] != rank_after[arm]
+                        ),
+                        "top1_stored": order_before[0],
+                        "max_position_change": max(
+                            abs(rank_after[arm] - rank_before[arm]) for arm in stored_arms
+                        ),
+                    }
+                )
+            per_metric[field] = entry
+        ranking_shift[condition] = per_metric
+
+    t2_cells = [row for row in cells if row["condition"] == D6_PRIMARY_CONDITION]
+    hit_check = _d6_independent_hit_check(t2_cells, hits_rows, top_k)
+    if hit_check["n_numerator_mismatches"] or hit_check["n_unjoinable"]:
+        raise ValueError(
+            "the frozen per-rank table does not agree with the frozen per-cell table; refusing to "
+            f"publish a correction on top of an unresolved disagreement ({hit_check})"
+        )
+
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = "unknown"
+
+    def file_record(name: str) -> dict[str, Any]:
+        path = RESULTS / name
+        return {
+            "path": _repo_relative(path),
+            "sha256": _file_sha256(path),
+            "bytes": path.stat().st_size,
+        }
+
+    payload: dict[str, Any] = {
+        "schema": D6_CORRECTED_SCHEMA,
+        "task": "P0-4.6 CP8-A",
+        "seed": SEED,
+        "top_k": top_k,
+        "supersedes_only": ["retrieval_by_arm"],
+        "audit": {
+            "reason": (
+                "d6/1 aggregated every (arm, condition) block over all 72 stored cells, including "
+                "the 12 unrotated control rows, and published a Precision@10 under the name "
+                "class_recall_at_k. Both are reading errors baked into the summary; neither is a "
+                "new experiment."
+            ),
+            "method": (
+                "statistics-only recompute from the stored per-cell table. No ShapeComp inference "
+                "was re-run, no query or angle changed, no 0-degree row deleted, and every arm is "
+                "filtered by the same rule."
+            ),
+            "command": "python scripts/run_shape_benchmark.py --stage d6-correct",
+            "generated_by_python": platform.python_version(),
+            "numpy": np.__version__,
+            "git_commit": commit,
+            "original_file": {
+                **file_record("d6_rotation_metrics.json"),
+                "schema": stored["schema"],
+            },
+            "corrected_file": {
+                "path": _repo_relative(RESULTS / D6_CORRECTED_ARTEFACT),
+                "schema": D6_CORRECTED_SCHEMA,
+                # A file cannot contain the hash of its own bytes, so the self-hash covers the
+                # numbers a reader quotes; the whole-document sha256 is recorded in notes.md after
+                # the run, and a test re-derives this one from the artefact on disk.
+                "content_sha256": hashlib.sha256(
+                    json.dumps(corrected, sort_keys=True).encode("utf-8")
+                ).hexdigest(),
+                "content_sha256_scope": "retrieval_by_arm, canonical JSON, sorted keys",
+            },
+            "inputs": {
+                "d6_retrieval_results.csv": {
+                    **file_record("d6_retrieval_results.csv"),
+                    "n_rows": len(cells),
+                },
+                "d6_top10_hits.csv": {
+                    **file_record("d6_top10_hits.csv"),
+                    "n_rows": len(hits_rows),
+                },
+            },
+            "history_untouched": [
+                "d6_rotation_metrics.json",
+                "d6_retrieval_results.csv",
+                "d6_top10_hits.csv",
+                "d6_agreement_results.csv",
+            ],
+        },
+        "views": {
+            "definitions": {
+                metrics.ROTATION_VIEW: (
+                    "the headline. Cells whose query was actually turned, so every rotation "
+                    "statistic is measured on poses that can fail."
+                ),
+                metrics.CONTROL_VIEW: (
+                    "diagnostic only. The 0-degree poses, reported apart because a control cell "
+                    "asks an unrotated question: it can show the pipeline is wired correctly, and "
+                    "it cannot show that a wrapper survives a turn."
+                ),
+            },
+            "cell_filter": {
+                metrics.ROTATION_VIEW: 'slot != "control"',
+                metrics.CONTROL_VIEW: 'slot == "control"',
+            },
+            "n_rotated_cells_per_arm_condition": {
+                arm: {
+                    condition: len(
+                        [
+                            row
+                            for row in cells
+                            if row["arm"] == arm
+                            and row["condition"] == condition
+                            and row["slot"] != "control"
+                        ]
+                    )
+                    for condition in D6_CONDITIONS
+                }
+                for arm in stored_arms
+            },
+            "n_control_cells_per_arm_condition": {
+                arm: {
+                    condition: len(
+                        [
+                            row
+                            for row in cells
+                            if row["arm"] == arm
+                            and row["condition"] == condition
+                            and row["slot"] == "control"
+                        ]
+                    )
+                    for condition in D6_CONDITIONS
+                }
+                for arm in stored_arms
+            },
+            "n_stored_cells_total": len(cells),
+            "n_rotated_rows_total": n_rotated,
+            "n_control_rows_total": n_control,
+            "arithmetic": (
+                f"{len(stored['design']['queries'])} queries x "
+                f"{len(stored['design']['angle_slots'])} rotated slots = "
+                f"{n_rotated // len(stored_arms) // len(D6_CONDITIONS)} rotated cells per "
+                f"(arm, condition), plus {n_control // len(stored_arms) // len(D6_CONDITIONS)} "
+                "0-degree controls = the 72 rows the /1 block averaged"
+            ),
+        },
+        "metric_definitions": {
+            f"precision_at_{top_k}": (
+                f"same-class share OF THE RETURNED Top-{top_k}: hits / min(k, n_returned). This is "
+                "the number /1 published as class_recall_at_k, unchanged, correctly named"
+            ),
+            f"recall_at_{top_k}": (
+                f"share OF THE RETAINED RELEVANT CANDIDATES that reached the Top-{top_k}: "
+                "hits / n_same_class_kept for that query and condition. The denominator is per "
+                "query (2, 3 or 4 under T2 here), never a constant"
+            ),
+            "recall_undefined": (
+                f"a cell with n_same_class_kept == 0 has no relevant candidate left to find, so "
+                f"recall_at_{top_k} is undefined; such cells are counted in "
+                f"recall_at_{top_k}_undefined_cells and excluded from the mean instead of being "
+                "written down as a 0.0 failure"
+            ),
+            "ndcg": (
+                f"unchanged arithmetic; ndcg_at_{top_k}_n_scored now states how many cells "
+                "contributed, because NDCG@K already skipped cells that found nothing relevant"
+            ),
+            "class_relevance": (
+                "MPEG-7 category labels are a relevance proxy for automated metrics only. They are "
+                "not human similarity judgements and are never presented as such."
+            ),
+        },
+        "independent_check_from_raw_ranks": hit_check,
+        "per_field_changes": changes,
+        "n_unchanged_fields_per_arm_condition": unchanged_counts,
+        "material_changes": material,
+        "material_change_threshold": 0.05,
+        "arm_rankings_before_vs_after": ranking_shift,
+        "retrieval_by_arm": corrected,
+        "agreement_side_unchanged": {
+            "fields": [
+                "agreement_by_arm",
+                "agreement_bootstrap",
+                "paired_differences",
+                "paired_differences_angle_randomised",
+            ],
+            "why": (
+                "the H1 agreement study is a different table: 250 rated pairs x 7 stress angles = "
+                "1,750 rows with a grouped bootstrap over pairs, and it never contained a 0-degree "
+                "control row. Its sampling unit and denominators are untouched by this correction."
+            ),
+            "source": _repo_relative(RESULTS / "d6_rotation_metrics.json"),
+            "source_sha256": _file_sha256(RESULTS / "d6_rotation_metrics.json"),
+        },
+    }
+    write_json(RESULTS / D6_CORRECTED_ARTEFACT, payload)
+    print(
+        f"  {len(cells)} cells -> {n_rotated} rotated + {n_control} control rows; "
+        f"{len(material)} material changes over {len(stored_arms)} arms",
+        flush=True,
+    )
+    return payload
+
+
 def write_summary() -> None:
     """Combine whatever stages have run into one headline table with full provenance."""
     import platform
@@ -1975,6 +2553,7 @@ def write_summary() -> None:
     stages["d5"] = RESULTS / "d5_rotation_metrics.json"
     stages["d5b"] = RESULTS / "d5_grouped_metrics.json"
     stages["d6"] = RESULTS / "d6_rotation_metrics.json"
+    stages["d6c"] = RESULTS / D6_CORRECTED_ARTEFACT
     present = {name: read_json(path) for name, path in stages.items() if path.exists()}
     manifest_path = BENCH / "dataset_manifest.json"
     manifest = read_json(manifest_path) if manifest_path.exists() else {}
@@ -2035,7 +2614,7 @@ def write_summary() -> None:
                     continue
                 arms[method] = {
                     "n_queries": len(rows),
-                    "mean_class_recall_at_10": float(
+                    "mean_precision_at_10": float(
                         np.mean([row["class_recall_at_10"] for _, row in rows])
                     ),
                     "top1_same_category_count": sum(
@@ -2054,8 +2633,10 @@ def write_summary() -> None:
             "gallery": f"MPEG-7 CE-Shape-1, {d2['gallery_size']} shapes / "
             f"{d2['gallery_classes']} categories",
             "caveat": (
-                "class_recall@10 uses MPEG-7 object CATEGORIES, not human similarity. "
-                "T2/T3 are the conditions of interest; T0/T1 are controls."
+                "precision@10 -- stored as class_recall_at_10 in d2_metrics.json, which is "
+                "Precision@K under a wrong name, not a mistake in the number -- uses MPEG-7 object "
+                "CATEGORIES, not human similarity. T2/T3 are the conditions of interest; T0/T1 are "
+                "controls."
             ),
             "conditions": {
                 "T0": "nothing removed (self-rank control)",
@@ -2162,6 +2743,15 @@ def write_summary() -> None:
                 "verification_cached_vs_pair_distance"
             ],
         }
+        if "d6c" not in present:
+            raise SystemExit(
+                "d6_rotation_metrics.json is present but the CP8-A correction is not: the /1 "
+                "headline mixes the 12 unrotated control cells into the 60 rotated ones and "
+                "publishes Precision@10 as class_recall_at_k, so it must not be rolled up as it "
+                "stands. Run: python scripts/run_shape_benchmark.py --stage d6-correct"
+            )
+        d6c = present["d6c"]
+        primary = d6c["top_k"]
         headline["rotation_wrappers_retrieval"] = {
             "study": (
                 "goal B: the rotated MPEG-7 query ranked against the stratified gallery under "
@@ -2169,15 +2759,32 @@ def write_summary() -> None:
                 "removed). T2 is the primary condition"
             ),
             "metric": (
-                "T2 class Recall@10 / MRR / NDCG@10 and Top-10 overlap with the unrotated "
-                "ranking; MPEG-7 categories are relevance proxies, not human similarity"
+                f"T2 Precision@{primary}, true Recall@{primary}, class MRR, NDCG@{primary} and "
+                f"Top-{primary} overlap with the unrotated ranking, measured over the ROTATED "
+                "cells only; the 0-degree controls are published as their own view"
             ),
+            "statistics_correction": {
+                "schema": d6c["schema"],
+                "corrected_from": d6c["audit"]["original_file"],
+                "reason": d6c["audit"]["reason"],
+                "command": d6c["audit"]["command"],
+                "views": d6c["views"]["definitions"],
+                "metric_definitions": d6c["metric_definitions"],
+                "before_vs_after_rankings": {
+                    "file": _repo_relative(RESULTS / D6_CORRECTED_ARTEFACT),
+                    "key": "arm_rankings_before_vs_after",
+                },
+            },
             "primary_condition": d6["design"]["primary_condition"],
             "by_arm": {
-                arm: values[d6["design"]["primary_condition"]]
-                for arm, values in d6["retrieval_by_arm"].items()
+                arm: values[metrics.ROTATION_VIEW][d6["design"]["primary_condition"]]
+                for arm, values in d6c["retrieval_by_arm"].items()
             },
-            "all_conditions": d6["retrieval_by_arm"],
+            "unrotated_control_by_arm": {
+                arm: values[metrics.CONTROL_VIEW][d6["design"]["primary_condition"]]
+                for arm, values in d6c["retrieval_by_arm"].items()
+            },
+            "all_conditions": d6c["retrieval_by_arm"],
             "precompute_seconds": d6["precompute_seconds"],
             "orientation_diagnostics": d6["orientation_diagnostics"],
             "image_axis_convention_check": d6["image_axis_convention_check"],
@@ -2185,7 +2792,9 @@ def write_summary() -> None:
 
     payload = {
         # /2: the rollup started carrying the d6 stage and the direction-named d5b block.
-        "schema": "earthglyph.shape_perception_benchmark/2",
+        # /3: the d6 retrieval headline now comes from the CP8-A corrected two-view table, and the
+        # one field that was mis-named everywhere (Precision@K published as "recall") is renamed.
+        "schema": "earthglyph.shape_perception_benchmark/3",
         "task": "P0-4.6",
         "git_commit": commit,
         "python": platform.python_version(),
@@ -2205,6 +2814,10 @@ def write_summary() -> None:
             "rewrites them",
             "python scripts/run_shape_benchmark.py --stage d5b",
             "python scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2",
+            "# d6-correct recomputes the d6 retrieval headline from the stored per-cell table -- "
+            "rotated cells and 0-degree controls as separate views, Precision@K renamed, Recall@K "
+            "added. It re-runs no inference and rewrites none of the files it reads.",
+            "python scripts/run_shape_benchmark.py --stage d6-correct",
             "python scripts/plot_shape_benchmark.py --figure all",
         ],
         "arm_availability": {
@@ -2230,6 +2843,22 @@ def write_summary() -> None:
                 "invariant."
             ),
         },
+        "metric_name_corrections": {
+            "rule": (
+                "a rename changes no measurement. It only stops a reader drawing a recall "
+                "conclusion from a precision number, which is what the old label invited."
+            ),
+            "precision_at_k": "relevant share OF THE RETURNED list: hits / min(k, n_returned)",
+            "recall_at_k": (
+                "relevant share OF WHAT COULD STILL BE FOUND for that query and condition: "
+                "hits / retained relevant candidates, a per-query denominator"
+            ),
+            "frozen_artefacts_still_using_the_old_name": {
+                "d2_metrics.json": "queries[*][condition][method].class_recall_at_10",
+                "d6_rotation_metrics.json (/1)": "retrieval_by_arm[*][condition].class_recall_at_k",
+                "d6_retrieval_results.csv": "column class_recall_at_k",
+            },
+        },
         "headline": headline,
         "data_provenance": {
             "h1_h2": {
@@ -2253,7 +2882,7 @@ def main() -> None:
         "--stage",
         nargs="+",
         required=True,
-        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "d6", "summary"],
+        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "d6", "d6-correct", "summary"],
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
@@ -2286,8 +2915,12 @@ def main() -> None:
             run_d5_grouped()
         elif stage == "d6":
             run_d6(args.methods, args.top_k, args.allow_d6_arm_subset)
-        else:
+        elif stage == "d6-correct":
+            correct_d6_rotation_statistics(args.top_k)
+        elif stage == "summary":
             write_summary()
+        else:
+            raise ValueError(f"stage {stage} is not wired into main()")
         print(f"=== {stage} done in {time.perf_counter() - started:.1f}s ===", flush=True)
 
 

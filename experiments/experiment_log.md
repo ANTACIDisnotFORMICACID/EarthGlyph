@@ -996,3 +996,80 @@ Git 检查点：修复提交 `44d8c08c6b4bf684123c17fbc78fd12cf0fa0178`
 `d5_grouped_results.csv` `8ffb4ead765cbae3…`、`metrics.json` `c56525a6c45d0c74…`；
 零改写侧 `d6_rotation_metrics.json` `0697af1d7261ce98…`、`d5_rotation_metrics.json` `9bfe5ffd47a89d4e…`
 （与 `32b14ba` 时同 sha）。被本轮回溯替换的 `/1` 文件记为 `17640d3abc3ab766…`（21 056 B）。
+
+## shape_perception_benchmark · Checkpoint 8 CP8-A：D6 分母拆分 + Precision/Recall 改名并给出真分母（P0-4.6，2026-11-09）
+
+**输入**：已入库的 CP7-C 产物 `d6_retrieval_results.csv`（3 456 行）与 `d6_top10_hits.csv`（11 520 行）。
+本轮**没有执行任何 ShapeComp/KerNet 推理，没有重新检索、没有重训、没有重挑样本、没有改角度**：
+只把"统计怎么读"这件事修对，并出版一份带完整审计链的纠正版产物。查询集、角度集、臂集合与 CP7-C 完全一致。
+
+**两处同类缺陷（读法错误，不是实验错误）**
+
+1. **0° control 被平均进旋转头部**：`_d6_summarise()` 只按 `condition` 聚合，每个 (臂, 条件) 实存
+   72 格 = 12 查询 ×（5 个非零角度 + 1 个 control）。冻结设计里 `n_query_angle_rows` 一直是 **60**，
+   所以是汇总读错分母。control 问的是"不旋转能不能检索到"，pose-blind 臂在此**必然**满分 ⇒ 12 张免费
+   满分卷抬高了旋转统计。**修法**：库层新增 `metrics.split_rotation_and_control()`（`slot` 与 `angle_deg`
+   不自洽直接 `ValueError`，设计漂移必须炸而非悄悄移动均值），`_d6_summarise()` 输出
+   `rotation_only`（60，头部）与 `unrotated_control`（12，仅接线诊断，附 `note` 说明其稳定率恒为 1.0），
+   每块自带 `n_cells`/`n_rotated_cells`/`n_control_cells`；**0° 行一行未删**，所有臂同一条过滤规则。
+2. **`class_recall_at_k` 从来是 Precision@10**：分母是 `min(k, 返回数)` = "返回清单里的相关比例"。
+   **修法**：`metrics.precision_at_k()`（同一算法，正名）+ `metrics.recall_at_k()`（分母 = 该查询该条件下
+   **实际留存的同类候选数**，T2 下逐查询 2/3/4、均值 3.75 ⇒ 不存在可机械复用的统一分母；
+   无同类留存时返回 `None` 并计入 `recall_at_10_undefined_cells`，**不折成 0.0**）。旧名保留为
+   **已标注别名**，旧数字一位未改；NDCG 算术不动，只补 `ndcg_at_10_n_scored` 让分母可见。
+   B4 审计列出仍在用旧名的冻结引用：`d2_metrics.json` 的 `mean_class_recall_at_10`、
+   `d6_rotation_metrics.json` 的 `class_recall_at_k`、`checkpoint7/rotation_methods_overview.png`
+   panel (f) 的纵轴标签；历史产物与图片**不回写**，`metrics.json` 新增 `metric_name_corrections` 点名各处。
+
+**命令（实际执行，两次）**
+
+```bash
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6-correct   # 0.2 s（阶段内）/ 1.9 s（含导入）
+#   3456 cells -> 2880 rotated + 576 control rows; 105 material changes over 16 arms
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary      # 只读拼装，不重算任何研究
+```
+
+产物无时间戳 ⇒ **幂等实测**：连跑两次 `d6_rotation_metrics_corrected.json` sha256 逐字节相同
+（`715fe3ded8e99b20…`，405 753 B），输入 `d6_retrieval_results.csv` 复跑后仍为 `f5b22ad3809b85bb…`。
+
+**输入 / 输出摘要**
+
+| 文件 | sha256（前 16） | 字节 | 说明 |
+|---|---|---|---|
+| `d6_retrieval_results.csv` | `f5b22ad3809b85bb` | 751 713 | 输入，3 456 行，未改 |
+| `d6_top10_hits.csv` | `4cfb8cfc67f166d4` | 1 229 013 | 输入（交叉核对），11 520 行，未改 |
+| `d6_rotation_metrics.json` | `0697af1d7261ce98` | 133 896 | 被纠正的 `d6/1`，**仍在库、一字未改** |
+| `d6_rotation_metrics_corrected.json` | `715fe3ded8e99b20` | 405 753 | 新增 `d6_corrected/1`，`content_sha256 525c228761add017…` |
+| `metrics.json` | `d37034530ed227cb` | 289 899 | schema `/2 → /3`，`stages_present` 补 `d6c` |
+
+版本链：`d6/1`（冻结历史）→ 写盘器 `d6/2`（今后真跑直接产出两视图，缺陷不会再生）→
+`d6_corrected/1`（本次从存量行重算）。汇总器在缺少纠正产物时**直接 SystemExit**，过期数字无法被悄悄拼回。
+
+**实测影响（60 vs 72 vs 12）**：S0K2/naive T2 稳定率 `0.20833 → 0.05`、同类别 Top-1 `0.25 → 0.15`；
+S0K1/naive T2 稳定率 `0.25 → 0.10`；E3/sample T2 稳定率 `0.76389 → 0.71667`；
+S0K1/naive T0 目标名次中位数 `47.5 → 81.5`、S0K2/naive T0 `27.0 → 45.0`；
+姿态不变的 E0/E1 不动（稳定率与 overlap 恒 1.0）。105 条字段变化 ≥0.05。
+**判定影响**：各指标第一名全部保持（E1 T2 同类别 Top-1 0.8333 / MRR 0.8790、S0K1/R3 Precision 0.2883 /
+Recall 0.7694、E0 overlap+稳定率、S0K1/naive 最便宜），中段重排（T2 Precision@10 有 7 臂变动、最大 3 位；
+T2 同类别 Top-1 有 4 臂；T1 MRR 有 6 臂）⇒ "包装器值不值得上"不变，"包装器之间谁略好"的旧排序不可再引用。
+D6 的 agreement 侧（250 对 × 7 应力角度 = 1 750 行，按形状对聚类的 bootstrap）是**另一张表**，
+不在 60/72 这次修正范围内，`agreement_side_unchanged` 记下其源 sha256 以证未动。
+
+**三 witness 交叉验证**（不允许"由产出它的函数自证"）：① 测试里用**手写 numpy** 从 per-cell CSV
+独立重算 12 个 headline 统计量 × 16 臂 × 3 条件；② 分子从 per-rank 表 `d6_top10_hits.csv` 逐行重数
+（1 152 格一致，0 处不符，150 格零命中）；③ 72 格池化算术复现，证明 `d6/1` 确实读的是全部格子。
+`--stage d6-correct` 自身也在 ① 与 ② 不一致时**拒绝出版**。
+
+**测试**：新增 `tests/test_shape_benchmark_d6_correction.py` **20 条**（60/12/72 计数取自原始 CSV 且覆盖
+16 臂、由冻结设计推出 60+12=72、2 条设计漂移期望 `raise`、分区恒等、独立重算、5 个锚定值、`/1` 复现、
+per-rank 反查、逐查询召回分母 min≠max、短库/零相关/`k<=0` 边界、别名≡precision、审计字段、
+历史与 agreement 侧未被重复改写、逐字段变更表自洽、naive 臂位移最大、产物形状钉、native/string 行一致性）。
+**未删除、未跳过、未放宽任何既有断言**；写测试反而抓到一处真实缺陷——`precision_at_k(..., k=0)`
+原先因空列表早退而返回 0.0 而非报错，已把校验前置（既有的 `[] → 0.0` 与"缺查询类别要报错"语义原样保留）。
+
+**验证**：`python -m pytest -q -o addopts=""` → **913 passed**（上一轮 893，本轮新增 20 条）；
+`ruff check .` → All checks passed；`mypy` → no issues found in 40 source files。
+
+**边界**：未改官方 `.h5` 与 MATLAB、未改任何算法数学定义、未重写生产检索器、未引入真实水体库、
+未覆盖历史 CSV、未静默缩小失败样本；本轮不做 P1 Web 开发。CP8-B（冻结独立验证集）→ CP8-C（六臂实跑与图）
+→ CP8-D（十个问题）继续。

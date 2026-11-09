@@ -42,7 +42,9 @@ port faithfulness is measured separately against published *network* outputs (be
 
 ### D2–D4 — retrieval on real closed contours (MPEG-7, no human truth claimed)
 
-Mean class-recall@10 over six queries; categories are object labels, **not** human similarity.
+Mean class-recall@10 over six queries — after CP8-A this number is read as **Precision@10** (the
+stored arithmetic is `hits / min(k, returned)`; the values below are unchanged); categories are
+object labels, **not** human similarity.
 S0 is absent (no published MPEG-7 coordinates); S0K1/S0K2 are the actually-run official networks.
 
 | Condition | E0 | E1 | E3 | S0K1 | S0K2 |
@@ -177,8 +179,9 @@ shape** (`test_r3_adds_gallery_poses_without_changing_the_query_grid`):
 
 Frozen design **before** running: 12 queries × 5 declared angle slots (on-grid, two mid-grid, two
 off-grid random ≥2° from any grid or midpoint) × T0/T1/T2, primary condition **T2** (exact target
-*and* rigid near-duplicates removed), 72 cells per arm per condition, seed 20261107, 2000
-replicates. `results/d6_rotation_metrics.json → retrieval_by_arm["T2"]`:
+*and* rigid near-duplicates removed). Each arm × condition therefore stores **72 cells** — the 60
+turned ones plus 12 unrotated controls, which CP8-A reports apart (see the corrected table below).
+Seed 20261107, 2000 replicates. `results/d6_rotation_metrics.json → retrieval_by_arm["T2"]`:
 
 | arm | same-class Top-1 | Top-1 stability | Recall@10 | MRR | rank shift mean/max | cells with nothing same-class in Top-10 | s/query |
 |---|---|---|---|---|---|---|---|
@@ -192,6 +195,33 @@ replicates. `results/d6_rotation_metrics.json → retrieval_by_arm["T2"]`:
 | S0K1/R0 | 0.611 | 0.736 | 0.240 | 0.731 | 5.3 / 119 | 4 | 0.062 |
 | S0K1/naive | 0.264 | 0.250 | 0.107 | 0.345 | 46.5 / 343 | **36** | 0.003 |
 | S0K2/naive | 0.250 | 0.208 | 0.092 | 0.312 | 45.9 / 324 | **40** | 0.009 |
+
+*Table as published from `d6/1` — read it with the CP8-A correction below. Its `Recall@10` column is
+Precision@10, and its rotation statistics pool the 12 unrotated control cells.*
+
+**CP8-A corrected headline** (`d6_corrected/1`, `views.rotation_only` = 60 turned cells per arm,
+the 12 controls reported apart; **nothing was re-scored** — these are the stored rows re-read).
+`Precision@10` = relevant share of the returned list; `Recall@10` = hits over each query's own
+retained same-class candidates (2/3/4 under T2). Bold = best value in the column among these ten
+arms, ties included; rank shift, empty Top-10 cells and seconds are lower-is-better.
+
+| arm | same-class Top-1 | Top-1 stability | Precision@10 | Recall@10 | MRR | rank shift mean/max | turned cells with nothing same-class in Top-10 | s/query |
+|---|---|---|---|---|---|---|---|---|
+| **E1** | **0.833** | **1.000** | 0.267 | 0.694 | **0.879** | 0.2 / 25 | 5 | 0.013 |
+| E0 | 0.750 | **1.000** | 0.250 | 0.674 | 0.775 | **0.0 / 0** | 10 | 0.029 |
+| E3/sample | 0.700 | 0.717 | 0.250 | 0.674 | 0.791 | 4.6 / 67 | 4 | 14.088 |
+| E3/canonical | 0.500 | **1.000** | 0.208 | 0.569 | 0.630 | **0.0 / 0** | 5 | 0.585 |
+| **S0K1/R3** | 0.683 | 0.733 | **0.288** | **0.769** | 0.798 | 6.1 / 133 | **0** | 0.085 |
+| S0K2/R2 | 0.767 | 0.967 | 0.225 | 0.611 | 0.818 | 0.8 / 55 | 5 | 0.009 |
+| S0K1/R2 | 0.583 | 0.950 | 0.250 | 0.674 | 0.663 | 0.3 / 54 | **0** | **0.003** |
+| S0K1/R0 | 0.600 | 0.683 | 0.237 | 0.607 | 0.717 | 6.3 / 119 | 4 | 0.062 |
+| S0K1/naive | 0.167 | 0.100 | 0.078 | 0.207 | 0.249 | 55.8 / 343 | **36** | **0.003** |
+| S0K2/naive | 0.150 | 0.050 | 0.060 | 0.164 | 0.212 | 55.0 / 324 | **39** | 0.009 |
+
+The two columns that carried the CP7 verdict move differently: E1's same-class Top-1 and MRR are
+untouched (pose-blind, and the controls were free for it anyway), while the naive arms lose most of
+their apparent rotation tolerance (S0K2/naive Top-1 stability 0.208 → 0.050). No column's winner
+changes; the ordering *between* the wrapper arms shifts in the middle of the table.
 
 Agreement (goal A) is a **separate** measurement on the 250 rated H1 pairs × 7 stress angles × 14
 observers, pooled as distance-vs-dissimilarity Spearman; it never mixes into the table above
@@ -296,6 +326,55 @@ rewrote both artefacts byte-for-byte unchanged (`d5_grouped_metrics.json` `71257
   two pairs become statistically indistinguishable. The old files are untouched and their SHA256
   is recorded in the new artefact (D61–D63).
 
+## Checkpoint 8 — CP8-A: the D6 denominators and what each column actually measures
+
+CP8-A re-reads the CP7-C study. Nothing here is a new experiment: the queries, the angles, the
+samples and the algorithms are exactly the frozen ones, and the correction is computed **from the
+stored CSVs** (`--stage d6-correct`, ~2 s), so no ShapeComp inference runs at all.
+
+### Two defects of the same kind — a denominator and a name
+
+1. **The 0° control rows were averaged into the rotation headline.** `_d6_summarise()` grouped by
+   `(arm, condition)` over **all 72 stored cells**, but the design is 12 queries × 5 non-zero
+   angles = **60 rotated cells** plus **12 unrotated controls** (the frozen design block has always
+   said `n_query_angle_rows = 60`; the summary read the denominator wrong, the study did not). A
+   control cell is trivially correct for a pose-blind arm, so pooling it handed out 12 free perfect
+   scores — S0K2/naive T2 Top-1 stability 0.20833 → **0.05**, T2 same-class Top-1 0.25 → **0.15**,
+   S0K1/naive T0 median target rank 47.5 → **81.5**.
+2. **`class_recall_at_k` has always been Precision@10.** Its denominator is `min(k, returned)`, i.e.
+   the relevant share *of the list*. A true recall divides by the relevant candidates *the gallery
+   still offered that query under that condition* — 2, 3 or 4 under T2, mean 3.75, and it varies per
+   query, so there is no single denominator to mechanically reuse.
+
+### How to read `d6_rotation_metrics_corrected.json`
+
+| Key | What it is |
+|---|---|
+| `views.rotation_only` | **the headline.** `slot != "control"`, 60 cells per arm × condition. Every rotation claim comes from here. |
+| `views.unrotated_control` | wiring diagnostic only, 12 cells. Its `top1_stability_vs_unrotated` is 1.0 **by construction** (a `note` says so); it can show the pipeline is connected, never that a wrapper survives a turn. |
+| `precision_at_10` | hits / returned (the old `class_recall_at_k`, renamed). |
+| `recall_at_10` | hits / relevant-retained-for-that-query. `None` when nothing relevant remains — counted in `recall_at_10_undefined_cells`, **never folded in as 0.0**. `n_relevant_retained_mean/min/max` shows the denominator actually varying. |
+| `ndcg_at_10_n_scored`, `recall_at_10_n_scored` | the denominators of the means, so a blank cell is visible instead of silently shrinking the average. |
+| `per_field_changes` / `material_changes` | every field that moved, and the 105 that moved by ≥ 0.05, each with `before` (72 pooled), `after` (60) and `control_only_value` (12). |
+| `arm_rankings_before_vs_after` | per metric and condition: which arm was first before, first after, and how far each arm's rank moved. |
+| `independent_check_from_raw_ranks` | the Top-10 numerators recounted from `d6_top10_hits.csv`, row by row, agreeing with the per-cell ratios (0 mismatches over 1 152 cells). The correction refuses to publish if the two disagree. |
+| `agreement_side_unchanged` | the D6 H1 side (250 rated pairs × 7 stress angles = 1 750 rows, grouped bootstrap) is **a different table**; it is not part of the 60/72 fix and was not touched. |
+| `audit` | original file sha256/bytes/schema, corrected sha256 + `content_sha256`, both input CSVs with sha256/bytes/rows, the command, and `history_untouched`. |
+
+The versioning chain is `d6/1` (frozen history, still on disk, byte-identical) → `d6/2` (what the
+writer emits now, with the two views) → `d6_corrected/1` (this recomputation from stored rows). The
+rollup `metrics.json` is schema `/3` and **refuses to build** when `d6_rotation_metrics_corrected.json`
+is missing, so an expired number cannot be re-assembled silently. Naming note for older artefacts:
+`d2_metrics.json` and the y-label of panel (f) in `checkpoint7/rotation_rank_stability.png` carry the
+legacy name and are read as Precision@10
+(see `metric_name_corrections` in `metrics.json`); no historical number was re-stated.
+
+**Does the verdict change?** No first place moves — E1 keeps T2 same-class Top-1 (0.8333) and MRR
+(0.8790), S0K1/R3 keeps Precision@10 (0.2883) and Recall@10 (0.7694), E0 keeps the stability and
+overlap columns, S0K1/naive stays cheapest. The middle of the table does: 7 arms shift by up to
+3 places on T2 Precision@10, 4 on T2 same-class Top-1, 6 on T1 MRR. The correction changes
+magnitudes and mid-table ordering, not the direction of any conclusion.
+
 ## Files
 
 | Path | Contents |
@@ -320,7 +399,8 @@ rewrote both artefacts byte-for-byte unchanged (`d5_grouped_metrics.json` `71257
 | `results/d6_retrieval_results.csv` | **CP7-C**: one row per arm × condition × query × angle-slot cell (T0/T1/T2, 16 × 3 × 72), Top-1, stability, overlap, rank shift, first relevant rank, seconds |
 | `results/d6_top10_hits.csv` | the actual **T2** Top-10 lists behind it (16 arms × 72 cells × 10 = 11 520 rows), with `pose`, `distance`, `same_class`, `is_query_self`, `first_relevant_rank` — everything the failure figures are drawn from |
 | `results/d6_agreement_results.csv` | goal A on the D5 stimuli: 16 arms × 250 rated pairs × 7 stress angles = 28 000 rows, `model_distance` next to `human_mean_similarity` (the published 14-observer mean, never a model estimate of it). The observer panel is re-sampled inside the bootstrap, so it is not a column here |
-| `results/d6_rotation_metrics.json` | the frozen design block, per-arm/per-condition tables, grouped + angle-randomised CIs, 120 paired deltas (**mean = B − A**, see the reading trap above), cached-vs-pairwise verification, orientation diagnostics, `image_axis_convention_check`, `goal_separation` |
+| `results/d6_rotation_metrics.json` | the frozen design block, per-arm/per-condition tables, grouped + angle-randomised CIs, 120 paired deltas (**mean = B − A**, see the reading trap above), cached-vs-pairwise verification, orientation diagnostics, `image_axis_convention_check`, `goal_separation`. **CP8-A reading note**: its `n_cells = 72` pools the 12 unrotated controls into every rotation statistic, and its `class_recall_at_k` is Precision@10 — read `d6_rotation_metrics_corrected.json` for the headline |
+| `results/d6_rotation_metrics_corrected.json` | **CP8-A**: recomputed from the two stored CSVs only (no re-scoring). Splits `rotation_only` (60/arm/condition) from `unrotated_control` (12), renames the precision column, adds a per-query-denominator `recall_at_10`, lists every field change and rank move, and carries the sha256 audit chain back to `d6/1` |
 | `results/f1_e1_orientation_sensitivity.{csv,json}` | **CP7-D F1**: 11 synthetic probes × 12 poses through `principal_frame`, per-block drift, the 90° axis defect, and the costed-but-not-adopted 24-pose E1 scheme |
 | `results/r2_pose_invariance_check.json` | **CP7-C/D**: 12 frozen query contours × 0/37/191/270°, naive vs R2 coordinate displacement per shape with the frame status |
 | `results/official_toolbox_hashes.json` | SHA256 + byte count + upstream mtime for the 24 toolbox files the port reads, the weights' layer shapes, `tensorflow_used`/`matlab_used` flags, and the `redistribution` statement |
@@ -362,6 +442,10 @@ rewrote both artefacts byte-for-byte unchanged (`d5_grouped_metrics.json` `71257
 #    rewrite the committed 16-arm artefacts with a narrower table (`_require_frozen_d6_arms`).
 #    Pass all five methods to reproduce what is stored, or --allow-d6-arm-subset to say otherwise.
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2
+
+# 6b. the CP8-A statistics correction (~2 s; reads the two stored d6 CSVs, scores nothing,
+#     byte-idempotent). --stage summary refuses to run without this output.
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6-correct
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
 
 # 7. read-only verifications that back specific claims

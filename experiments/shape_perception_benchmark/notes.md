@@ -1131,6 +1131,12 @@ accuracy over all cells; `stab` = Top-1 identical to the unrotated query's Top-1
 overlap with it; `shift` = mean/max absolute rank shift; `>10` = cells whose first same-class answer
 sits past rank 10.
 
+> **CP8-A reading notice (the table below is left exactly as CP7-C published it).** Its `rec@10` is
+> Precision@10, and every rotation column averages the 12 unrotated control cells into the 60 turned
+> ones. The re-read values live in `results/d6_rotation_metrics_corrected.json`
+> (`views.rotation_only`, 60 cells) — there S0K2/naive `stab` is 0.050, not 0.208, and S0K1/naive is
+> 0.100. No first place changes; see the CP8-A section below (§A2) for the full before/after.
+
 | arm | top1 | stab | rec@10 | MRR | NDCG@10 | jac | mean/max shift | >10 | s/query |
 |---|---|---|---|---|---|---|---|---|---|
 | E0 | 0.750 | 1.000 | 0.250 | 0.775 | 0.666 | 1.000 | 0.0 / 0 | 12 | 0.029 |
@@ -1536,3 +1542,106 @@ gap closed.
 default, introduced no real water-body data, modified no official MATLAB file or weight, and stops
 here — no Web UI work and no gallery expansion follow from it. R1/R2/R3 and the F1 rotation-search
 variant are **exploratory** (designed, tuned and evaluated on one frozen sample, no held-out set).
+
+## Checkpoint 8 — CP8-A: the D6 denominators, the Precision/Recall name, and what they were worth (2026-11-09)
+
+Goal of the round, restated: **make the existing numbers trustworthy before asking whether the
+rotation wrappers beat the geometry matchers on shapes nobody has queried yet.** CP8-A touches no
+algorithm, no query, no angle set, no sample selection and no weight — it re-reads stored rows.
+
+### A1. The defect, in the code that caused it
+
+`_d6_summarise()` built one block per `(arm, condition)` and averaged **every stored cell**. The
+frozen design is 12 queries × (5 rotated slots + 1 `control` slot at 0°) = 72 rows per arm per
+condition, and `d6_rotation_metrics.json["design"]["n_query_angle_rows"]` has always said **60**.
+So the study was designed correctly and the summary mis-read it: the 12 controls, which are
+unrotated by definition and therefore free for a pose-blind arm, were folded into the headline that
+answers "does this arm survive a turn". `metrics.split_rotation_and_control()` now partitions on
+`slot`, reports the two views apart, and **raises** if `slot` and `angle_deg` ever contradict each
+other — a design change has to fail loudly, not arrive as a shifted mean. Nothing was deleted:
+the 0° rows are still in the CSV and are still summarised, just not inside the rotation headline.
+
+### A2. What the mix-in was worth (60 vs 72 vs 12)
+
+| arm / condition | field | before (72) | after (60) | control alone (12) |
+|---|---|---|---|---|
+| S0K2/naive T2 | `top1_stability_vs_unrotated` | 0.20833 | **0.05000** | 1.0 |
+| S0K2/naive T2 | `top1_same_class_accuracy` | 0.25000 | **0.15000** | 0.75 |
+| S0K1/naive T0 | `target_rank_median` | 47.5 | **81.5** | 1.0 |
+| S0K2/naive T0 | `target_rank_median` | 27.0 | **45.0** | 1.0 |
+| S0K1/naive T2 | `top_10_overlap_vs_unrotated` | 0.29424 | **0.15308** | 1.0 |
+| S0K2/naive T0 | `attraction_gap_mean` | −0.26340 | **−0.45892** | 0.71420 |
+
+105 fields move by ≥ 0.05 across the 16 arms × 3 conditions (`material_changes` in the artefact).
+**No first place changes**: E1 keeps T2 same-class Top-1 (0.83333) and `class_mrr` (0.8790),
+S0K1/R3 keeps Precision@10 (0.28833) and Recall@10 (0.76944), E0 keeps Top-1 stability and Top-10
+overlap (both 1.00000 in either view — the pose-blind Hu-moment arm is exactly invariant on this
+sample, which is why the control rows could not move it), S0K1/naive stays the cheapest per query.
+Mid-table does move —
+T2 Precision@10: 7 arms, up to 3 places; T2 same-class Top-1: 4 arms; T1 `class_mrr`: 6 arms.
+The D6 **agreement side** (250 rated pairs × 7 stress angles = 1 750 rows, cluster bootstrap over
+pairs) is a different table with a different statistical unit; per the brief it was **not** folded
+into this fix, and `agreement_side_unchanged` records its source sha256 to prove it.
+
+### A3. `class_recall_at_k` was Precision@10; both now exist with honest denominators
+
+Legacy arithmetic is `hits / min(k, returned)` — the relevant share **of the returned list**, i.e.
+Precision@K, published under a recall name. `metrics.precision_at_k()` keeps that arithmetic and the
+legacy name stays as a documented alias (so old code runs and old reports do not silently change
+value). `metrics.recall_at_k()` divides by the relevant candidates that query **could still be
+answered by** under that condition — for T2 that is 2, 3 or 4 per query (mean 3.75, min ≠ max), so a
+single mechanical denominator is not available and none is used. When a condition removes every
+same-class candidate the value is `None`, counted in `recall_at_10_undefined_cells`, never averaged
+in as 0.0. NDCG's arithmetic is untouched — no independent evidence said it was wrong — but it now
+ships `ndcg_at_10_n_scored` so the denominator of the mean is visible.
+
+Audit of the misnamed references (B4): `results/d2_metrics.json` (`mean_class_recall_at_10`),
+`results/d6_rotation_metrics.json` (per-arm `class_recall_at_k`), CP7 figure
+`checkpoint7/rotation_rank_stability.png` panel (f) whose y-label reads "class Recall@10", and the
+prose in `notes.md` / `README.md` / `docs/EXPERIMENTS.md` quoting them. Historical artefacts and
+figures are **not** rewritten; `metrics.json` gained a `metric_name_corrections` block that names
+each frozen place, and the rollup's d2 field is renamed `mean_precision_at_10` with a caveat.
+Renaming a metric changes no measurement — and no algorithm's performance claim changed because of it.
+
+### A4. Versioning, verification, artefacts
+
+Chain: `d6/1` (frozen, byte-identical, still on disk) → writer `d6/2` (emits the two views, so a
+future real run cannot re-create the flaw) → `d6_corrected/1` (this recomputation from stored CSVs).
+`metrics.json` goes `/2 → /3` and `write_summary()` now **exits** if the correction is absent —
+the rollup cannot be assembled from expired numbers. The correction is a pure function of stored
+rows with no timestamp: re-running `--stage d6-correct` reproduces the same sha256 (verified).
+
+Inputs (unchanged, sha256 verified before and after):
+`d6_retrieval_results.csv` `f5b22ad3809b85bb…` 751 713 B / 3 456 rows;
+`d6_top10_hits.csv` `4cfb8cfc67f166d4…` 1 229 013 B / 11 520 rows;
+`d6_rotation_metrics.json` `0697af1d7261ce98…` 133 896 B.
+Output: `d6_rotation_metrics_corrected.json` `715fe3ded8e99b20…` 405 753 B,
+`content_sha256` `525c228761add017…` over the canonical `retrieval_by_arm`.
+
+Three independent witnesses, because a summary must not certify itself: (i) the corrected blocks are
+recomputed in the tests from the raw per-cell CSV with hand-written numpy; (ii) the Top-10
+numerators are recounted row-by-row from `d6_top10_hits.csv` (0 mismatches over 1 152 cells, 150
+cells with zero hits); (iii) the pooled 72-cell arithmetic is reproduced to prove `d6/1` was reading
+all cells. `--stage d6-correct` also refuses to publish if (i) and (ii) disagree.
+
+Verification: `python -m pytest -q -o addopts=""` → **913 passed** (20 new in
+`tests/test_shape_benchmark_d6_correction.py`: the 60/12/72 counts for all 16 arms from raw CSV,
+design-derived denominators, 2 design-drift `raises`, the partition identity, 12 statistics × 16 arms
+× 3 conditions recomputed independently, the 5 anchor values, the 72-cell `/1` reproduction, the
+per-rank recount, per-query recall denominators, short-library / zero-relevant / `k <= 0` edges,
+legacy ≡ precision, the audit fields, the non-duplication of the agreement side, the per-field change
+table, the naive-arms-moved-most check, a writer-drift pin, and native-vs-string row coercion so a
+real run cannot die at its own summary). `ruff check .` clean, `mypy` clean on 40 source files.
+No assertion was deleted, skipped or weakened; one genuine defect surfaced while writing them —
+`precision_at_k(..., k=0)` returned 0.0 instead of raising, because the empty-list early return
+pre-date-checked the validation. Validation now runs first, and the two documented legacy behaviours
+(`[] → 0.0`, missing query category → `ValueError`) are preserved exactly.
+
+### A5. Open items into CP8-B
+
+CP8-A made the *existing* numbers trustworthy on the *existing* sample, which is the same sample the
+wrappers were designed and tuned on. Everything still labelled exploratory stays exploratory until
+CP8-B freezes an independent query set (≥ 20 MPEG-7 shapes never used as D6 queries, ≥ 5 non-zero
+angles each mixing in-grid / mid-grid / random, fixed seed, design committed **before** any retrieval
+runs) and CP8-C scores it. No number in this section was tuned to a target; the five anchor values
+exist to catch filtering errors and are not objectives.

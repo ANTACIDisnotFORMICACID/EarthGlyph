@@ -844,3 +844,65 @@ CP7 收官的文档整合轮记录了三个"口径问题"并只写进文档。�
   验证：`pytest` **893 passed**（新增 19 条：约定单元/两产物一致性/CSV 方向列/21 分母/d6 形状钉/守卫 7 条/d5b 幂等 6 条）、
   `ruff check .` 全过、`mypy` 40 源文件无问题；`d5_rotation_*`、`d6_*`、`f1_*`、权重与压缩包一律未改，
   生产默认检索器、真实水体库、Web UI 仍不在本轮范围内。
+
+## D6 检索分母与 Precision/Recall 拆分（P0-4.6 Checkpoint 8 · CP8-A，2026-11-09 新增）
+
+本轮只动统计读法：不重跑任何 ShapeComp/KerNet 推理，不删 0° 行，不改冻结查询与角度，
+不重新挑选样本，不训练或调参，所有臂用同一条过滤规则。
+
+- **D80：`d6/1` 把 12 个 0° control 格子平均进 60 个旋转格子里，包装器臂的旋转表现被抬高近两倍 —— 已拆成两套分母并出版 `d6_corrected/1`** —
+  机制：`_d6_summarise()` 只按 `condition` 聚合，而每个 (臂, 条件) 实存 72 格 = 12 查询 ×（5 个非零角度 + 1 个 control）。
+  control 问的是"不旋转时能不能检索到"，任何臂都答得好，于是 pose-blind 臂的稳定率被 12 个满分格子抬了起来。
+  **实测影响（T2）**：S0K2/naive 同类别 Top-1 `0.25 → 0.15`、Top-1 稳定率 `0.20833 → 0.05`、
+  Top-10 overlap `0.28353 → 0.14024`；S0K1/naive 稳定率 `0.25 → 0.10`、同类别 Top-1 `0.26389 → 0.16667`；
+  S0K2/R3 `0.66667 → 0.60`；E3/sample `0.76389 → 0.71667`；真正姿态不变的臂基本不动（E0/E1 = 1.0、
+  S0K2/R2 `0.97222 → 0.96667`）。T0 侧更严重：S0K1/naive 目标名次中位数 `47.5 → 81.5`、均值
+  `78.9444 → 94.5333`、Top-1 自匹配 `0.27778 → 0.13333`；S0K2/naive 中位数 `27.0 → 45.0` ——
+  旧表系统性地低估了"目标被旋转推到哪里"。
+  修法全部落在代码里：① 库层 `earthglyph/shape_benchmark/metrics.py::split_rotation_and_control()`，
+  `slot` 与 `angle_deg` 不自洽直接 `ValueError`（把控制组改成非零角度、或把某个旋转格子停在 0°，
+  都不会悄悄变成一次"过滤"）；② `_d6_summarise()` 输出 `rotation_only` / `unrotated_control` 两视图，
+  每块自带 `n_cells` / `n_rotated_cells` / `n_control_cells`，控制视图另附 `note` 说明它的
+  `top1_stability_vs_unrotated ≡ 1.0` 只是流水线漂移检查，不是旋转测量；
+  ③ 新增 `--stage d6-correct`：只读 `d6_retrieval_results.csv`（sha256 `f5b22ad3809b…`，3 456 行）与
+  `d6_top10_hits.csv`（sha256 `4cfb8cfc67f1…`，11 520 行）重算，写出
+  `d6_rotation_metrics_corrected.json`（sha256 `715fe3ded8e9…`，405 753 B；
+  `retrieval_by_arm` 规范化 JSON 的 `content_sha256 525c228761ad…`），内含 `/1`
+  （sha256 `0697af1d7261…`，133 896 B，schema `d6/1`）的逐字段修改前后、105 条 material 变化、
+  以及"从每排名单独立重数"的交叉核对（1 152 个 T2 格子，分子不一致 0 条，无法连接 0 条）；
+  ④ `d6/1` 与三份 CSV **一字未改**，`run_d6` 写盘器 schema 升 `d6/2`（今后真跑一次直接产出两视图），
+  汇总器 `metrics.json` schema 升 `/3`（见 D82）。
+  **对判定的影响（CP8 问题 1）**：每个指标的第一名都没换 —— E1 仍是 T2 同类别 Top-1（0.8333）与
+  class MRR（0.8790）第一，S0K1/R3 仍是 Precision@10（0.2883）与真正 Recall@10（0.7694）第一，
+  E0 仍是 overlap/稳定率第一，S0K1/naive 仍是最便宜；但中段确实重排：T2 同类别 Top-1 有 4 个臂变动
+  （最大 1 位）、T2 Precision@10 有 7 个臂变动（最大 3 位）、T1 class MRR 有 6 个臂变动（最大 1 位）。
+  所以"包装器是否值得用"的结论不变，而"包装器之间谁略好"的旧排序不可再直接引用。
+- **D81：`class_recall_at_k` 算的从来是 Precision@K；真正的 Recall@K 用每个查询自己的"可选相关数"作分母** —
+  原实现 `hits / len(top)`，既不是 Recall，也不能回答"还剩多少同类没被找到"。现在库层给出三个各司其职的函数：
+  `same_class_hits_in_top_k()`（计数）、`precision_at_k()`（返回清单里的相关比例，分母 `min(k, n_returned)`，
+  图库不足 K 项时不惩罚它没给过的名次）、`recall_at_k()`（分母 = 该查询在该条件下**留存的相关候选数**，
+  T2 下本设计是 2/3/4 而**不是**固定的 10；`n_relevant == 0` 返回 `None` ⇒ 汇总时计入
+  `recall_at_10_undefined_cells` 而不是把"无从找起"写成 0.0 的检索失败）。
+  `class_recall_at_k()` 保留为**已标注的旧名**，直接委托 `precision_at_k()` ⇒ 旧数字逐位不变，只是不再冒充 Recall。
+  **旧引用一律不改数值、只登记读法**（B4 审计）：`d2_metrics.json` 的 `class_recall_at_10`、
+  `d6_rotation_metrics.json (/1)` 与 `d6_retrieval_results.csv` 的 `class_recall_at_k` 列都仍是 Precision@10；
+  `metrics.json` 汇总里对应字段改名 `mean_precision_at_10`（取自同一份冻结产物，未重算）并新增
+  `metric_name_corrections` 块点名这些旧键；CP7 图 `rotation_rank_stability.png` 面板 (f) 的
+  "class Recall@10" 标签按其数据源读作 Precision@10（72 格混合表），历史图不重绘，CP8 图用修正表与新标签。
+  **改名不改变任何测量**，因此也不构成"算法性能变了"的证据：D55/D56/D65/D67/D71 与既有否决结论一字未改。
+- **D82：读法修正必须版本化，且汇总器不再允许把 `/1` 当作现状引用** —
+  `write_summary()` 若发现 `d6_rotation_metrics.json` 在而 `d6_rotation_metrics_corrected.json` 不在，
+  直接 `SystemExit` 并给出 `--stage d6-correct` 命令，不再默默把混了控制组的均值当头部数字汇总
+  （这是 CP7 D79"代码已改、产物未更"那类漂移的反向版本：产物过期时宁可失败）。
+  头部块 `rotation_wrappers_retrieval` 现在同时给 `by_arm`（rotation_only 视图）、
+  `unrotated_control_by_arm`（12 格诊断）与 `statistics_correction`（schema、被修正文件的 sha256、原因、命令、
+  两视图定义、指标定义、指向 before/after 排名表的位置），并显式声明修正**只覆盖** `retrieval_by_arm`；
+  H1 一致性一侧（250 对 × 7 压力角度 = 1 750 行、按对分组的 bootstrap）**不属于本次 60/72 修正**，
+  修正文件里不含这些字段，只记录其来源文件的 sha256。
+  验证：`pytest -q -o addopts=""` **913 passed**（上一轮 893，新增 `tests/test_shape_benchmark_d6_correction.py` 20 条：
+  60/12/72 三套分母、分母取自冻结设计而非硬编码、两类设计漂移必须报错、用纯 numpy 从 CSV 独立重算 12 项指标、
+  五个被引用的 checkpoint 数值、从每排名单重数分子、逐字段变更表自洽、审计哈希与文件实读一致、
+  写盘器与本产物一致性钉、写盘器传入原生数值行与读回字符串行结果一致（防止长跑死在自己的汇总步骤上）；
+  另加 Precision/Recall 边界用例，其中一条抓到 `precision_at_k(..., k=0)` 原先返回 0.0 而非报错的真实缺陷，
+  已把校验前置并保持两条既有 legacy 语义不变）、`ruff check .` 全过、`mypy` 40 源文件无问题。
+  重跑 `--stage d6-correct` 两次产物 sha256 逐字节相同（无时间戳字段）⇒ 该阶段可安全重放。

@@ -335,7 +335,7 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 两级结构可用于生产（粗筛盲区未解决）。
 **门禁状态：P0 仍未通过 → 不进入 P1 Web 前端开发。** 是否把 E3 设为正式精排，留给用户审查后决定。
 
-## P0-4.6 ShapeComp 官方复现与独立形状感知检索基准（2026-11-07 启动，**2026-11-09 Checkpoint 7 收官**）
+## P0-4.6 ShapeComp 官方复现与独立形状感知检索基准（2026-11-07 启动，Checkpoint 7 收官，**Checkpoint 8 进行中：CP8-A ✅ / CP8-B–D 待做**）
 
 任务边界：**完全排除 Overture Maps、水体候选与地理坐标**；不扩大真实地貌库；不改正式产品检索默认；
 不复用旧图库 `REL` 标签当人类真值；不覆盖 P0-4 / P0-4.5 产物。
@@ -735,6 +735,62 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == `44d8c08c6b4bf684123c17fbc78fd12cf0fa0178`。
 
 **边界遵守**：未改生产默认检索器、未引入真实水体库、官方 MATLAB/权重只读未改；本轮到此停止。
+
+### Checkpoint 8：先让已有指标完全可信，再用新查询做独立验证（2026-11-09 启动）
+
+**CP8-A：修 D6 检索分母 + 拆 Precision/Recall + 独立重算测试 ✅（本轮已提交，CP8-B/C/D 待做）**
+
+- **缺陷 A（D80）**：`_d6_summarise()` 按 `(arm, condition)` 聚合时**没排除 `slot == "control"`**，
+  于是每个 headline 块的 `n_cells = 72`。真实设计是 **12 查询 × 5 个非零角度 = 60 旋转格 + 12 个 0° control = 72**
+  （冻结设计里 `n_query_angle_rows` 一直是 60，是汇总把分母读错了，不是实验做错了）。
+  0° 格对姿态盲的臂**必然**全对，混进来等于给它们发了 12 张免费满分卷
+  ⇒ S0K2/naive T2 `top1_stability` 0.20833→**0.05**、同类别 Top-1 0.25→**0.15**、
+  S0K1/naive T0 目标名次中位数 47.5→**81.5**、S0K2/naive T0 `top_10_overlap` 0.28757→**0.14508**。
+- **修法（不是重跑实验）**：`metrics.split_rotation_and_control()` 把两堆格子分成
+  `rotation_only`（60，headline）与 `unrotated_control`（12，只作接线诊断，并说明它的
+  `top1_stability` 恒为 1.0），两套分母**分开注明**；`slot` 与 `angle_deg` 一旦互相矛盾就
+  `raise`（设计变更必须炸，不允许当成"过滤细节"悄悄改变均值）。0° 原始行一行未删，查询/角度/样本选择未动，
+  算法未重训，所有 16 臂 × 3 条件用**同一过滤规则**。
+- **缺陷 B（D81）**：`class_recall_at_k` 的分母是 `min(k, 返回数)`，**它从来就是 Precision@10**。
+  现在 `metrics.precision_at_k()` 与真正的 `metrics.recall_at_k()` 并列，后者分母是
+  **该查询该条件下实际保留下来的同类候选数**（T2 下逐查询为 2/3/4，均值 3.75，逐查询不同 ⇒ 不做机械同分母）；
+  一个同类候选都没保留时返回 `None` 并计入 `recall_at_10_undefined_cells`，**不当 0 分混进均值**。
+  旧名保留为**已标注的兼容别名**（docstring 写明"这就是 Precision@K，新报告不要再用"），旧数字一位未改；
+  NDCG 的算术未动，只是补了 `ndcg_at_10_n_scored`。B4 审计把已冻结产物/图里的 `class_recall_at_k`、
+  "Recall@10"、"class-recall" 引用逐处列出（含 CP7 图 `rotation_rank_stability.png` panel (f) 的纵轴标签），改的是**读法**不是**测量**。
+- **产物与审计（A3）**：新增 `d6_rotation_metrics_corrected.json`（schema `d6_corrected/1`，**只从已入库的
+  `d6_retrieval_results.csv` / `d6_top10_hits.csv` 重算，不执行任何 ShapeComp 推理**），内含
+  原文件 sha256/字节/schema、纠正后 sha256 与 `content_sha256`、两个输入 CSV 的 sha256+字节+行数、
+  逐字段变更表、105 条"实质变化"（阈值 0.05）、每个指标的 before/after 排名对照，
+  以及 `agreement_side_unchanged`（D6 的 H1 侧 250 对 × 7 应力角度 = 1 750 行是**另一张表**，
+  不在 60/72 这次修正内，一字未改）。**历史零覆盖**：`d6/1` 与三份 D6 CSV 逐字节不变，写盘器 schema 升到 `d6/2`
+  ⇒ 今后真跑一次也不会再产出带这个缺陷的表；汇总 `metrics.json` schema `…/2 → /3`，且
+  **缺 `d6c` 时直接 `SystemExit`**，不许悄悄把过期数字拼回去。
+- **排名是否变**：每个指标的**第一名都没变**（E1 的 T2 同类别 Top-1 0.8333 / MRR 0.8790、
+  S0K1/R3 的 Precision@10 0.2883 与 Recall@10 0.7694、E0 的重叠/稳定、S0K1/naive 最便宜），
+  但中段确实动了：T2 Precision@10 有 **7 臂**位移 ≤3 位、T2 同类别 Top-1 有 4 臂、T1 MRR 有 6 臂。
+  ⇒ "0° control 混入"影响的是**幅度与中段排序**，不是既有的方向性判定。
+- **测试（C1/C2/C3）**：新增 `tests/test_shape_benchmark_d6_correction.py` **20 条** ——
+  从**原始 CSV** 独立数出 60/12/72 并覆盖全部 16 臂（设计漂移 2 条期望 `raise`）、
+  用**测试里手写的 numpy** 重算 12 个 headline 统计量 × 16 臂 × 3 条件（不是调用产出它的函数自证）、
+  用逐排名表 `d6_top10_hits.csv` 反查分子（三表互证）、钉住指定的 5 个锚定值
+  （E1 T2 同类别 Top-1 0.83333、E3/sample T2 Top-1 稳定率 0.71667、S0K2/naive T2 同类别 Top-1 0.15000、
+  S0K2/naive T2 Top-1 稳定率 0.05000、S0K2/R2 T2 Top-1 稳定率 0.96667，用途是**发现过滤错误**，不是新优化目标）、
+  Precision≠Recall 的逐查询分母、短库/零相关/k≤0 的边界、别名与 `precision_at_k` 等价、审计字段、
+  产物形状钉（防写盘器漂移）。**未删除/未跳过/未放宽任何既有断言**；过程中反而**抓到一处真实缺陷**：
+  `precision_at_k(..., k=0)` 原先走空列表早退返回 0.0 而非报错，已把校验提到最前（既有的 `[] → 0.0` 与
+  "缺查询类别要报错"两条语义原样保留）。
+- 验证：`python -m pytest -q -o addopts=""` → **913 passed**；`ruff check .` → All checks passed；
+  `mypy` → no issues in 40 source files；`--stage d6-correct` 重跑两次产物 sha256 逐字节相同（幂等、无时间戳）。
+- 复现：`python scripts/run_shape_benchmark.py --stage d6-correct`（约 2 s，只读再分析）
+  → `python scripts/run_shape_benchmark.py --stage summary`。
+  输入：`d6_retrieval_results.csv` `f5b22ad3809b85bb…`（751 713 B / 3 456 行）、
+  `d6_top10_hits.csv` `4cfb8cfc67f166d4…`（1 229 013 B / 11 520 行）、被替换的
+  `d6_rotation_metrics.json` `0697af1d7261ce98…`（133 896 B，`d6/1`，仍在库）；
+  输出：`d6_rotation_metrics_corrected.json` `715fe3ded8e99b20…`（405 753 B，
+  `content_sha256` `525c228761add017…`）、`metrics.json` schema `…/3`。
+- **待做**：CP8-B 冻结独立验证集（≥20 个未用过的 MPEG-7 查询、每查询 ≥5 个非零角度、固定种子、
+  **先入库设计再跑检索**）→ CP8-C 六臂检索与图 → CP8-D 回答十个问题并收官。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 

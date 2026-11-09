@@ -2,8 +2,9 @@
 
 The human-rating side keeps the participant level intact: H1 is 250 pairs x 14 observers,
 so confidence intervals resample pairs *and* observers rather than treating 3500 ratings as
-independent draws. The retrieval side reports class recall and rank stability, and never
-converts a category label into a similarity score.
+independent draws. The retrieval side reports class precision and class recall as the two
+different questions they are, reports rank stability separately, and never converts a category
+label into a similarity score.
 """
 
 from __future__ import annotations
@@ -435,19 +436,104 @@ def observer_agreement(ratings: np.ndarray) -> dict[str, Any]:
     }
 
 
-def class_recall_at_k(
+def same_class_hits_in_top_k(
     categories: Sequence[str | None], query_category: str | None, k: int
-) -> float:
-    """Fraction of the Top-K that shares the query's MPEG-7 category.
+) -> int:
+    """How many of the first ``k`` ranked candidates share the query's MPEG-7 category.
 
     A category label is a retrieval relevance proxy, NOT a human similarity judgement.
     """
     if query_category is None:
-        raise ValueError("class recall needs a query category")
-    top = list(categories[:k])
-    if not top:
+        raise ValueError("class relevance needs a query category")
+    if k <= 0:
+        raise ValueError("k must be positive")
+    return int(sum(1 for category in list(categories)[:k] if category == query_category))
+
+
+def precision_at_k(
+    categories: Sequence[str | None], query_category: str | None, k: int
+) -> float:
+    """Recall OF THE LIST: the relevant share of what was returned, hits / min(k, n_returned).
+
+    The denominator is the returned list, so a short library (fewer than ``k`` candidates) cannot
+    be penalised for ranks it never had, and the value stays in [0, 1].
+    """
+    hits = same_class_hits_in_top_k(categories, query_category, k)
+    returned = len(list(categories)[:k])
+    if returned == 0:
         return 0.0
-    return float(sum(1 for c in top if c == query_category) / len(top))
+    return float(hits / returned)
+
+
+def recall_at_k(
+    categories: Sequence[str | None], query_category: str | None, n_relevant: int, k: int
+) -> float | None:
+    """Recall OF THE GALLERY: hits / the relevant candidates this query could still be answered by.
+
+    ``n_relevant`` is per query AND per condition (T0 keeps the exact shape, T1 removes it, T2 also
+    removes the rigid near-duplicates), so the denominator is deliberately not a constant: under
+    T2 some MPEG-7 queries retain 2 same-class candidates and others 4, and one shared denominator
+    would silently reweight the queries. ``None`` means "nothing relevant was left to find", which
+    is undefined rather than a failed retrieval, so the caller must count the scored cells instead
+    of folding the undefined ones into the mean as zeroes.
+    """
+    if n_relevant < 0:
+        raise ValueError("n_relevant cannot be negative")
+    hits = same_class_hits_in_top_k(categories, query_category, k)
+    if n_relevant == 0:
+        return None
+    return float(hits / int(n_relevant))
+
+
+def class_recall_at_k(
+    categories: Sequence[str | None], query_category: str | None, k: int
+) -> float:
+    """LEGACY name for :func:`precision_at_k` -- this has always been Precision@K.
+
+    The stored ``class_recall_at_k`` columns and figures are this number, so the definition is kept
+    byte-identical instead of being "corrected" into recall after the fact. New reporting calls
+    :func:`precision_at_k` and, separately, :func:`recall_at_k` (P0-4.6 CP8-A2).
+    """
+    return precision_at_k(categories, query_category, k)
+
+
+ROTATION_VIEW = "rotation_only"
+CONTROL_VIEW = "unrotated_control"
+VIEWS: tuple[str, str] = (ROTATION_VIEW, CONTROL_VIEW)
+
+
+def split_rotation_and_control(
+    rows: Sequence[Mapping[str, Any]], *, control_slot: str = "control"
+) -> dict[str, list[Mapping[str, Any]]]:
+    """Separate the turned-query cells from the 0-degree control cells, and never pool them.
+
+    A control cell asks the same question as an unrotated retrieval, so every arm scores it well:
+    averaging the 12 controls into the 60 rotated cells raised the measured rotation behaviour of a
+    pose-blind arm by a factor of two in CP6's ``d6/1`` table. Rotation metrics are therefore
+    reported over the rotated cells only, and the controls are reported as their own view where
+    they are a drift check on the pipeline, not a stability measurement.
+
+    Nothing is dropped: the two lists together are exactly the input rows. A cell whose ``slot``
+    label and ``angle_deg`` disagree raises instead of being quietly re-pooled, because a design
+    change that slips through as a filter is the failure mode this split exists to prevent.
+    """
+    rotated: list[Mapping[str, Any]] = []
+    control: list[Mapping[str, Any]] = []
+    for row in rows:
+        slot = row.get("slot")
+        if not isinstance(slot, str) or not slot:
+            raise ValueError(f"cell has no usable slot label: {slot!r}")
+        angle = row.get("angle_deg")
+        if angle is not None:
+            is_unrotated = float(angle) == 0.0
+            if (slot == control_slot) != is_unrotated:
+                raise ValueError(
+                    f"slot={slot!r} but angle_deg={float(angle)}: a control row that is no longer "
+                    "unrotated, or a rotated row parked at 0 degrees, is a design change -- it "
+                    "must not pass through here as a filtering detail"
+                )
+        (control if slot == control_slot else rotated).append(row)
+    return {ROTATION_VIEW: rotated, CONTROL_VIEW: control}
 
 
 def top_k_overlap(order_a: np.ndarray, order_b: np.ndarray, k: int) -> float:
