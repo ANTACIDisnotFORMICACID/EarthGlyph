@@ -681,3 +681,51 @@ def test_the_frame_buys_invariance_where_an_axis_exists_and_nothing_where_it_doe
     assert abs(canonical_star[0] - raw_star[0]) < 0.5, (canonical_star[0], raw_star[0])
     assert int(canonical_star.argmin()) == 0
     assert "isotropic_shapes_lose_rotation_invariance" in e1.POLICY["known_limitations"]
+
+
+def test_the_library_feature_cache_is_content_addressed_and_bounded(
+    corpus: dict[str, np.ndarray],
+) -> None:
+    """The mechanism behind D87: one arm's per-search cost has two values, and which one a
+    table records depends on whether that *candidate set* had been scored before.
+
+    ``features_for_library`` keys its cache by a sha256 of the stacked candidate array and
+    keeps only ``max_entries`` sets, so re-scoring the same set is free while scoring a new
+    subset re-extracts every row of it. That is the only reason CP8's E1 cost column reads
+    0.031 s/search (one fixed gallery, drops applied after scoring, so every search hits) and
+    D2's reads 11.1-11.3 s for 21 of 24 cells (a new subset per condition) — which is why a
+    cross-table "N times faster" is inadmissible. The cache is process-global and other tests
+    warm it, so every assertion is a delta and every key here is content this test alone makes.
+    """
+    rows = np.stack([corpus[name] for name in sorted(corpus)]) * 1.000000000001
+    limit = int(e1.cache_stats()["max_entries"])
+    base = e1.cache_stats()
+
+    def deltas() -> tuple[int, int]:
+        current = e1.cache_stats()
+        hits = int(current["hits"]) - int(base["hits"])
+        return hits, int(current["misses"]) - int(base["misses"])
+
+    assert deltas() == (0, 0)
+    first = e1.features_for_library(rows)
+    assert deltas() == (0, 1), "a candidate set nobody has scored yet is a miss"
+    second = e1.features_for_library(rows)
+    assert deltas() == (1, 1), "the same set again is a hit"
+    assert np.array_equal(first, second)
+    first[...] = 0.0
+    assert np.array_equal(
+        e1.features_for_library(rows), second
+    ), "a hit hands back a copy, so a caller cannot poison the cache"
+    assert deltas() == (2, 1)
+
+    e1.features_for_library(rows[:-1])
+    assert deltas() == (2, 2), "one fewer candidate is a different key"
+
+    # Push `limit` distinct fresh sets through the store; whatever was cached before them is
+    # gone by construction, so asking for the original set again must miss.
+    for index in range(limit):
+        e1.features_for_library(np.concatenate([rows[:3], rows[index : index + 1]]))
+    assert deltas() == (2, 2 + limit)
+    e1.features_for_library(rows)
+    assert deltas() == (2, 3 + limit), "the store is bounded, so an old set has to be rebuilt"
+    assert int(e1.cache_stats()["entries"]) == limit

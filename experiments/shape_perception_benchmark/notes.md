@@ -1737,3 +1737,119 @@ no human ratings collected, so the perceptual axis is *not* independently valida
 must say so rather than imply it. Design drift is refused in code: a differing `content_sha256` on disk
 aborts and tells the caller to bump `CP8_SCHEMA` and the seed and keep the old file, which is the only
 legitimate route to a second independent study.
+
+## Checkpoint 8 — CP8-C: the six arms run against 24 shapes nobody had queried (2026-11-10)
+
+The promise CP8-B froze is now spent, and it was spent in one direction: nothing was re-drawn.
+`python scripts/run_shape_benchmark.py --stage cp8` re-derives the 120 angles from the seed and refuses
+to start unless the re-derived `content_sha256` and the archive sha match the committed design, so the
+run cannot silently score a different sample than the one that was promised.
+
+### C1. Provenance ordering, and the scale actually measured
+
+The stage was committed (`730b52f`) and the figure script (`f97eec8`) **before** the run started, so the
+`git_commit` stamped inside `independent_metrics.json` names a tree that already contains the code that
+produced the numbers — an artefact cannot cite a commit that only exists after it. Full measured table
+in `checkpoint8/notes.md` §4.1; the short form: python 3.12.10 / numpy 2.5.4, seed 20261110, gallery =
+the whole MPEG-7 archive (**1 398** usable contours of 1 400, 70 classes — *not* D6's 5-per-class
+subset, which is why cross-table quotes are about rank and direction, never about digits), official
+`.h5` weights read-only, **1 728** cells / **17 280** per-rank hit rows / 24 exclusion rows / **858**
+stored full rankings, 8 184.8 s of searching + 394.36 s of one-time precompute + 5.60 s of summary
+inside an 8 617.5 s process.
+
+### C2. The headline: four axes, kept apart
+
+T2, `rotation_only` view, 120 cells per arm, intervals clustered by original query (24 clusters — 120
+rows are not 120 observations):
+
+| arm | ① same-class Top-1 [95% CI] | ② Top-1 stability [95% CI] | ③ Top-10 overlap | ④ s/search |
+|---|---|---|---|---|
+| E0 | 0.833 [0.667, 0.958] | **1.000** [1.000, 1.000] | 1.000 | 0.123 |
+| E1 | 0.792 [0.625, 0.958] | **1.000** [1.000, 1.000] | 1.000 | 0.031 |
+| E3/sample | **0.858** [0.725, 0.967] | 0.550 [0.417, 0.683] | 0.707 | **56.10** |
+| S0K1/R3 | **0.858** [0.717, 0.967] | 0.542 [0.417, 0.675] | 0.720 | 0.163 |
+| S0K2/R3 | 0.825 [0.683, 0.942] | 0.483 [0.358, 0.617] | 0.670 | 0.301 |
+| S0K2/R2 | 0.833 [0.708, 0.958] | **1.000** [1.000, 1.000] | 1.000 | **0.008** |
+
+On the independent sample the rotation wrappers buy **nothing findable**: ① is a 0.825–0.858 band whose
+intervals overlap almost completely, while ② splits the six arms by construction (pose-blind 1.000,
+wrapped 0.48–0.55). Precision@10 0.538–0.745, Recall@10 0.294–0.404 on per-query denominators, NDCG@10
+0.596–0.778 and class MRR 0.861–0.899 spread the same way ① does — no ordering appears that would
+rescue the wrappers. The single most informative movement is E1: first of sixteen arms on D6
+(0.83333) and last of six here (0.79167). That is not a regression in E1; it is the answer to the
+question CP8 existed to ask, and it is why the D6 ranking must now be quoted as exploratory.
+T0 (target in the gallery, full library) reads E0/E1 Top-1 exact 1.000, S0K2/R2 0.958, wrapped and
+sampled arms 0.75–0.82 — that column certifies wiring, and only wiring.
+
+### C3. Four reading defects found by chasing numbers that did not add up
+
+Each was surfaced by a reconciliation that failed, not by a test that was expected to pass, and each is
+now fixed in code, tests and prose without touching the frozen draw:
+
+- **A repeated angle is legal** (`lizzard-3` drew `mid_grid` 127.5° twice) ⇒ 864 T2 cells collapse to
+  858 pose keys, and 120 rotated cells rest on **119** distinct poses. The fix is semantic, not
+  statistical: pose-keyed lookups became group-sums with a forced agreement check
+  (`plot_checkpoint8.py::pose_hits()` exits if a rank group holds two different searches), and the
+  report now says "120 cells / 119 distinct poses" instead of letting the cell count imply independence
+  (D84). Redrawing the angle would have been the prohibited act with extra steps.
+- **`elapsed_seconds` is one search copied onto both condition rows** — verified identical in all 858
+  groups — so summing the 1 728-row table yields 16 369.6 s, exactly twice the true 8 184.8 s. Pinned by
+  `test_the_cost_column_counts_searches_not_rows`, and the remainder (8 584.8 s accounted vs 8 617.5 s
+  process) is published so no time is unclassified (D85).
+- **`forward_passes` counts the poses a search ran** (R3 = 24 + 24 = 48, R2 = 1 + 1 = 2), not the
+  gallery precompute — the 394.36 s one-time cost stays listed separately, per the standing rule that a
+  speed claim must charge precompute to every query it is compared against.
+- **④ is cache-state, not arm physics** (found while cross-reading this README in CP8-D, where D2's
+  "E1 ≈ 12 s per query" and CP8's "E1 = 0.031 s per search" both appear, unreconciled). E1 re-extracts
+  its 91-D descriptors per *candidate set* and caches them by a sha256 of the stacked array
+  (`earthglyph/retrieval/perceptual_features.py:1133`, 4 sets retained, `:236`). Measured on 1 398
+  candidates: hit **0.029–0.032 s**, miss **10.94–10.97 s**. CP8 scores one full gallery and drops
+  candidates after scoring, so the extraction is paid once inside `precompute_seconds.gallery`
+  (11.489 s) and every one of E1's 144 searches hits; D2 changes the candidate set per condition, so its
+  E1 timings are bimodal (21 of 24 cells at 11.1–11.3 s, 3 at 0.031–0.032 s). The mechanism is verified;
+  which specific cells hit was not reconstructed. Consequence (D87): a cost comparison is only admissible
+  within one table and one cache state, and neither number may be restated as the other.
+
+### C4. Verification, artefacts and boundaries
+
+`python -m pytest -q -o addopts=""` → **1007 passed** (CP8-B round: 948; new in
+`test_shape_benchmark_cp8_run.py` and `test_shape_benchmark_cp8_figures.py`: the cell/hit/ranking
+triangulation, the group-sum and cost-column tests above, per-arm cost ordering, design binding,
+gallery arithmetic against `dataset_manifest.json`, the four axes kept apart, and the figure script's
+three failure branches). Three assertions I had written myself were wrong and were corrected at their
+basis — a hardcoded 1 400, a one-to-one pose lookup, and a `len(groups) − len(repeated)` count — **no
+existing assertion was deleted, skipped or weakened**, and the brittle wall-clock literals were removed
+rather than tuned. `ruff check .` clean, `mypy` clean on 41 source files. Six PNGs + two JSON views +
+four data tables in `checkpoint8/`, with byte sizes and sha256 recorded in `checkpoint8/notes.md` §4.1;
+`plot_checkpoint8.py` exits rather than plot from a smoke table or a design whose hash moved.
+Still open, stated as open: **0 new human ratings** (the perceptual axis is not independently validated
+and the H1 agreement column comes from different stimuli), **near_circle 0/4** (the isotropic case a
+wrapper should provably win nothing on is untested, so the result must not be reported as "circles
+prove wrappers useless"), 6 arms of the frozen 16, and a mean ③ that hides bimodality (min 0.053–0.250,
+mean rank shift 18.9–22.9, max 401–483) which must be quoted with its worst case.
+
+## Checkpoint 8 — CP8-D: the ten answers, and where this round stops (2026-11-10)
+
+The ten brief questions are answered with numbers in `docs/EXPERIMENTS.md` (§ "CP8 最终报告：十个问题");
+the four methodological decisions are D84/D85/D86/D87 in `docs/DECISIONS.md`; the run narrative is in
+`experiments/experiment_log.md`. The one-sentence answer to question 9 — *is this sample large enough
+to fix a default?* — is **no**: the ① differences are smaller than their intervals while the ④
+differences are larger than any ① difference, and single metrics do not get to declare winners. So
+EarthGlyph's production retrieval default is unchanged, no new default arm is introduced, and whether
+E3 becomes a formal reranker is left for the user to decide after review (same boundary as D82).
+Question 10's answer is *new ratings on these 24 queries and the isotropic family*, in that order —
+a larger MPEG-7 gallery would sharpen ① and ③ but would still say nothing about perception, which is
+the only axis this round could not touch.
+
+The audit itself found one more thing worth fixing, and it is a documentation defect rather than a
+measurement one: this README carried D2's "E1 ≈ 12 s per query" and CP8's "E1 = 0.031 s per search"
+without reconciling them. The cause is measured and now pinned by a test
+(`tests/test_perceptual_features.py::test_the_library_feature_cache_is_content_addressed_and_bounded`)
+— see C3's fourth bullet and D87 — and question 3 of the report gained an (e) for it.
+Verification after the doc pass: `python -m pytest -q -o addopts=""` **1008 passed** (CP8-C round:
+1007), `ruff check .` clean, `mypy` clean on 41 source files.
+**Explicitly not done, per the brief:** no P1 Web work, no retraining or parameter tuning, no
+modification of official MATLAB sources or `.h5` weights, no real water-body database, no overwrite of
+any historical CSV, no H1-based tuning presented as an independent test. Commits: `730b52f` (stage),
+`f97eec8` (figures), `a892a4e` (published run + duplicate-aware figures), and the documentation
+checkpoint that follows.

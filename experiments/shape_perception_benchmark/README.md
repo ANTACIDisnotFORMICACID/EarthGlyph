@@ -82,7 +82,23 @@ invariant wrapper, unvalidated here.
 > [Checkpoint 7](#checkpoint-7--rotation-methods-r0r1r2r3-official-port-audit-and-the-d5-statistics-fix)
 > below and `notes.md` §C3–C5; the ShapeComp route is **not** recommended for production retrieval.
 
-Per-query cost at ~1400 candidates: E0 ≈ 0.1 s, E1 ≈ 12 s, E3 ≈ 55 s. The networks score the gallery
+> **Correction (2026-11-10, Checkpoint 8).** Both clauses above are **exploratory** — they were measured
+> on the same 12 queries the wrappers were designed and tuned on. CP8-B/C froze a separate sample (24
+> MPEG-7 queries that never entered a scored cell, seed 20261110, whole 1 398-shape gallery, design
+> committed before any retrieval) and ran six arms on it. There, all six land inside one
+> **0.825–0.858** same-class Top-1 band with heavily overlapping cluster intervals, and E1 is **last of
+> six** (0.792) rather than first — so "no wrapper reaches E1's Top-1" does *not* survive as a ranking
+> claim. Nor does the opposite claim: raising rotation stability to 1.000 is not what the wrappers do
+> (they sit at 0.48–0.55 while the three pose-blind arms are 1.000 by construction), and that costs
+> ① nothing. The production recommendation is unchanged, but its evidence is now an independent sample,
+> with **0 new human ratings** and **near_circle 0/4 coverage** stated as its limits. See
+> [CP8-C / CP8-D](#cp8-c--cp8-d--the-independent-run-and-what-it-said) and
+> `checkpoint8/notes.md` §5.
+
+Per-query cost at ~1400 candidates: E0 ≈ 0.1 s, E1 ≈ 12 s, E3 ≈ 55 s. The E1 figure is **not** a fixed
+property of the arm — it is the cost of re-extracting 91-D descriptors for a candidate set that was not
+already in the 4-entry feature cache; see [CP8-C / CP8-D](#cp8-c--cp8-d--the-independent-run-and-what-it-said)
+and D87. The networks score the gallery
 **once** (absolute coords, no corpus fitting; ~20 s one-time) then each query is a single forward
 pass + L2 → **≈ 0 s marginal**, far cheaper than E3 at query time — but rotation-sensitive.
 
@@ -400,6 +416,58 @@ counts, so loosening a threshold later is a visible change of study, not a fix.
 **refuses to rewrite** a differing file (a genuinely new study needs a new schema and seed, with the
 old file kept). The file contains no distance, rank or hit — checked by a test that walks every key.
 
+### CP8-C / CP8-D — the independent run, and what it said
+
+`--stage cp8` scored all six arms on that frozen sample: 1 728 cells (6 arms × 24 queries × 6 poses ×
+2 conditions), 17 280 per-rank hit rows, 24 exclusion rows and 858 stored full rankings, in 8 617.5 s
+wall clock (`git_commit f97eec8`, python 3.12.10, numpy 2.5.4, archive sha `ce8d87409d1b87b0…`).
+The gallery is the whole archive minus the two GIFs the contour loader refuses — **1 398** shapes, not
+the 5-per-class D6 subset, so CP8 numbers are quoted against D6 for **direction and rank only**, never
+digit-for-digit.
+
+**The verdict is no.** On four axes that must be read separately (T2, `rotation_only`, 120 cells/arm,
+intervals clustered by query):
+
+| arm | ① Top-1 same class | ② Top-1 stable | ③ Precision@10 | Recall@10 | NDCG@10 | ④ s/search |
+|---|---|---|---|---|---|---|
+| E0 | 0.833 [0.667, 0.958] | **1.000** | 0.675 | 0.365 | 0.713 | 0.123 |
+| E1 | 0.792 [0.625, 0.958] | **1.000** | 0.725 | 0.397 | 0.747 | 0.031 |
+| E3/sample | **0.858** [0.725, 0.967] | 0.550 | **0.745** | **0.404** | **0.778** | **56.10** |
+| S0K1/R3 | **0.858** [0.717, 0.967] | 0.542 | 0.678 | 0.366 | 0.715 | 0.163 |
+| S0K2/R3 | 0.825 [0.683, 0.942] | 0.483 | 0.630 | 0.338 | 0.668 | 0.301 |
+| S0K2/R2 | 0.833 [0.708, 0.958] | **1.000** | 0.538 | 0.294 | 0.596 | **0.008** |
+
+The wrappers buy a large drop on ② (1.00 → 0.48–0.55) and no gain on ① or ③; the arm spread on ① is
+0.033 against intervals 0.24–0.33 wide. And the ranking itself moved between samples: E1 was **first**
+on D6's twelve queries (0.83333) and is **last** of six here (0.79167). That is the finding CP8 exists to
+produce — a ranking measured on the sample the method was designed against does not transfer, so
+**no default changes** (D86) and no single metric is quoted as a winner.
+
+Three reading defects were found in the artefacts themselves and are recorded, not repaired by re-running:
+
+- **A repeated angle is legal.** The slot sampler draws each query's five angles independently, so
+  `lizzard-3` received `mid_grid` 127.5° twice. 120 rotated cells therefore rest on **119** distinct
+  poses, and 864 T2 cells collapse onto the 858 keys the ranking table stores. Verified lossless: the
+  duplicate rows agree on every column except the wall clock, and 120 duplicated hit keys disagree on
+  candidate or distance **zero** times. The fix is in the readers, not the sample — `pose_hits()` in
+  `scripts/plot_checkpoint8.py` joins by group and aborts if a group disagrees (D84).
+- **`elapsed_seconds` is one search copied onto two condition rows.** Summing the column over 1 728
+  rows gives 16 369.6 s where 8 184.8 s was actually spent across 864 searches. The published
+  `seconds_per_query_mean` is a within-view mean and is unaffected; only "total time" prose was at
+  risk. Reconciliation: 8 184.8 + 394.36 precompute + 5.60 summary = 8 584.8 s, 32.7 s short of the
+  process wall clock, which is archive decode, design re-derivation, hashing and writes (D85).
+- **④ is a warm-cache marginal cost, so it must not be set beside D2's "E1 ≈ 12 s".** E1 extracts its
+  91-D descriptors per *candidate set* and caches them by a content hash of the stacked array
+  (`perceptual_features.py:1133`, only 4 sets retained, `:236`). Measured here on 1 398 candidates: a
+  hit costs **0.029–0.032 s**, a miss **10.94–10.97 s**. CP8 scores one full gallery and applies its
+  drops after scoring, so the library build pays the extraction once (`precompute_seconds.gallery`
+  11.489 s) and all 144 of E1's searches hit; D2 changes the candidate set per condition, which is why its E1
+  timings are bimodal (21 cells at 11.1–11.3 s, 3 at 0.031–0.032 s). Same instrumentation, different
+  cache state — so a speed claim has to name both, and no cross-table "N times faster" is quoted (D87).
+
+`checkpoint8/notes.md` is the reader's guide (file inventory, both denominators, all 31 columns, the
+measured provenance table, limits, and the eyeball checklist for the six figures).
+
 ## Files
 
 | Path | Contents |
@@ -436,6 +504,14 @@ old file kept). The file contains no distance, rank or hit — checked by a test
 | `checkpoint7/` | the five CP7 PNGs: `rotation_methods_overview`, `rotation_rank_stability`, `rotation_human_agreement`, `rotation_failure_cases`, `shapecomp_port_diagnostics` |
 | `checkpoint8/independent_validation_design.json` | **CP8-B, frozen before any retrieval**: 24 new queries (family, class, 128-point descriptors), 5 seeded angles each + control, slot arithmetic, 6 arm labels, T2/T0 roles, two-view cell counts, the self-audit that scores 17/24 against its own family criteria, what is *not* independent, and the provenance block (archive sha256, numpy, commit). `content_sha256 d8589fe8…` |
 | `../earthglyph/shape_benchmark/independent_validation.py` | the CP8-B rules as code: family specs, burned-stem list, angle drawer, seeded class-pool selector, descriptor probes, coverage-audit criteria, `design_content_sha256` |
+| `checkpoint8/cp8_retrieval_results.csv` | **CP8-C**: 1 728 cells, one row per (arm, condition, query, pose) with all 31 statistics. `slot` vs `angle_deg` contradiction raises |
+| `checkpoint8/cp8_top10_hits.csv` | 17 280 per-rank rows (candidate id, category, distance, same-class) — the numerator any ratio column can be re-counted from |
+| `checkpoint8/cp8_exclusions.csv` | 24 rows: what T2 dropped per query (target + E0 near-duplicates), shared by all six arms so the arms stay comparable |
+| `checkpoint8/cp8_full_rankings_T2.npz` | 858 full T2 rankings (`arm|query|pose`, int32, right-padded −1) so displacement, NDCG and MRR recompute without running an encoder |
+| `checkpoint8/independent_metrics.json` | both denominators per arm, per-slot split, query-clustered CIs, arm rankings, timings, precompute cost, and the **empty** human-perception claim (`new_ratings_collected: 0`) |
+| `checkpoint8/corrected_metrics.json` | the CP8-A correction as a readable view; `authority.path` points at the authoritative `results/d6_rotation_metrics_corrected.json` |
+| `checkpoint8/*.png` | six figures, drawn only from the stored tables: denominator comparison, same-query six-arm Top-5, Top-1 by family, angle scatter (no 0°), headline + clustered intervals, per-arm worst stored miss |
+| `checkpoint8/notes.md` | reader's guide: file inventory, two denominators, 31-column glossary, repro commands, **measured** provenance table, limits, eyeball checklist |
 | `../earthglyph/shape_benchmark/rotation_methods.py` | the four pose policies R0/R1/R2/R3 + `canonicalise` / `pose_embedding` (48 tests run without the toolbox) |
 | `../earthglyph/shape_benchmark/shapecomp_port.py` | the MATLAB → numpy translation of the official preprocessing and both `.h5` forward passes |
 | `../earthglyph/retrieval/shape_context_baseline.py` | `search_shape(..., allow_mirror=...)`, whose mirror branch is now refused on arms that lack one (F2) |
@@ -479,6 +555,13 @@ old file kept). The file contains no distance, rank or hit — checked by a test
 #     scores nothing). Re-running freezes nothing new: a differing design is DESIGN DRIFT and
 #     aborts. Use --check to verify the committed file without writing.
 .venv/Scripts/python.exe scripts/design_checkpoint8_validation.py --check
+
+# 6d. the CP8-C independent run (~2.4 h; scores the frozen 24 queries on the six frozen arms).
+#     It re-derives content_sha256, all 120 angles and the archive sha before scoring anything, and
+#     a --limit-queries smoke run writes only to checkpoint8/_smoke (gitignored), so a partial
+#     sample can never be read as the promised 24-query table.
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage cp8
+.venv/Scripts/python.exe scripts/plot_checkpoint8.py    # six figures + corrected_metrics.json
 
 # 7. read-only verifications that back specific claims
 .venv/Scripts/python.exe scripts/verify_r2_pose_invariance.py            # -> results/r2_pose_invariance_check.json
