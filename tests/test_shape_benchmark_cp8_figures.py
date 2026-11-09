@@ -318,6 +318,35 @@ def test_cells_of_refuses_a_table_that_disagrees_with_its_own_record(
 # --------------------------------------------------------------------------- the drawn order
 
 
+def _pose_row(rank: int, shape_id: str, distance: float = 0.1) -> dict[str, str]:
+    return {
+        "arm": "E0",
+        "query_id": "mpeg7_q",
+        "condition": "T2",
+        "pose": "rotate_127.5",
+        "rank": str(rank),
+        "shape_id": shape_id,
+        "distance": f"{distance:.4f}",
+    }
+
+
+def test_a_repeated_pose_label_collapses_only_when_it_is_the_same_search(plot: Any) -> None:
+    """lizzard-3 drew mid_grid 127.5 deg twice, so one label really does hold two blocks."""
+    rows = [_pose_row(rank, f"mpeg7_s{rank}") for rank in range(1, 11)]
+    block = plot.pose_hits(rows, "E0", "mpeg7_q", "rotate_127.5", top=10)
+    assert [row["rank"] for row in block] == [str(rank) for rank in range(1, 11)]
+
+    doubled = [*rows, *[dict(row) for row in rows]]
+    assert plot.pose_hits(doubled, "E0", "mpeg7_q", "rotate_127.5", top=10) == block
+
+    conflict = [*rows, _pose_row(3, "mpeg7_other", distance=0.9)]
+    with pytest.raises(SystemExit, match="two different searches"):
+        plot.pose_hits(conflict, "E0", "mpeg7_q", "rotate_127.5", top=10)
+
+    with pytest.raises(SystemExit, match="not 1..10"):
+        plot.pose_hits(rows[:9], "E0", "mpeg7_q", "rotate_127.5", top=10)
+
+
 def _hit(rank: int, distance: float, shape_id: str) -> dict[str, str]:
     return {
         "rank": str(rank),

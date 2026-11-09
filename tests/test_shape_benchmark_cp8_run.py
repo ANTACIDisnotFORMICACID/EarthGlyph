@@ -678,7 +678,15 @@ def test_published_exclusions_are_shared_by_all_arms(stored_metrics: dict[str, A
 
 @needs_published
 def test_published_hits_table_reproduces_the_cell_numerators() -> None:
-    """Three tables, one story: the per-rank rows must count the same hits the ratio claims."""
+    """Three tables, one story: the per-rank rows must count the same hits the ratio claims.
+
+    A pose label is not promised unique. The frozen slot sampler draws each query's five angles
+    independently, so a query can receive the same angle twice -- measured here once, on
+    ``lizzard-3`` at ``mid_grid`` 127.5 deg, for six cells (one per arm). Both cells are the same
+    search repeated, so the per-rank table holds two Top-10 blocks under one label: the join is a
+    group sum with the group forced to agree, not a one-to-one lookup that would read a repeated
+    measurement as a contradiction.
+    """
     cells = _read(OUT / "cp8_retrieval_results.csv")
     hits = _read(OUT / "cp8_top10_hits.csv")
     counted: dict[tuple[str, str, str, str], int] = {}
@@ -686,16 +694,120 @@ def test_published_hits_table_reproduces_the_cell_numerators() -> None:
         if int(row["rank"]) <= CP8_TOP_K and row["is_same_class"] == "1":
             key = (row["arm"], row["condition"], row["query_id"], row["pose"])
             counted[key] = counted.get(key, 0) + 1
-    checked = 0
+    groups: dict[tuple[str, str, str, str], list[dict[str, str]]] = {}
     for row in cells:
         if row["condition"] != "T2":
             continue
-        angle = float(row["angle_deg"])
-        pose = "unrotated" if row["slot"] == CP8_CONTROL_SLOT else f"rotate_{angle:g}"
-        key = (row["arm"], row["condition"], row["query_id"], pose)
-        assert counted.get(key, 0) == int(row["same_class_hits_at_10"]), key
-        checked += 1
-    assert checked == 6 * 24 * 6
+        pose = (
+            "unrotated"
+            if row["slot"] == CP8_CONTROL_SLOT
+            else f"rotate_{float(row['angle_deg']):g}"
+        )
+        groups.setdefault((row["arm"], row["condition"], row["query_id"], pose), []).append(row)
+    assert sum(len(group) for group in groups.values()) == 6 * 24 * 6
+    repeated = {key: group for key, group in groups.items() if len(group) > 1}
+    assert len(groups) == 858, "the stored ranking table keys on this same group"
+    assert len(repeated) == 6, "one repeated angle x six arms is the whole story here"
+    for key, group in groups.items():
+        assert counted.get(key, 0) == sum(
+            int(row["same_class_hits_at_10"]) for row in group
+        ), key
+        if len(group) > 1:
+            # The only column two identical searches may differ in is the wall clock they took.
+            for column in group[0]:
+                if column != "elapsed_seconds":
+                    assert len({row[column] for row in group}) == 1, (key, column)
+
+
+@needs_published
+def test_the_stored_full_rankings_collapse_only_repeated_poses(
+    stored_metrics: dict[str, Any]
+) -> None:
+    """858 rankings for 864 T2 cells: the six absent keys have to be the repeats, not losses.
+
+    ``cp8_full_rankings_T2.npz`` is keyed ``arm|query|pose``, so a query that drew the same angle
+    twice writes one ranking where two cells exist. That is only harmless if the two cells really
+    are the same measurement (the test above) and if nothing else went missing -- hence the count
+    is pinned here against the cell table itself, and every stored row must be a real permutation
+    of exactly ``n_kept`` candidates.
+    """
+    path = OUT / "cp8_full_rankings_T2.npz"
+    with np.load(path, allow_pickle=False) as store:
+        keys = [str(key) for key in store["keys"]]
+        orders = np.asarray(store["orders"])
+        lengths = np.asarray(store["lengths"])
+    assert len(set(keys)) == len(keys), "two cells wrote the same key with different content"
+    assert len(keys) == stored_metrics["rows_written"]["full_rankings_stored"] == 858
+    cells = _read(OUT / "cp8_retrieval_results.csv")
+    kept: dict[str, int] = {}
+    for row in cells:
+        if row["condition"] != "T2":
+            continue
+        pose = (
+            "unrotated"
+            if row["slot"] == CP8_CONTROL_SLOT
+            else f"rotate_{float(row['angle_deg']):g}"
+        )
+        key = f"{row['arm']}|{row['query_id']}|{pose}"
+        if key in kept:
+            assert kept[key] == int(row["n_kept"]), key
+        else:
+            kept[key] = int(row["n_kept"])
+    assert sorted(keys) == sorted(kept), "the ranking table and the cell table disagree on scope"
+    for row, key in enumerate(keys):
+        length = int(lengths[row])
+        assert length == kept[key], key
+        ranking = orders[row][:length]
+        assert np.all(ranking >= 0) and np.all(orders[row][length:] == -1), key
+        assert len(set(ranking.tolist())) == length, key
+
+
+@needs_published
+def test_the_cost_column_counts_searches_not_rows(stored_metrics: dict[str, Any]) -> None:
+    """``elapsed_seconds`` is the cost of one *search*, copied onto both condition rows.
+
+    The runner scores T0 and T2 from the same distance vector, so it times the search once and
+    writes that number twice. A reader who sums the column over all 1 728 rows therefore reports
+    double the real cost -- and the honest total is what ``notes.md`` publishes, so the arithmetic
+    behind it is pinned here rather than trusted from a comment.
+    """
+    cells = _read(OUT / "cp8_retrieval_results.csv")
+    groups: dict[tuple[str, str, str], list[dict[str, str]]] = {}
+    for row in cells:
+        pose = (
+            "unrotated"
+            if row["slot"] == CP8_CONTROL_SLOT
+            else f"rotate_{float(row['angle_deg']):g}"
+        )
+        groups.setdefault((row["arm"], row["query_id"], pose), []).append(row)
+    assert len(groups) == 858
+    # A repeated pose is a *second* search, so a group can hold two timers. Splitting on the timer
+    # value is what turns "rows" back into "searches" without guessing which row came first.
+    searches: dict[str, list[float]] = {}
+    repeated_poses = 0
+    for (arm, _query_id, _pose), group in groups.items():
+        by_timer: dict[str, set[str]] = {}
+        for row in group:
+            by_timer.setdefault(row["elapsed_seconds"], set()).add(row["condition"])
+        assert all(conditions == {"T0", "T2"} for conditions in by_timer.values()), group
+        assert len(by_timer) in (1, 2), "a pose is drawn at most twice per query"
+        repeated_poses += len(by_timer) - 1
+        for timer in by_timer:
+            searches.setdefault(arm, []).append(float(timer))
+    assert repeated_poses == 6, "the one repeated draw x six arms, recorded in notes.md 2.1"
+    n_searches = sum(len(values) for values in searches.values())
+    assert n_searches == 6 * 144, "one search per (arm, query, pose-instance), both conditions"
+    unique = sum(sum(values) for values in searches.values())
+    naive = sum(float(row["elapsed_seconds"]) for row in cells)
+    assert naive == pytest.approx(2 * unique, rel=1e-9)
+    per_arm = {arm: sum(values) for arm, values in searches.items()}
+    assert per_arm["S0K2/R2"] < per_arm["E1"] < per_arm["E0"] < per_arm["S0K1/R3"]
+    assert per_arm["S0K1/R3"] < per_arm["S0K2/R3"] < per_arm["E3/sample"]
+    provenance = stored_metrics["provenance"]
+    precompute = sum(float(value) for value in provenance["precompute_seconds"].values())
+    # The search time dominates everything else, which is why the double count matters: a reader
+    # who sums rows instead of searches inflates the whole run by the search time itself.
+    assert unique > 5 * precompute
 
 
 @needs_published
@@ -708,7 +820,16 @@ def test_published_run_binds_the_design_it_promised(stored_metrics: dict[str, An
     assert stored_metrics["provenance"]["dataset"]["archive_sha256"] == design["provenance"][
         "dataset"
     ]["archive_sha256"]
-    assert stored_metrics["provenance"]["gallery"]["n_shapes"] == 1400
+    # The gallery is the archive minus what the contour loader refuses to decode, not a number
+    # picked to make the table look right.
+    manifest = json.loads((BENCH / "dataset_manifest.json").read_text(encoding="utf-8"))["mpeg7"]
+    dataset = stored_metrics["provenance"]["dataset"]
+    assert dataset["stimulus_count"] == manifest["stimulus_count"]
+    assert dataset["images_excluded_by_contour_loader"] == 2
+    assert (
+        stored_metrics["provenance"]["gallery"]["n_shapes"]
+        == manifest["stimulus_count"] - dataset["images_excluded_by_contour_loader"]
+    )
     assert stored_metrics["provenance"]["smoke_run"]["published"] is True
     assert [arm["label"] for arm in stored_metrics["arms"]] == list(CP8_ARMS)
     assert all(arm["blocked"] is False for arm in stored_metrics["arms"])

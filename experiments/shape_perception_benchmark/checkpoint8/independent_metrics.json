@@ -1,0 +1,3592 @@
+{
+  "schema": "earthglyph.shape_perception_benchmark/independent_validation_results/1",
+  "task": "P0-4.6 CP8-C",
+  "objective": "test the frozen rotation wrappers on a sample that never entered any earlier grid, after CP8-A made the existing statistics trustworthy",
+  "design": {
+    "path": "experiments/shape_perception_benchmark/checkpoint8/independent_validation_design.json",
+    "sha256": "fdc4e019e0e8484c01718aac5d15fa520683b17d620bd3ae99ac11c1c4c507be",
+    "content_sha256": "d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0",
+    "seed": 20261110,
+    "n_queries": 24,
+    "n_rotated_angles_per_query": 5,
+    "n_control_cells_per_arm_condition": 24,
+    "conditions": [
+      "T2",
+      "T0"
+    ],
+    "primary_condition": "T2",
+    "check_condition": "T0",
+    "t2_threshold_e0": 0.05,
+    "top_k": 10,
+    "rotation_step_deg": 15.0,
+    "frozen_before_run": true,
+    "gate": "the runner re-derived the content hash, all 120 angles from the seed, the arm labels and the cell arithmetic before scoring anything, and aborts on any mismatch: an independent test is only independent if the sample cannot have moved after the freeze"
+  },
+  "provenance": {
+    "command": "python scripts/run_shape_benchmark.py --stage cp8",
+    "generated_by_python": "3.12.10",
+    "numpy": "2.5.4",
+    "git_commit": "f97eec8ac9d544fbe15d9aba80b270747935cd24",
+    "dataset": {
+      "name": "MPEG-7 CE-Shape-1 (S1)",
+      "url": "https://dabi.temple.edu/external/shape/MPEG7/MPEG7dataset.zip",
+      "archive_sha256": "ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d",
+      "archive_sha256_gate": "the run refuses to start unless the archive on disk is the build the design was frozen against",
+      "stimulus_count": 1400,
+      "class_count": 70,
+      "images_excluded_by_contour_loader": 2
+    },
+    "gallery": {
+      "name": "mpeg7_full",
+      "n_shapes": 1398,
+      "n_classes": 70,
+      "why": "the whole archive, not the 5-per-class D4 gallery: only 2 of the 24 frozen queries are in that subset, and T0 needs the exact target present. A larger library is the harder test, and no candidate was chosen after seeing a result.",
+      "differs_from_d6": true
+    },
+    "official_toolbox": {
+      "needed_networks": [
+        "S0K1",
+        "S0K2"
+      ],
+      "toolbox": "E:\\EarthGlyph\\shapeComp_17_12_2024",
+      "weights_sha256": {
+        "net/keras/shape2sc22a.h5": "a6fd1f06cee40626d1b548867fac9961a668caa8d30e92026d60f84d7f9b374a",
+        "net/keras/im2sc22d.h5": "035f655b5c9af13b32f889f21c86b27aa6f671fa6238c4d3a9319b85a355a843"
+      },
+      "status": "official weights loaded read-only; nothing here modifies them"
+    },
+    "precompute_seconds": {
+      "gallery_mpeg7_full": 11.48931419942528,
+      "gallery_pose_embeddings_S0K1": 82.04995829984546,
+      "gallery_pose_embeddings_S0K2": 300.8225423004478
+    },
+    "summary_seconds": 5.597165999934077,
+    "smoke_run": {
+      "limited_to_queries": null,
+      "published": true,
+      "note": "a limited run writes only to checkpoint8/_smoke, so a partial sample can never be read as the promised 24-query table"
+    }
+  },
+  "arms": [
+    {
+      "label": "E0",
+      "method": "E0",
+      "rotation_strategy": null,
+      "orientation": null,
+      "contract": "EarthGlyph arm E0, rotation handled by construction",
+      "blocked": false
+    },
+    {
+      "label": "E1",
+      "method": "E1",
+      "rotation_strategy": null,
+      "orientation": null,
+      "contract": "EarthGlyph arm E1, rotation handled by construction",
+      "blocked": false
+    },
+    {
+      "label": "E3/sample",
+      "method": "E3",
+      "rotation_strategy": null,
+      "orientation": "sample",
+      "contract": "Shape Context with E3's own orientation policy 'sample'",
+      "blocked": false
+    },
+    {
+      "label": "S0K1/R3",
+      "method": "S0K1",
+      "rotation_strategy": "R3",
+      "orientation": null,
+      "contract": "bilateral multi-direction min over a 24-pose grid on both sides",
+      "blocked": false
+    },
+    {
+      "label": "S0K2/R3",
+      "method": "S0K2",
+      "rotation_strategy": "R3",
+      "orientation": null,
+      "contract": "bilateral multi-direction min over a 24-pose grid on both sides",
+      "blocked": false
+    },
+    {
+      "label": "S0K2/R2",
+      "method": "S0K2",
+      "rotation_strategy": "R2",
+      "orientation": null,
+      "contract": "bilateral orientation canonicalisation, one forward pass per shape, no grid",
+      "blocked": false
+    }
+  ],
+  "metric_definitions": [
+    "Precision@K = hits / min(k, returned); Recall@K = hits / the same-class candidates this query retained, a per-query denominator, undefined when nothing remains",
+    "paired differences are published as agreement(B) - agreement(A) under the name second_minus_first, the one convention CP8-A made enforced"
+  ],
+  "coverage_audit": {
+    "derived_from": "the descriptors in queries[]; no query, class or angle was changed by it",
+    "honest_finding": "a family whose n_meeting is below n_queries is under-covered: the label describes the design intent, the count states what the frozen draw actually supplies, and a headline for that family may only be read over the queries that pass.",
+    "method": "each family's measurable_expectation restated as bounds on circularity, solidity, elongation and hull-gap runs, evaluated per query and counted per family",
+    "n_queries": 24,
+    "n_queries_meeting": 17,
+    "per_family": {
+      "curved": {
+        "criteria": [
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "the concavity of the C or U"
+          },
+          {
+            "bound": 0.65,
+            "metric": "elongation",
+            "op": "<=",
+            "why": "a dominant principal axis"
+          }
+        ],
+        "failing_stems": [
+          "horseshoe-6"
+        ],
+        "if_short_falls_then": "a query that fails the axis bound is a ring-like outline; it still tests rotation observability, just not the 'bent' story",
+        "n_meeting": 3,
+        "n_queries": 4
+      },
+      "forked": {
+        "criteria": [
+          {
+            "bound": 2.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "more than one branch gap"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "branch-heavy outlines are where a single principal axis stops meaning anything; fewer of them weakens the strongest argument against pose search",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "heart": {
+        "criteria": [
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": "==",
+            "why": "exactly one apical notch"
+          },
+          {
+            "bound": 0.85,
+            "metric": "solidity",
+            "op": ">=",
+            "why": "two lobes fill most of the hull"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "the heart family is the only one whose label is unambiguous, so it carries the shape-specific claim",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "irregular_natural": {
+        "criteria": [
+          {
+            "bound": 2.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "protruding parts make several separate gaps"
+          },
+          {
+            "bound": 0.8,
+            "metric": "elongation",
+            "op": "<=",
+            "why": "not a disc"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "these are the closest thing to a real silhouette, so a shortfall here is a shortfall in the most transfer-relevant family",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "near_circle": {
+        "criteria": [
+          {
+            "bound": 0.7,
+            "metric": "circularity",
+            "op": ">=",
+            "why": "a near-disc boundary"
+          },
+          {
+            "bound": 0.8,
+            "metric": "elongation",
+            "op": ">=",
+            "why": "isotropic, so rotation is nearly unobservable"
+          }
+        ],
+        "failing_stems": [
+          "HCircle-8",
+          "watch-11",
+          "device2-6",
+          "apple-14"
+        ],
+        "if_short_falls_then": "the isotropic case is the one place a rotation wrapper should be provably worthless; if these queries are not isotropic the study cannot make that claim, only measure the roundish ones that survive",
+        "n_meeting": 0,
+        "n_queries": 4
+      },
+      "pointed": {
+        "criteria": [
+          {
+            "bound": 0.85,
+            "metric": "solidity",
+            "op": "<=",
+            "why": "deep corners remove area from the hull"
+          },
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "at least one excursion away from the hull"
+          }
+        ],
+        "failing_stems": [
+          "crown-2",
+          "pencil-6"
+        ],
+        "if_short_falls_then": "a cornered-shape conclusion rests on the queries that pass; a smooth one in the pool is an ellipse-with-a-lid case, not a pointed case",
+        "n_meeting": 2,
+        "n_queries": 4
+      }
+    },
+    "per_query": [
+      {
+        "family": "pointed",
+        "meets_expectation": false,
+        "stem": "crown-2",
+        "violations": [
+          {
+            "bound": 0.85,
+            "expected": "deep corners remove area from the hull",
+            "metric": "solidity",
+            "op": "<=",
+            "value": 0.8562841200511233
+          }
+        ]
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": true,
+        "stem": "key-15",
+        "violations": []
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": false,
+        "stem": "pencil-6",
+        "violations": [
+          {
+            "bound": 0.85,
+            "expected": "deep corners remove area from the hull",
+            "metric": "solidity",
+            "op": "<=",
+            "value": 0.9071086576217804
+          },
+          {
+            "bound": 1.0,
+            "expected": "at least one excursion away from the hull",
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": true,
+        "stem": "hammer-7",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-4",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-19",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-7",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-9",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "Comma-18",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": false,
+        "stem": "horseshoe-6",
+        "violations": [
+          {
+            "bound": 0.65,
+            "expected": "a dominant principal axis",
+            "metric": "elongation",
+            "op": "<=",
+            "value": 0.926066942579447
+          }
+        ]
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "Bone-10",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "spoon-5",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "fork-3",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "tree-7",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "bird-2",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "fly-17",
+        "violations": []
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "HCircle-8",
+        "violations": [
+          {
+            "bound": 0.8,
+            "expected": "isotropic, so rotation is nearly unobservable",
+            "metric": "elongation",
+            "op": ">=",
+            "value": 0.6646234496587885
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "watch-11",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.36262060622127285
+          },
+          {
+            "bound": 0.8,
+            "expected": "isotropic, so rotation is nearly unobservable",
+            "metric": "elongation",
+            "op": ">=",
+            "value": 0.24348879954315888
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "device2-6",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.12353755329594168
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "apple-14",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.6365562317917683
+          }
+        ]
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "camel-5",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "elephant-16",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "lizzard-3",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "turtle-3",
+        "violations": []
+      }
+    ]
+  },
+  "retrieval_by_arm": {
+    "E0": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8333333333333334,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 2.149953010055517e-09,
+          "self_distance_max": 2.1073424255447017e-08,
+          "attraction_gap_mean": 0.18895976862253985,
+          "precision_at_10": 0.675,
+          "recall_at_10": 0.3650462962962963,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8709644114055879,
+          "ndcg_at_10": 0.7126396712422431,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.00010738148809804609,
+          "max_abs_rank_shift": 1.0,
+          "seconds_per_query_mean": 0.12321596668722729,
+          "seconds_per_query_p95": 0.12549773533828557,
+          "seconds_per_query_max": 0.13492759969085455,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.8333333333333334,
+              "ci_low": 0.6666666666666666,
+              "ci_high": 0.9583333333333334,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 2.149953010055517e-09,
+              "ci_low": 1.1991528483098223e-09,
+              "ci_high": 3.203624222827868e-09,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.18895976862253985,
+              "ci_low": 0.15105075596026388,
+              "ci_high": 0.2290255187819433,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.675,
+              "ci_low": 0.5375,
+              "ci_high": 0.8001041666666663,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.3650462962962963,
+              "ci_low": 0.29298001949317737,
+              "ci_high": 0.4318229166666666,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.7126396712422433,
+              "ci_low": 0.5799540916868777,
+              "ci_high": 0.8332358173139185,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8709644114055879,
+              "ci_low": 0.7399357178768944,
+              "ci_high": 0.9791666666666666,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 0.00010738148809804609,
+              "ci_low": 1.1930326890956813e-05,
+              "ci_high": 0.0002505539568689626,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.12321596668722729,
+              "ci_low": 0.12266856126914112,
+              "ci_high": 0.12389843125866415,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 2.149953010055517e-09,
+          "self_distance_max": 2.1073424255447017e-08,
+          "attraction_gap_mean": 0.18895976862253985,
+          "precision_at_10": 0.775,
+          "recall_at_10": 0.3875,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8241982785631798,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.00010729613733905579,
+          "max_abs_rank_shift": 1.0,
+          "seconds_per_query_mean": 0.12321596668722729,
+          "seconds_per_query_p95": 0.12549773533828557,
+          "seconds_per_query_max": 0.13492759969085455,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 2.149953010055517e-09,
+              "ci_low": 1.1991528483098223e-09,
+              "ci_high": 3.203624222827868e-09,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.18895976862253985,
+              "ci_low": 0.15105075596026388,
+              "ci_high": 0.2290255187819433,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.775,
+              "ci_low": 0.6583333333333333,
+              "ci_high": 0.8833333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.3875,
+              "ci_low": 0.32916666666666666,
+              "ci_high": 0.44166666666666665,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.8241982785631798,
+              "ci_low": 0.7286012822740728,
+              "ci_high": 0.9117255933907373,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 0.00010729613733905579,
+              "ci_low": 1.1921793037672865e-05,
+              "ci_high": 0.00025035765379113016,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.12321596668722729,
+              "ci_low": 0.12266856126914112,
+              "ci_high": 0.12389843125866415,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8333333333333334,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 3.5122373759078364e-09,
+          "self_distance_max": 2.1073424255447017e-08,
+          "attraction_gap_mean": 0.18895976726025546,
+          "precision_at_10": 0.6749999999999999,
+          "recall_at_10": 0.3650462962962963,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8709644114055878,
+          "ndcg_at_10": 0.712639671242243,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.12322781673477341,
+          "seconds_per_query_p95": 0.13002549549564718,
+          "seconds_per_query_max": 0.13210139982402325,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 3.5122373759078364e-09,
+          "self_distance_max": 2.1073424255447017e-08,
+          "attraction_gap_mean": 0.18895976726025546,
+          "precision_at_10": 0.775,
+          "recall_at_10": 0.3875,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8241982785631797,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.12322781673477341,
+          "seconds_per_query_p95": 0.13002549549564718,
+          "seconds_per_query_max": 0.13210139982402325,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    },
+    "E1": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.7916666666666666,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 2.5503809164299122e-15,
+          "self_distance_max": 1.9102668850361162e-14,
+          "attraction_gap_mean": 0.9509163122849859,
+          "precision_at_10": 0.725,
+          "recall_at_10": 0.3967013888888889,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.861111111111111,
+          "ndcg_at_10": 0.7471712491816499,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 2.386919986134841e-05,
+          "max_abs_rank_shift": 1.0,
+          "seconds_per_query_mean": 0.03116625830686341,
+          "seconds_per_query_p95": 0.03268930967897177,
+          "seconds_per_query_max": 0.03997629974037409,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.7916666666666666,
+              "ci_low": 0.625,
+              "ci_high": 0.9583333333333334,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 2.5503809164299122e-15,
+              "ci_low": 1.9569502530569432e-15,
+              "ci_high": 3.295365363249494e-15,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.950916312284986,
+              "ci_low": 0.8634882800278179,
+              "ci_high": 1.0426859243698632,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.725,
+              "ci_low": 0.6083333333333333,
+              "ci_high": 0.8334374999999995,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.3967013888888889,
+              "ci_low": 0.33478770711500966,
+              "ci_high": 0.45938832541423,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.7471712491816499,
+              "ci_low": 0.6326961864220192,
+              "ci_high": 0.8568970283788189,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8611111111111109,
+              "ci_low": 0.7498263888888888,
+              "ci_high": 0.9652777777777779,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 2.386919986134841e-05,
+              "ci_low": 0.0,
+              "ci_high": 5.966872661365362e-05,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.03116625830686341,
+              "ci_low": 0.03087478646833915,
+              "ci_high": 0.0314798596452844,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 2.5503809164299122e-15,
+          "self_distance_max": 1.9102668850361162e-14,
+          "attraction_gap_mean": 0.9509163122849859,
+          "precision_at_10": 0.8041666666666667,
+          "recall_at_10": 0.40208333333333335,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8373269826635084,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 2.384358607534573e-05,
+          "max_abs_rank_shift": 1.0,
+          "seconds_per_query_mean": 0.03116625830686341,
+          "seconds_per_query_p95": 0.03268930967897177,
+          "seconds_per_query_max": 0.03997629974037409,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 2.5503809164299122e-15,
+              "ci_low": 1.9569502530569432e-15,
+              "ci_high": 3.295365363249494e-15,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.950916312284986,
+              "ci_low": 0.8634882800278179,
+              "ci_high": 1.0426859243698632,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.8041666666666667,
+              "ci_low": 0.7041666666666667,
+              "ci_high": 0.8958333333333334,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.40208333333333335,
+              "ci_low": 0.35208333333333336,
+              "ci_high": 0.4479166666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.8373269826635085,
+              "ci_low": 0.7503279320890934,
+              "ci_high": 0.915639075736277,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 2.384358607534573e-05,
+              "ci_low": 0.0,
+              "ci_high": 5.960896518836433e-05,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.03116625830686341,
+              "ci_low": 0.03087478646833915,
+              "ci_high": 0.0314798596452844,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.7916666666666666,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.9509163122849883,
+          "precision_at_10": 0.725,
+          "recall_at_10": 0.39670138888888884,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8611111111111112,
+          "ndcg_at_10": 0.7471712491816499,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.03094702501160403,
+          "seconds_per_query_p95": 0.0319310899823904,
+          "seconds_per_query_max": 0.03206499945372343,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.9509163122849883,
+          "precision_at_10": 0.8041666666666667,
+          "recall_at_10": 0.40208333333333335,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8373269826635084,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.03094702501160403,
+          "seconds_per_query_p95": 0.0319310899823904,
+          "seconds_per_query_max": 0.03206499945372343,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    },
+    "E3/sample": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8583333333333333,
+          "top1_stability_vs_unrotated": 0.55,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 0.13113508683430705,
+          "self_distance_max": 0.2972928565236794,
+          "attraction_gap_mean": 0.24977793785581798,
+          "precision_at_10": 0.745,
+          "recall_at_10": 0.4044803849902534,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8993022486772486,
+          "ndcg_at_10": 0.778381732190475,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.7065696894837762,
+          "top_10_overlap_min": 0.05263157894736842,
+          "mean_abs_rank_shift": 18.871338970105853,
+          "max_abs_rank_shift": 401.0,
+          "seconds_per_query_mean": 56.09987314837829,
+          "seconds_per_query_p95": 59.137945919903,
+          "seconds_per_query_max": 60.08538240008056,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.8583333333333333,
+              "ci_low": 0.725,
+              "ci_high": 0.9666666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.55,
+              "ci_low": 0.4166666666666667,
+              "ci_high": 0.6833333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 0.13113508683430705,
+              "ci_low": 0.12019188209127664,
+              "ci_high": 0.14250875103013355,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.24977793785581798,
+              "ci_low": 0.21046851073261896,
+              "ci_high": 0.2853901433731126,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.745,
+              "ci_low": 0.6375,
+              "ci_high": 0.8441874999999998,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.4044803849902534,
+              "ci_low": 0.3515248842592592,
+              "ci_high": 0.4523214394493177,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.7783817321904749,
+              "ci_low": 0.6738557169242891,
+              "ci_high": 0.8726866243697415,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8993022486772486,
+              "ci_low": 0.8026200396825396,
+              "ci_high": 0.9763888888888889,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.7065696894837762,
+              "ci_low": 0.6302203084976885,
+              "ci_high": 0.7776454864830444,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 18.87133897010585,
+              "ci_low": 16.18221688002331,
+              "ci_high": 21.336013221296625,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 56.09987314837829,
+              "ci_low": 55.60474547008771,
+              "ci_high": 56.64364434297235,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.8083333333333333,
+          "top1_same_class_accuracy": 0.9833333333333333,
+          "top1_stability_vs_unrotated": 0.8083333333333333,
+          "target_rank_mean": 1.55,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 8,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.13113508683430705,
+          "self_distance_max": 0.2972928565236794,
+          "attraction_gap_mean": 0.24977793785581798,
+          "precision_at_10": 0.8216666666666667,
+          "recall_at_10": 0.41083333333333333,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 0.9916666666666667,
+          "ndcg_at_10": 0.8613607760433358,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.7561567109361228,
+          "top_10_overlap_min": 0.17647058823529413,
+          "mean_abs_rank_shift": 18.852098235574626,
+          "max_abs_rank_shift": 401.0,
+          "seconds_per_query_mean": 56.09987314837829,
+          "seconds_per_query_p95": 59.137945919903,
+          "seconds_per_query_max": 60.08538240008056,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.8083333333333333,
+              "ci_low": 0.7,
+              "ci_high": 0.9083333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.9833333333333333,
+              "ci_low": 0.95,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.8083333333333333,
+              "ci_low": 0.7,
+              "ci_high": 0.9083333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 1.55,
+              "ci_low": 1.183125,
+              "ci_high": 2.0833333333333335,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 0.13113508683430705,
+              "ci_low": 0.12019188209127664,
+              "ci_high": 0.14250875103013355,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.24977793785581798,
+              "ci_low": 0.21046851073261896,
+              "ci_high": 0.2853901433731126,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.8216666666666667,
+              "ci_low": 0.7324791666666667,
+              "ci_high": 0.9,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.41083333333333333,
+              "ci_low": 0.36623958333333334,
+              "ci_high": 0.45,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.8613607760433358,
+              "ci_low": 0.7882065926508794,
+              "ci_high": 0.9244173098099552,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.9916666666666667,
+              "ci_low": 0.975,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.7561567109361227,
+              "ci_low": 0.690371423919218,
+              "ci_high": 0.8151429126429126,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 18.852098235574633,
+              "ci_low": 16.165622913686217,
+              "ci_high": 21.31340546018121,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 56.09987314837829,
+              "ci_low": 55.60474547008771,
+              "ci_high": 56.64364434297235,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.875,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.3789929403371309,
+          "precision_at_10": 0.7458333333333332,
+          "recall_at_10": 0.40400219298245615,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.90625,
+          "ndcg_at_10": 0.7826464267936505,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 56.14268689175757,
+          "seconds_per_query_p95": 58.587111125048246,
+          "seconds_per_query_max": 59.649913899600506,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.3789929403371309,
+          "precision_at_10": 0.8291666666666666,
+          "recall_at_10": 0.4145833333333333,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.870516116536571,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 56.14268689175757,
+          "seconds_per_query_p95": 58.587111125048246,
+          "seconds_per_query_max": 59.649913899600506,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    },
+    "S0K1/R3": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8583333333333333,
+          "top1_stability_vs_unrotated": 0.5416666666666666,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 0.07460549967443478,
+          "self_distance_max": 0.20372691998846107,
+          "attraction_gap_mean": 0.17887222378798182,
+          "precision_at_10": 0.6783333333333333,
+          "recall_at_10": 0.3658047027290448,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8834626022126023,
+          "ndcg_at_10": 0.7151020118121393,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.7197722620516738,
+          "top_10_overlap_min": 0.17647058823529413,
+          "mean_abs_rank_shift": 22.40894607738772,
+          "max_abs_rank_shift": 483.0,
+          "seconds_per_query_mean": 0.16291321503619352,
+          "seconds_per_query_p95": 0.1795500602107495,
+          "seconds_per_query_max": 0.18738009966909885,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.8583333333333333,
+              "ci_low": 0.7166666666666667,
+              "ci_high": 0.9666666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.5416666666666666,
+              "ci_low": 0.4166666666666667,
+              "ci_high": 0.675,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 0.07460549967443476,
+              "ci_low": 0.06831361767970653,
+              "ci_high": 0.08174145397483809,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.17887222378798182,
+              "ci_low": 0.1457821093535329,
+              "ci_high": 0.20986780491958743,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.6783333333333333,
+              "ci_low": 0.5491666666666666,
+              "ci_high": 0.8008749999999998,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.3658047027290448,
+              "ci_low": 0.29919057626705653,
+              "ci_high": 0.428364705165692,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.7151020118121392,
+              "ci_low": 0.5876311821499139,
+              "ci_high": 0.8318689556801588,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8834626022126021,
+              "ci_low": 0.7710828523328523,
+              "ci_high": 0.9706018518518519,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.7197722620516738,
+              "ci_low": 0.6641911479043833,
+              "ci_high": 0.77708178361671,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 22.408946077387725,
+              "ci_low": 18.94569582133387,
+              "ci_high": 25.72254794762882,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.16291321503619352,
+              "ci_low": 0.16164737645944116,
+              "ci_high": 0.16415237226969717,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.8166666666666667,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 0.8166666666666667,
+          "target_rank_mean": 1.6416666666666666,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 14,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.07460549967443478,
+          "self_distance_max": 0.20372691998846107,
+          "attraction_gap_mean": 0.17887222378798182,
+          "precision_at_10": 0.7558333333333332,
+          "recall_at_10": 0.3779166666666666,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8082189461550903,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.7580428830428831,
+          "top_10_overlap_min": 0.1111111111111111,
+          "mean_abs_rank_shift": 22.38969957081545,
+          "max_abs_rank_shift": 483.0,
+          "seconds_per_query_mean": 0.16291321503619352,
+          "seconds_per_query_p95": 0.1795500602107495,
+          "seconds_per_query_max": 0.18738009966909885,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.8166666666666667,
+              "ci_low": 0.7083333333333334,
+              "ci_high": 0.9083333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.8166666666666667,
+              "ci_low": 0.7083333333333334,
+              "ci_high": 0.9083333333333333,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 1.6416666666666666,
+              "ci_low": 1.1416666666666666,
+              "ci_high": 2.3666666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 0.07460549967443476,
+              "ci_low": 0.06831361767970653,
+              "ci_high": 0.08174145397483809,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.17887222378798182,
+              "ci_low": 0.1457821093535329,
+              "ci_high": 0.20986780491958743,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.7558333333333334,
+              "ci_low": 0.6491458333333333,
+              "ci_high": 0.8591666666666669,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.3779166666666667,
+              "ci_low": 0.32457291666666666,
+              "ci_high": 0.42958333333333343,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.8082189461550902,
+              "ci_low": 0.7210085924415135,
+              "ci_high": 0.8932279923519812,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.758042883042883,
+              "ci_low": 0.6970337764087764,
+              "ci_high": 0.815625578125578,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 22.38969957081545,
+              "ci_low": 18.930203266571294,
+              "ci_high": 25.70409275154983,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.16291321503619352,
+              "ci_low": 0.16164737645944116,
+              "ci_high": 0.16415237226969717,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8333333333333334,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.2433557449755678,
+          "precision_at_10": 0.6625,
+          "recall_at_10": 0.35487329434697856,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8584134615384614,
+          "ndcg_at_10": 0.7031480752506162,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.3065836583264172,
+          "seconds_per_query_p95": 0.17370736002922058,
+          "seconds_per_query_max": 3.6258322997018695,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 1.0,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 1,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.2433557449755678,
+          "precision_at_10": 0.75,
+          "recall_at_10": 0.375,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.8032283130098633,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.3065836583264172,
+          "seconds_per_query_p95": 0.17370736002922058,
+          "seconds_per_query_max": 3.6258322997018695,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    },
+    "S0K2/R3": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.825,
+          "top1_stability_vs_unrotated": 0.48333333333333334,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 0.1034906608886421,
+          "self_distance_max": 0.22155928064127148,
+          "attraction_gap_mean": 0.14025665058086012,
+          "precision_at_10": 0.63,
+          "recall_at_10": 0.33826510721247566,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8625851034858388,
+          "ndcg_at_10": 0.6678782404100938,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.6702880452880452,
+          "top_10_overlap_min": 0.25,
+          "mean_abs_rank_shift": 22.909907445776366,
+          "max_abs_rank_shift": 409.0,
+          "seconds_per_query_mean": 0.30079502003888287,
+          "seconds_per_query_p95": 0.3484532551839948,
+          "seconds_per_query_max": 0.35967190004885197,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.825,
+              "ci_low": 0.6833333333333333,
+              "ci_high": 0.9416666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.48333333333333334,
+              "ci_low": 0.35833333333333334,
+              "ci_high": 0.6166666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 0.10349066088864209,
+              "ci_low": 0.09293613683532467,
+              "ci_high": 0.11297134674158246,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.14025665058086015,
+              "ci_low": 0.11100112981559142,
+              "ci_high": 0.17185931491412626,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.63,
+              "ci_low": 0.5008333333333334,
+              "ci_high": 0.7458541666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.33826510721247566,
+              "ci_low": 0.27146454678362575,
+              "ci_high": 0.39713572124756336,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.6678782404100938,
+              "ci_low": 0.5404051191687801,
+              "ci_high": 0.7812120564335356,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8625851034858388,
+              "ci_low": 0.7418135382625273,
+              "ci_high": 0.9590520833333332,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.6702880452880452,
+              "ci_low": 0.6201136190198691,
+              "ci_high": 0.7180000034687535,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 22.909907445776366,
+              "ci_low": 18.986435823832394,
+              "ci_high": 26.997710476162673,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.30079502003888287,
+              "ci_low": 0.29335943337122444,
+              "ci_high": 0.3092020361222482,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.75,
+          "top1_same_class_accuracy": 0.9916666666666667,
+          "top1_stability_vs_unrotated": 0.7666666666666667,
+          "target_rank_mean": 2.125,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 15,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.1034906608886421,
+          "self_distance_max": 0.22155928064127148,
+          "attraction_gap_mean": 0.14025665058086012,
+          "precision_at_10": 0.7191666666666667,
+          "recall_at_10": 0.35958333333333337,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 0.9944444444444444,
+          "ndcg_at_10": 0.7745639579147581,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 0.7002733377733378,
+          "top_10_overlap_min": 0.25,
+          "mean_abs_rank_shift": 22.889818788745824,
+          "max_abs_rank_shift": 409.0,
+          "seconds_per_query_mean": 0.30079502003888287,
+          "seconds_per_query_p95": 0.3484532551839948,
+          "seconds_per_query_max": 0.35967190004885197,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.75,
+              "ci_low": 0.6166666666666667,
+              "ci_high": 0.8666666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.9916666666666667,
+              "ci_low": 0.975,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 0.7666666666666667,
+              "ci_low": 0.6416666666666667,
+              "ci_high": 0.875,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 2.125,
+              "ci_low": 1.425,
+              "ci_high": 3.1252083333333323,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 0.10349066088864209,
+              "ci_low": 0.09293613683532467,
+              "ci_high": 0.11297134674158246,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.14025665058086015,
+              "ci_low": 0.11100112981559142,
+              "ci_high": 0.17185931491412626,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.7191666666666667,
+              "ci_low": 0.6199791666666666,
+              "ci_high": 0.8133333333333332,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.35958333333333337,
+              "ci_low": 0.3099895833333333,
+              "ci_high": 0.4066666666666666,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.774563957914758,
+              "ci_low": 0.6900971748527077,
+              "ci_high": 0.8532835280269161,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.9944444444444446,
+              "ci_low": 0.9833333333333333,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 0.7002733377733378,
+              "ci_low": 0.6540787337662337,
+              "ci_high": 0.7489621142746142,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 22.889818788745824,
+              "ci_low": 18.969152062470197,
+              "ci_high": 26.97271429422985,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.30079502003888287,
+              "ci_low": 0.29335943337122444,
+              "ci_high": 0.3092020361222482,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.7916666666666666,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.24803183116535601,
+          "precision_at_10": 0.6124999999999999,
+          "recall_at_10": 0.32797270955165686,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8411706349206348,
+          "ndcg_at_10": 0.6558307377184481,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.7886825666840499,
+          "seconds_per_query_p95": 0.3511186050251126,
+          "seconds_per_query_max": 11.995452400296926,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.9583333333333334,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0416666666666667,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 2,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.24803183116535601,
+          "precision_at_10": 0.7000000000000001,
+          "recall_at_10": 0.35000000000000003,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.7608029874672688,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.7886825666840499,
+          "seconds_per_query_p95": 0.3511186050251126,
+          "seconds_per_query_max": 11.995452400296926,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    },
+    "S0K2/R2": {
+      "rotation_only": {
+        "T2": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8333333333333334,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 120,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.3700017688581404,
+          "precision_at_10": 0.5375,
+          "recall_at_10": 0.2940545808966861,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8663194444444444,
+          "ndcg_at_10": 0.5957580137338568,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.008450764991963903,
+          "seconds_per_query_p95": 0.011085309786722064,
+          "seconds_per_query_max": 0.011374800466001034,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 0.8333333333333334,
+              "ci_low": 0.7083333333333334,
+              "ci_high": 0.9583333333333334,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": null,
+              "n_clusters": 0,
+              "n_cells": 0,
+              "note": "no defined cell"
+            },
+            "self_distance_mean": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.3700017688581403,
+              "ci_low": 0.31449799348230517,
+              "ci_high": 0.4330178965853372,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.5375,
+              "ci_low": 0.4166666666666667,
+              "ci_high": 0.6624999999999999,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.2940545808966862,
+              "ci_low": 0.22996588693957118,
+              "ci_high": 0.35985136452241706,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.5957580137338567,
+              "ci_low": 0.4734035884061007,
+              "ci_high": 0.7138168805784323,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 0.8663194444444445,
+              "ci_low": 0.7465277777777779,
+              "ci_high": 0.96875,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.008450764991963903,
+              "ci_low": 0.007994766924918318,
+              "ci_high": 0.008921780384262092,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        },
+        "T0": {
+          "view": "rotation_only",
+          "cell_filter": "slot != \"control\"",
+          "n_cells": 120,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.9583333333333334,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0416666666666667,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 2,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.3700017688581404,
+          "precision_at_10": 0.6333333333333333,
+          "recall_at_10": 0.31666666666666665,
+          "recall_at_10_n_scored": 120,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.7139780868378535,
+          "ndcg_at_10_n_scored": 120,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.008450764991963903,
+          "seconds_per_query_p95": 0.011085309786722064,
+          "seconds_per_query_max": 0.011374800466001034,
+          "query_clustered_ci": {
+            "top1_accuracy": {
+              "estimate": 0.9583333333333334,
+              "ci_low": 0.875,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_same_class_accuracy": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top1_stability_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "target_rank_mean": {
+              "estimate": 1.0416666666666667,
+              "ci_low": 1.0,
+              "ci_high": 1.125,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "self_distance_mean": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "attraction_gap_mean": {
+              "estimate": 0.3700017688581403,
+              "ci_low": 0.31449799348230517,
+              "ci_high": 0.4330178965853372,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "precision_at_10": {
+              "estimate": 0.6333333333333333,
+              "ci_low": 0.5291666666666668,
+              "ci_high": 0.7416666666666667,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "recall_at_10": {
+              "estimate": 0.31666666666666665,
+              "ci_low": 0.2645833333333334,
+              "ci_high": 0.37083333333333335,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "ndcg_at_10": {
+              "estimate": 0.7139780868378536,
+              "ci_low": 0.6259560513873855,
+              "ci_high": 0.8049669488379393,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "class_mrr": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "top_10_overlap_vs_unrotated": {
+              "estimate": 1.0,
+              "ci_low": 1.0,
+              "ci_high": 1.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "mean_abs_rank_shift": {
+              "estimate": 0.0,
+              "ci_low": 0.0,
+              "ci_high": 0.0,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            },
+            "seconds_per_query_mean": {
+              "estimate": 0.008450764991963903,
+              "ci_low": 0.007994766924918318,
+              "ci_high": 0.008921780384262092,
+              "n_boot": 2000,
+              "bootstrap_seed": 20261110,
+              "sampling_unit": "original query, with all of its cells moving together",
+              "n_clusters": 24,
+              "n_cells": 120,
+              "cluster_size_min": 5,
+              "cluster_size_max": 5
+            }
+          }
+        }
+      },
+      "unrotated_control": {
+        "T2": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": false,
+          "top1_accuracy": 0.0,
+          "top1_same_class_accuracy": 0.8333333333333334,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": null,
+          "target_rank_median": null,
+          "target_rank_worst": null,
+          "n_target_rank_undefined": 24,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.37000176885814035,
+          "precision_at_10": 0.5375,
+          "recall_at_10": 0.2940545808966862,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 18.291666666666668,
+          "n_relevant_retained_min": 12,
+          "n_relevant_retained_max": 19,
+          "class_mrr": 0.8663194444444445,
+          "ndcg_at_10": 0.5957580137338567,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.008561966513904432,
+          "seconds_per_query_p95": 0.011092824488878248,
+          "seconds_per_query_max": 0.011440499685704708,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        },
+        "T0": {
+          "view": "unrotated_control",
+          "cell_filter": "slot == \"control\"",
+          "n_cells": 24,
+          "n_rotated_cells": 120,
+          "n_control_cells": 24,
+          "exact_target_present": true,
+          "top1_accuracy": 0.9583333333333334,
+          "top1_same_class_accuracy": 1.0,
+          "top1_stability_vs_unrotated": 1.0,
+          "target_rank_mean": 1.0416666666666667,
+          "target_rank_median": 1.0,
+          "target_rank_worst": 2,
+          "n_target_rank_undefined": 0,
+          "self_distance_mean": 0.0,
+          "self_distance_max": 0.0,
+          "attraction_gap_mean": 0.37000176885814035,
+          "precision_at_10": 0.6333333333333334,
+          "recall_at_10": 0.3166666666666667,
+          "recall_at_10_n_scored": 24,
+          "recall_at_10_undefined_cells": 0,
+          "n_relevant_retained_mean": 20.0,
+          "n_relevant_retained_min": 20,
+          "n_relevant_retained_max": 20,
+          "class_mrr": 1.0,
+          "ndcg_at_10": 0.7139780868378537,
+          "ndcg_at_10_n_scored": 24,
+          "top_10_overlap_vs_unrotated": 1.0,
+          "top_10_overlap_min": 1.0,
+          "mean_abs_rank_shift": 0.0,
+          "max_abs_rank_shift": 0.0,
+          "seconds_per_query_mean": 0.008561966513904432,
+          "seconds_per_query_p95": 0.011092824488878248,
+          "seconds_per_query_max": 0.011440499685704708,
+          "note": "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so this view is a wiring check on the pipeline and never a rotation measurement."
+        }
+      }
+    }
+  },
+  "rotation_by_angle_slot": {
+    "E0": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 5.965163445478406e-05,
+        "first_relevant_rank_mean": 5.541666666666667
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 8.94774516821761e-05,
+        "first_relevant_rank_mean": 5.541666666666667
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 0.0001491504513355471,
+        "first_relevant_rank_mean": 5.541666666666667
+      }
+    },
+    "E1": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.7916666666666666,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 0.0,
+        "first_relevant_rank_mean": 1.5
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.7916666666666666,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 2.982581722739203e-05,
+        "first_relevant_rank_mean": 1.5
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.7916666666666666,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 2.9847182425978987e-05,
+        "first_relevant_rank_mean": 1.5
+      }
+    },
+    "E3/sample": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.875,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 0.9772727272727272,
+        "mean_abs_rank_shift": 0.6669647925037157,
+        "first_relevant_rank_mean": 1.4166666666666667
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 0.375,
+        "top_10_overlap_vs_unrotated": 0.5836304039670912,
+        "mean_abs_rank_shift": 25.746839031303733,
+        "first_relevant_rank_mean": 1.4583333333333333
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.875,
+        "top1_stability_vs_unrotated": 0.5,
+        "top_10_overlap_vs_unrotated": 0.6941574561059854,
+        "mean_abs_rank_shift": 21.098025997709037,
+        "first_relevant_rank_mean": 1.6041666666666667
+      }
+    },
+    "S0K1/R3": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 0.9848484848484849,
+        "mean_abs_rank_shift": 2.7269235647935854,
+        "first_relevant_rank_mean": 2.375
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.875,
+        "top1_stability_vs_unrotated": 0.375,
+        "top_10_overlap_vs_unrotated": 0.6049463200198494,
+        "mean_abs_rank_shift": 29.690767812777693,
+        "first_relevant_rank_mean": 1.7083333333333333
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8541666666666666,
+        "top1_stability_vs_unrotated": 0.4791666666666667,
+        "top_10_overlap_vs_unrotated": 0.7020600926850927,
+        "mean_abs_rank_shift": 24.968135598294833,
+        "first_relevant_rank_mean": 1.9375
+      }
+    },
+    "S0K2/R3": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.7916666666666666,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 0.9924242424242425,
+        "mean_abs_rank_shift": 0.5042706906423539,
+        "first_relevant_rank_mean": 3.1666666666666665
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.875,
+        "top1_stability_vs_unrotated": 0.2916666666666667,
+        "top_10_overlap_vs_unrotated": 0.5755598568098568,
+        "mean_abs_rank_shift": 29.64327357716897,
+        "first_relevant_rank_mean": 1.9583333333333333
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.7916666666666666,
+        "top1_stability_vs_unrotated": 0.4166666666666667,
+        "top_10_overlap_vs_unrotated": 0.6039481351981352,
+        "mean_abs_rank_shift": 27.37935969195077,
+        "first_relevant_rank_mean": 2.5
+      }
+    },
+    "S0K2/R2": {
+      "on_grid": {
+        "n_cells": 24,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 0.0,
+        "first_relevant_rank_mean": 1.9583333333333333
+      },
+      "mid_grid": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 0.0,
+        "first_relevant_rank_mean": 1.9583333333333333
+      },
+      "random": {
+        "n_cells": 48,
+        "top1_same_class_accuracy": 0.8333333333333334,
+        "top1_stability_vs_unrotated": 1.0,
+        "top_10_overlap_vs_unrotated": 1.0,
+        "mean_abs_rank_shift": 0.0,
+        "first_relevant_rank_mean": 1.9583333333333333
+      }
+    }
+  },
+  "arm_rankings_primary": {
+    "top1_same_class_accuracy": {
+      "higher_is_better": true,
+      "order": [
+        "E3/sample",
+        "S0K1/R3",
+        "E0",
+        "S0K2/R2",
+        "S0K2/R3",
+        "E1"
+      ],
+      "values": {
+        "E0": 0.8333333333333334,
+        "E1": 0.7916666666666666,
+        "E3/sample": 0.8583333333333333,
+        "S0K1/R3": 0.8583333333333333,
+        "S0K2/R3": 0.825,
+        "S0K2/R2": 0.8333333333333334
+      }
+    },
+    "top1_stability_vs_unrotated": {
+      "higher_is_better": true,
+      "order": [
+        "E0",
+        "E1",
+        "S0K2/R2",
+        "E3/sample",
+        "S0K1/R3",
+        "S0K2/R3"
+      ],
+      "values": {
+        "E0": 1.0,
+        "E1": 1.0,
+        "E3/sample": 0.55,
+        "S0K1/R3": 0.5416666666666666,
+        "S0K2/R3": 0.48333333333333334,
+        "S0K2/R2": 1.0
+      }
+    },
+    "precision_at_10": {
+      "higher_is_better": true,
+      "order": [
+        "E3/sample",
+        "E1",
+        "S0K1/R3",
+        "E0",
+        "S0K2/R3",
+        "S0K2/R2"
+      ],
+      "values": {
+        "E0": 0.675,
+        "E1": 0.725,
+        "E3/sample": 0.745,
+        "S0K1/R3": 0.6783333333333333,
+        "S0K2/R3": 0.63,
+        "S0K2/R2": 0.5375
+      }
+    },
+    "recall_at_10": {
+      "higher_is_better": true,
+      "order": [
+        "E3/sample",
+        "E1",
+        "S0K1/R3",
+        "E0",
+        "S0K2/R3",
+        "S0K2/R2"
+      ],
+      "values": {
+        "E0": 0.3650462962962963,
+        "E1": 0.3967013888888889,
+        "E3/sample": 0.4044803849902534,
+        "S0K1/R3": 0.3658047027290448,
+        "S0K2/R3": 0.33826510721247566,
+        "S0K2/R2": 0.2940545808966861
+      }
+    },
+    "ndcg_at_10": {
+      "higher_is_better": true,
+      "order": [
+        "E3/sample",
+        "E1",
+        "S0K1/R3",
+        "E0",
+        "S0K2/R3",
+        "S0K2/R2"
+      ],
+      "values": {
+        "E0": 0.7126396712422431,
+        "E1": 0.7471712491816499,
+        "E3/sample": 0.778381732190475,
+        "S0K1/R3": 0.7151020118121393,
+        "S0K2/R3": 0.6678782404100938,
+        "S0K2/R2": 0.5957580137338568
+      }
+    },
+    "class_mrr": {
+      "higher_is_better": true,
+      "order": [
+        "E3/sample",
+        "S0K1/R3",
+        "E0",
+        "S0K2/R2",
+        "S0K2/R3",
+        "E1"
+      ],
+      "values": {
+        "E0": 0.8709644114055879,
+        "E1": 0.861111111111111,
+        "E3/sample": 0.8993022486772486,
+        "S0K1/R3": 0.8834626022126023,
+        "S0K2/R3": 0.8625851034858388,
+        "S0K2/R2": 0.8663194444444444
+      }
+    },
+    "top_10_overlap_vs_unrotated": {
+      "higher_is_better": true,
+      "order": [
+        "E0",
+        "E1",
+        "S0K2/R2",
+        "S0K1/R3",
+        "E3/sample",
+        "S0K2/R3"
+      ],
+      "values": {
+        "E0": 1.0,
+        "E1": 1.0,
+        "E3/sample": 0.7065696894837762,
+        "S0K1/R3": 0.7197722620516738,
+        "S0K2/R3": 0.6702880452880452,
+        "S0K2/R2": 1.0
+      }
+    },
+    "mean_abs_rank_shift": {
+      "higher_is_better": false,
+      "order": [
+        "S0K2/R2",
+        "E1",
+        "E0",
+        "E3/sample",
+        "S0K1/R3",
+        "S0K2/R3"
+      ],
+      "values": {
+        "E0": 0.00010738148809804609,
+        "E1": 2.386919986134841e-05,
+        "E3/sample": 18.871338970105853,
+        "S0K1/R3": 22.40894607738772,
+        "S0K2/R3": 22.909907445776366,
+        "S0K2/R2": 0.0
+      }
+    },
+    "target_rank_mean": {
+      "higher_is_better": false,
+      "order": [],
+      "values": {}
+    },
+    "seconds_per_query_mean": {
+      "higher_is_better": false,
+      "order": [
+        "S0K2/R2",
+        "E1",
+        "E0",
+        "S0K1/R3",
+        "S0K2/R3",
+        "E3/sample"
+      ],
+      "values": {
+        "E0": 0.12321596668722729,
+        "E1": 0.03116625830686341,
+        "E3/sample": 56.09987314837829,
+        "S0K1/R3": 0.16291321503619352,
+        "S0K2/R3": 0.30079502003888287,
+        "S0K2/R2": 0.008450764991963903
+      }
+    }
+  },
+  "human_perception": {
+    "new_ratings_collected": 0,
+    "status": "CP8-C collects no human ratings and therefore adds no independent perceptual evidence. The only perceptual study remains the H1 agreement table, which scores the 250 rated pairs -- a different stimulus set from these 24 MPEG-7 shapes.",
+    "reference": {
+      "path": "experiments/shape_perception_benchmark/results/d6_rotation_metrics.json",
+      "sha256": "0697af1d7261ce985b71fa78b586a97e293e323fb59d1bbc6790535917774cea",
+      "schema": "earthglyph.shape_perception_benchmark/d6/1"
+    },
+    "category_labels_are": "a relevance proxy, not a similarity judgement"
+  },
+  "limits": [
+    "Independent means **disjoint query instances from the scored cells of this benchmark**, not a different data distribution: gallery and queries are both MPEG-7 CE-Shape-1, so a wrapper that happens to fit this dataset's drawing style still fits.",
+    "The 1 400-shape pool was already the *candidate* set in D2/D6, so the queries are new while the gallery is not. Nothing in this round can measure transfer to a pool the arms have never seen.",
+    "No new human ratings are collected. The human-perception axis is re-used from H1 with its own provenance, so this study does NOT independently validate perceptual similarity and must not be reported as if it did.",
+    "The categories are MPEG-7 object labels. They are a relevance proxy for class retrieval only, never a similarity judgement.",
+    "Six arms are scored, not sixteen: the cheapest and the strongest wrapper families are represented (R2/R3 on both networks) plus the three EarthGlyph references, while R0/R1_36/R1_72 and E3/canonical are deliberately absent. A claim about *those* arms cannot come from this file.",
+    "The family labels state a design intent; ``coverage_audit`` counts, from the descriptors already in ``queries``, how many frozen draws actually satisfy that intent's geometric criteria. A family below its full count is under-covered, and its headline may only be read over the queries that pass -- loosening a criterion after seeing a shortfall would be result-shopping.",
+    "the gallery is the full archive while D6 scored a 5-per-class subset, so a CP8 number is not comparable digit-for-digit with a D6 number -- only the direction and the ranking are quoted across the two",
+    "24 queries is the promised sample, not a large one: intervals are clustered by query and stay wide, which is the honest reading rather than a defect"
+  ],
+  "rows_written": {
+    "cells": 1728,
+    "top10_hits": 17280,
+    "exclusions": 24,
+    "full_rankings_stored": 858
+  },
+  "files": {
+    "cp8_full_rankings_T2.npz": {
+      "sha256": "04b449407e70ae68cdceecb3638be5d1448304f08d5b6c45b569b83fd0b50b06",
+      "bytes": 890413,
+      "note": "full T2 ranking per (arm, query, pose), so every headline can be recomputed without running an encoder again"
+    }
+  }
+}

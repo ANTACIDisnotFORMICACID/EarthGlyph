@@ -216,6 +216,47 @@ def rotated_cells(rows: list[dict[str, str]], arm: str | None = None) -> list[di
 # --------------------------------------------------------------------------- 1. the correction
 
 
+def pose_hits(
+    rows: list[dict[str, str]], arm: str, query_id: str, pose: str, *, top: int
+) -> list[dict[str, str]]:
+    """One pose's stored Top-K, with a repeated angle collapsed only if it is the same search.
+
+    The pose label is not unique per cell: the frozen slot sampler draws a query's five angles
+    independently, so ``lizzard-3`` received ``mid_grid`` 127.5 deg twice and every arm has two
+    cells -- and two Top-10 blocks -- under one label. Those blocks are the same measurement, and
+    a figure that drew twenty panels or averaged two ranks would be inventing a second pose. So:
+    ranks must be exactly 1..top, and where a rank was stored more than once its candidate id and
+    distance must agree, or the figure stops.
+    """
+    block = [
+        row
+        for row in rows
+        if row["arm"] == arm
+        and row["query_id"] == query_id
+        and row["condition"] == CONDITION
+        and row["pose"] == pose
+    ]
+    by_rank: dict[int, list[dict[str, str]]] = {}
+    for row in block:
+        by_rank.setdefault(int(row["rank"]), []).append(row)
+    if sorted(by_rank) != list(range(1, top + 1)):
+        raise SystemExit(
+            f"{arm}/{query_id} at {pose}: stored ranks are {sorted(by_rank)}, not 1..{top}"
+        )
+    out: list[dict[str, str]] = []
+    for rank in range(1, top + 1):
+        group = by_rank[rank]
+        if any(
+            (row["shape_id"], row["distance"]) != (group[0]["shape_id"], group[0]["distance"])
+            for row in group
+        ):
+            raise SystemExit(
+                f"{arm}/{query_id} at {pose}: rank {rank} was stored as two different searches"
+            )
+        out.append(group[0])
+    return out
+
+
 def plot_corrected_metrics() -> Path:
     """Goal 1, on its own: the same run, the same cells, three different denominators.
 
@@ -552,16 +593,7 @@ def plot_independent_overview(index: dict[str, BenchmarkShape]) -> Path:
     arms = arms_of(summary)
     hits: dict[str, list[dict[str, str]]] = {}
     for arm in arms:
-        block = [
-            row
-            for row in rows
-            if row["arm"] == arm
-            and row["query_id"] == query_id
-            and row["condition"] == CONDITION
-            and row["pose"] == pose_label(angle)
-        ]
-        if len(block) != iv.CP8_TOP_K:
-            raise SystemExit(f"{arm}: {len(block)} stored hits, expected {iv.CP8_TOP_K}")
+        block = pose_hits(rows, arm, query_id, pose_label(angle), top=iv.CP8_TOP_K)
         # T2 deleted this query's own shape and its near-duplicates, so the query can never appear
         # in its own result list. A hit row that is the query would be a leak, not a match.
         if any(row["shape_id"] == query_id for row in block):
@@ -639,21 +671,8 @@ def plot_top1_by_family(index: dict[str, BenchmarkShape]) -> Path:
         panels = [points_of(index[query_id])]
         firsts: dict[str, dict[str, str]] = {}
         for arm in arms:
-            panel_rows = [
-                row
-                for row in rows
-                if row["arm"] == arm
-                and row["query_id"] == query_id
-                and row["condition"] == CONDITION
-                and row["pose"] == pose
-                and int(row["rank"]) == 1
-            ]
-            if len(panel_rows) != 1:
-                raise SystemExit(
-                    f"{arm}/{query_id}: {len(panel_rows)} stored rank-1 rows at {pose}"
-                )
-            firsts[arm] = panel_rows[0]
-            panels.append(points_of(index[panel_rows[0]["shape_id"]]))
+            firsts[arm] = pose_hits(rows, arm, query_id, pose, top=iv.CP8_TOP_K)[0]
+            panels.append(points_of(index[firsts[arm]["shape_id"]]))
         limits = figure_limit(panels)
         ax = axes[position][0]
         draw(
@@ -969,21 +988,10 @@ def plot_failures(index: dict[str, BenchmarkShape], summary: dict[str, Any]) -> 
     blocks: dict[str, list[dict[str, str]]] = {}
     for arm in arms:
         cell = worst[arm]
-        pose = pose_label(float(cell["angle_deg"]))
-        block = [
-            row
-            for row in hits
-            if row["arm"] == arm
-            and row["query_id"] == cell["query_id"]
-            and row["condition"] == CONDITION
-            and row["pose"] == pose
-        ]
-        if len(block) != iv.CP8_TOP_K:
-            raise SystemExit(
-                f"{arm}/{cell['query_id']}: {len(block)} stored hits at "
-                f"{cell['angle_deg']} deg, expected {iv.CP8_TOP_K}"
-            )
-        blocks[arm] = block
+        blocks[arm] = pose_hits(
+            hits, arm, cell["query_id"], pose_label(float(cell["angle_deg"])),
+            top=iv.CP8_TOP_K,
+        )
     panels = [points_of(index[worst[arm]["query_id"]]) for arm in arms]
     panels.extend(
         points_of(index[row["shape_id"]]) for arm in arms for row in blocks[arm]
