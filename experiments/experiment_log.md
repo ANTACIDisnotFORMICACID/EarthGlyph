@@ -860,6 +860,7 @@ CP7-A `82af902`、CP7-B `193c0f8` 见上节。
    含最终定夺与 git 检查点序列（CP7-A `82af902`、CP7-B `193c0f8`、CP7-C/D `2edce1a`）。
 
 **复核中抓到的三处真实口径问题**（都已写进文档，不改代码）
+*（下面三处的行号是当时提交 `32b14ba` 的位置，保留不改写；修复轮的行级引用见下一节。）*
 
 - **配对差的符号约定在两个产物里相反**：`d5_grouped_metrics.json` 的 `delta_agreement` 由
   `scripts/run_shape_benchmark.py:1022` 的 `delta()` 翻到 agreement 尺度，而 `d6_rotation_metrics.json`
@@ -886,3 +887,103 @@ Git 检查点：文档提交 `32b14bad9408d170b0b350c2f6906e029018d3f2`
 （`docs: consolidate the CP7 verdicts into every record and fix three provenance slips (P0-4.6)`，
 7 files / +359 / −25）；已推送 `origin main`（ssh.github.com:443）并核验
 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式，作者 `ANTACIDisnotFORMICACID`。
+
+## shape_perception_benchmark · CP7 收官后的修复轮：口径缺陷改码 + 幂等审计链（P0-4.6，2026-11-09）
+
+**输入**：上一轮纯文档复核抓到的三处口径问题（文档已记、码未改）与已入库产物
+（`d5_rotation_results.csv` / `d5_rotation_metrics.json` / `d5_grouped_metrics.json` / `d6_rotation_metrics.json`）。
+本轮**没有**重跑任何打分、检索或官方网络：只改写盘器与守卫，并重新生成两份只读派生产物。
+
+**改了什么（代码）**
+
+1. `earthglyph/shape_benchmark/metrics.py`：新增 `PAIRED_DIFFERENCE_DIRECTION = "second_minus_first"`、
+   `PAIRED_DIFFERENCE_CONVENTION` 与 `paired_difference()` — 把 bootstrap 原始 block 一次性展开成
+   **两把方向命名的尺子**（`agreement_second_minus_first` 为头部值、`agreement_first_minus_second` 保留旧读法，
+   CI 端点随取负镜像）。
+2. `scripts/run_shape_benchmark.py` d5b 的 `delta()`：**删掉**多翻的那次符号，改走新 helper。
+   机制核对：`bootstrap_grouped_two_level` 的 replicate 是 `spearmanr(distance, human similarity)`
+   （负号=更好）、配对取 `first − second`，而 agreement 又对该相关取负 ⇒ 两次相消，
+   键 `A|B` 的原值**本就是** `agreement(B) − agreement(A)`，d6 直接存原值是对的。
+   产物 schema `d5_grouped/1 → /2`，顶层加 `paired_difference_direction`/`_convention`，CSV 加 `delta_direction` 列。
+   **d6 写盘器有意不套 helper**（见下面第 5 条）：它存的已是规范方向的原值。
+3. `--stage d6` 的臂集合守卫：`D6_FROZEN_METHODS` + `_d6_frozen_labels()` + `_require_frozen_d6_arms()`，
+   收窄已存在的 16 臂产物时 `SystemExit`，逃生门 `--allow-d6-arm-subset`。
+4. d5b 的审计链幂等（本轮自己发现的第四处缺陷）：`_superseded_d5b_record()` 在磁盘文件已是本次 schema 时
+   **携带首次记录**而不是重新哈希自己的输出。
+5. 汇总 `metrics.json` 重生成（第五处订正）：`--stage summary` 的 schema `…/benchmark/1 → /2`
+   （它新增了 d6 两块与 d5b 的方向字段），并把 `paired_difference_direction`/`_convention`
+   带进 d5b 摘要块，让只读汇总的人也拿得到读法。
+
+**命令（实际执行）**
+
+```bash
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5b      # 31.9 s（首跑）/ 31.3 s（幂等复跑）
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary  # 只读拼装
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6       # 只用于演示守卫，立即 SystemExit
+```
+
+**守卫实测拒绝**（在加载形状之前退出，无任何写盘）：
+
+> `--stage d6 would overwrite the frozen 16-arm artefacts d6_retrieval_results.csv,
+> d6_agreement_results.csv, d6_top10_hits.csv, d6_rotation_metrics.json with a 4-arm table
+> (E0, E1, E3/sample, E3/canonical). Reproduce the committed study with --methods E0 E1 E3 S0K1 S0K2;
+> if the narrower table is what you want, say so with --allow-d6-arm-subset.`
+
+**不变性证明（逐字段，不靠 prose）**
+
+- `/1`（`git show HEAD:…`）vs 工作树 `/2`：21 个配对键 × 2 个方案 = **42 个子块全部核对**，
+  `-delta_agreement == agreement_second_minus_first`、旧值 == `agreement_first_minus_second`、
+  CI 镜像、`std`/`excludes_zero`/`n_valid_replicates` 一致 ⇒ **mismatches = 0**；
+  顶层 `by_arm`/`reproduction`/`differences_supported`/`sampling_unit`/`angle_factor*`/`assumptions`/
+  `metric`/`seed`/`n_boot`/`n_clusters`/`n_rows`/`rows_per_cluster`/`angles_deg`/`study` 逐项 `identical=True`；
+  新增顶层键只有 `paired_difference_direction`/`_convention`。
+  被替换文件记为 sha256 `17640d3abc3ab7661252a04f36eb381c0eb93008be4fd892b3629b1465554c9b`、21 056 B、`/1`。
+- **幂等**：改完 `_superseded_d5b_record()` 后再跑一次 `--stage d5b`，
+  `sha256sum -c` 对 `d5_grouped_metrics.json`（`712570b2db94d157…`）与 `d5_grouped_results.csv`
+  （`8ffb4ead765cbae3…`）**双双 OK**，且 `superseded_file` 仍指向 `/1`。
+- 汇总 `metrics.json`：与 HEAD 版逐节 diff，顶层键集合不变；变化的只有 `schema`（`…/benchmark/1 → /2`，
+  因为汇总新增了 d6 内容与方向字段）、`stages_present`（`+d6`）、`detail_files`、`reproduce`、
+  `arm_availability`、`git_commit` 与 headline 的 **新增**两块 `rotation_wrappers_retrieval`/`rotation_wrappers_agreement`；
+  旧 headline 键 0 个被删除，d5b 块内 `by_arm` 相同、`paired_differences` 仅字段改名并补上
+  `paired_difference_direction`/`_convention`。D75 的术语残留在派生产物里也一并落地：
+  `arm_availability.S0` 由 "the ORIGINAL **91**-descriptor ShapeComp MDS space" 改为
+  "the MDS projection of the ORIGINAL **109**-descriptor ShapeComp space"，而 E1 的
+  "EarthGlyph's own 91-D descriptors, NOT ShapeComp" 是**正确**用法、保持不变。
+- `git diff --stat HEAD -- results/` 只含 `d5_grouped_metrics.json` / `d5_grouped_results.csv` / `metrics.json`
+  ⇒ `d5_rotation_*`、`d6_*`、`f1_*`、权重、压缩包一个都没动。
+
+**独立复核（新会话冷读 diff）抓到并订正的五点**
+
+1. **BLOCKER：文档说"d5b 与 d6 两个写盘路径都用 helper"，代码里 d6 并没有用。** 事实是 d6 存原值且原值已正确
+   ⇒ 不改 d6 写盘器（改了只会产出与已提交表不一致的结构），**订正文档**：`DECISIONS` D77、`TASKS` ①、
+   基准 `README` 的约定节都改成"d5b 走 helper、d6 保持原值并说明理由"，并在 `run_d6` 的写盘处留了注释。
+2. **SHOULD-FIX：本轮曾给 d6 摘要加 `paired_difference_direction`/`_convention` 两个顶层键**，
+    schema 仍写 `d6/1` 而产物没有这两键 ⇒ 下次重跑会产出"同 schema 不同形状"的表，正是 D79 的缺陷类别。
+   **已撤销这两行**，d6 写盘器本轮只剩"守卫 + 注释"；补
+   `test_d6_summary_shape_is_pinned_against_writer_drift` 钉住 committed 表的 18 个顶层键与 `d6/1` schema，
+   今后加字段必须先重跑并显式升 schema。
+3. **SHOULD-FIX：文档称守卫的"冻结"定义取自产物自身**，实际 `_require_frozen_d6_arms` 比的是代码常量
+   `D6_FROZEN_METHODS` 生成的标签；只有 `test_frozen_labels_match_the_committed_arm_order` 把它与产物的
+   `arms` 对齐 ⇒ 措辞改成"代码清单 + 测试与产物逐项比对，漂移在 CI 报警"（`DECISIONS` D78、`TASKS` ③）。
+4. **NIT：`metrics.py` 的方向注释把机制写成"每臂分数是 −spearman"**，实为 replicate 用原始（负向）相关、
+   差取 `first − second`、agreement 再取负 ⇒ 两次取负相消；注释与 `README`/`EXPERIMENTS` 同步改正。
+5. **NIT：`README` 说"除 delta 字段外与 `/1` bit-identical"过度**（`schema`/`audit_relation`/两个新键也变了），
+   改成明确列出例外；`E0|E1` 一段补上"bootstrap 均值 0.0962744 ≠ 池化点估计之差 0.0993，
+   同号但不同统计量，不得互换"。上一条日志（`32b14ba` 节）里的 `run_shape_benchmark.py:1022/:1868`、
+   `metrics.py:249` 是**当时**的行号，已就地标注，不改写历史。
+
+**测试**：新增 19 条 — `test_shape_benchmark_metrics.py` 里 6 条（helper 两向发布、helper 缺字段报错、
+d5b 与 d6 用同一读法且 `excludes_zero` 的 `resolved >= 60`、d6 产物形状钉、CSV 方向列、
+21 = 3 目标 × 7 非零角度并复现 `{"E0":21,"E1":21,"E3":21,"S0K1":1,"S0K1+rot":20,"S0K2":4,"S0K2+rot":19}`），
+`tests/test_shape_benchmark_arm_guard.py` 7 条，`tests/test_shape_benchmark_d5b_provenance.py` 6 条。
+复核跑的三项文件里 **0 skipped**（skipif 未触发，产物都在），d6 一致性测试实际过滤出 98 条 resolved。
+
+**验证**（订正后最终一次全量）：`pytest -q -o addopts=""` → **893 passed in 95.95s**；
+`ruff check .` → All checks passed；`mypy` → no issues found in 40 source files；
+8 个 markdown 文件的表格列数检查 43 张表 **0 处不一致**。
+（订正前的同轮快照为 892 passed，差的那一条就是新加的 d6 形状钉。）
+
+**结论不变**：本轮只修读法、写盘安全与过期派生。D55/D56/D65/D67/D71 的判定与
+"不建议把 ShapeComp 纳入生产默认检索"一字未改。
+
+**边界**：未改生产默认检索器；未引入真实水体数据；官方 MATLAB 与 `.h5` 只读未改；不做 Web UI、不扩大图库。

@@ -1017,6 +1017,17 @@ does not survive is its precision. Under the angle-randomised sensitivity two of
 angle set. The retrieval criterion (b) of CP6 is untouched by this stage; per the 2026-11-08
 decision it remains the primary criterion, and this note changes no ranking claim.
 
+> **Field provenance (2026-11-09).** Every "+v" above is quoted as *better arm − worse arm*, so which
+> stored field it lands on depends on where the better arm sits in the key. `E3 > S0K1+rot (+0.0891)`
+> is key `"E3|S0K1+rot"` → `grouped_fixed_angle.agreement_first_minus_second` = +0.0891, whose
+> canonical `agreement_second_minus_first` is −0.0891. `S0K1+rot > E0 (+0.0614)` is key
+> `"E0|S0K1+rot"` → canonical `agreement_second_minus_first` = +0.0614, whose legacy-scale field is
+> −0.0614. `d6_rotation_metrics.json` publishes only the canonical direction (its `mean`), so there a
+> positive value always means the arm **after** the pipe is better. Before schema `/2` the d5b file
+> stored the A − B reading under the bare name `delta_agreement`, which is how the two artefacts came
+> to mean opposite things by the same key; the name is gone and
+> `tests/test_shape_benchmark_metrics.py` pins both readings.
+
 ### B5. The assumption this study rests on, restated
 
 Reusing one published rating for all seven rotated versions of a pair **assumes that rotating one

@@ -903,6 +903,42 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+D5_GROUPED_SCHEMA = "earthglyph.shape_perception_benchmark/d5_grouped/2"
+
+
+def _repo_relative(path: Path) -> str:
+    return path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else path.as_posix()
+
+
+def _superseded_d5b_record(previous: Path, current_schema: str) -> dict[str, Any]:
+    """Describe the artefact this stage replaces, and keep that description across re-runs."""
+    if not previous.exists():
+        return {"present": False}
+    prior = read_json(previous)
+    if not isinstance(prior, dict):
+        return {"present": False}
+    if prior.get("schema") == current_schema:
+        # The file on disk is this stage's own output, not a superseded study. Re-recording its
+        # hash would drop the only link to the /1 artefact, so carry the first run's record.
+        relation = prior.get("audit_relation")
+        carried = relation.get("superseded_file") if isinstance(relation, dict) else None
+        return carried if isinstance(carried, dict) else {"present": False}
+    return {
+        "present": True,
+        "path": _repo_relative(previous),
+        "sha256": _file_sha256(previous),
+        "bytes": previous.stat().st_size,
+        "schema": prior.get("schema"),
+        "relation": (
+            "this stage replaces that file. No magnitude changes: the point estimates, "
+            "intervals and widths are re-derived from the same stored CSV with the same seed, "
+            "and the only difference is that each paired contrast now publishes both readings "
+            "under direction-named fields, so any number quoted from the superseded file is "
+            "still present here as agreement_first_minus_second"
+        ),
+    }
+
+
 def run_d5_grouped(n_boot: int = N_BOOT, seed: int = SEED) -> dict[str, Any]:
     """CP7-B: re-infer the D5 rotation sweep with the *stimulus pair* as the sampling unit.
 
@@ -1017,15 +1053,7 @@ def run_d5_grouped(n_boot: int = N_BOOT, seed: int = SEED) -> dict[str, Any]:
         }
 
     def delta(block: dict[str, Any], key: str) -> dict[str, Any]:
-        raw = block["differences"][key]
-        return {
-            "delta_agreement": -float(raw["mean"]),
-            "std": float(raw["std"]),
-            "ci_low": -float(raw["ci_high"]),
-            "ci_high": -float(raw["ci_low"]),
-            "excludes_zero": bool(raw["excludes_zero"]),
-            "n_valid_replicates": int(raw["n_valid_replicates"]),
-        }
+        return metrics.paired_difference(block["differences"][key])
 
     per_arm: dict[str, Any] = {}
     for label in arms:
@@ -1064,9 +1092,13 @@ def run_d5_grouped(n_boot: int = N_BOOT, seed: int = SEED) -> dict[str, Any]:
             ),
         }
 
+    superseded = _superseded_d5b_record(RESULTS / "d5_grouped_metrics.json", D5_GROUPED_SCHEMA)
+
     summary = {
-        "schema": "earthglyph.shape_perception_benchmark/d5_grouped/1",
+        "schema": D5_GROUPED_SCHEMA,
         "study": "CP7-B re-analysis of the d5 rotation-stress agreement (H1)",
+        "paired_difference_direction": metrics.PAIRED_DIFFERENCE_DIRECTION,
+        "paired_difference_convention": metrics.PAIRED_DIFFERENCE_CONVENTION,
         "sampling_unit": (
             f"the rated stimulus pair ({fixed['n_clusters']} pairs), not the row; "
             f"{fixed['n_rows']} rows = {fixed['n_clusters']} pairs x {len(angles)} rotated angles "
@@ -1100,6 +1132,7 @@ def run_d5_grouped(n_boot: int = N_BOOT, seed: int = SEED) -> dict[str, Any]:
                 (RESULTS / "d5_grouped_results.csv").relative_to(REPO).as_posix(),
                 (RESULTS / "d5_grouped_metrics.json").relative_to(REPO).as_posix(),
             ],
+            "superseded_file": superseded,
             "d5_outputs_modified": False,
         },
         "assumptions": [
@@ -1176,6 +1209,7 @@ def _d5_grouped_rows(
                 "arm": label,
                 "other_arm": "",
                 "point_or_delta": entry["agreement_pooled"],
+                "delta_direction": "",
                 "ci_low": low,
                 "ci_high": high,
                 "ci_width": high - low,
@@ -1195,10 +1229,12 @@ def _d5_grouped_rows(
                 "scheme": scheme,
                 "arm": first,
                 "other_arm": second,
-                "point_or_delta": block["delta_agreement"],
-                "ci_low": block["ci_low"],
-                "ci_high": block["ci_high"],
-                "ci_width": block["ci_high"] - block["ci_low"],
+                "point_or_delta": block["agreement_second_minus_first"],
+                "delta_direction": block["direction"],
+                "ci_low": block["ci_low_second_minus_first"],
+                "ci_high": block["ci_high_second_minus_first"],
+                "ci_width": block["ci_high_second_minus_first"]
+                - block["ci_low_second_minus_first"],
                 "excludes_zero": block["excludes_zero"],
                 "n_valid_replicates": block["n_valid_replicates"],
                 "sampling_unit_rows": fixed["n_clusters"],
@@ -1240,6 +1276,16 @@ D6_OFF_GRID_MARGIN_DEG = 2.0
 #: used by (a) is the same arithmetic CP6 documented.
 D6_VERIFICATION_PAIRS = 20
 D6_STRATEGIES: tuple[str, ...] = ("naive", "R0", "R1_36", "R1_72", "R2", "R3")
+#: The arm list behind the committed ``d6_*`` artefacts: four EarthGlyph reference arms plus every
+#: wrapper on every official network. A narrower list is a different experiment that would overwrite
+#: the frozen table, so ``run_d6`` refuses it unless the caller opts in explicitly.
+D6_FROZEN_METHODS: tuple[str, ...] = (*EARTHGLYPH_METHODS, *SHAPECOMP_RUN_METHODS)
+D6_ARTEFACTS = (
+    "d6_retrieval_results.csv",
+    "d6_agreement_results.csv",
+    "d6_top10_hits.csv",
+    "d6_rotation_metrics.json",
+)
 
 
 @dataclass(frozen=True)
@@ -1294,6 +1340,30 @@ def _d6_arms(methods: list[str]) -> list[D6Arm]:
     if not arms:
         raise ValueError("--methods selected no d6 arm")
     return arms
+
+
+def _d6_frozen_labels() -> list[str]:
+    return [arm.label for arm in _d6_arms(list(D6_FROZEN_METHODS))]
+
+
+def _require_frozen_d6_arms(
+    labels: list[str], artefacts_present: bool, allow_subset: bool
+) -> None:
+    """Refuse to narrow the frozen 16-arm table unless the caller says so on purpose.
+
+    ``--methods`` defaults to the EarthGlyph trio, which is right for d1-d5 and wrong for d6: a
+    bare ``--stage d6`` would rewrite the committed artefacts as a four-arm table and leave no
+    trace that the wrapper comparison had been dropped.
+    """
+    if labels == _d6_frozen_labels() or allow_subset or not artefacts_present:
+        return
+    raise SystemExit(
+        "--stage d6 would overwrite the frozen 16-arm artefacts "
+        f"{', '.join(D6_ARTEFACTS)} with a {len(labels)}-arm table "
+        f"({', '.join(labels)}). Reproduce the committed study with "
+        f"--methods {' '.join(D6_FROZEN_METHODS)}; if the narrower table is what you want, "
+        "say so with --allow-d6-arm-subset."
+    )
 
 
 def _d6_off_grid_angle(rng: np.random.Generator, step: float) -> float:
@@ -1533,7 +1603,7 @@ def _d6_image_axis_check(queries: list[BenchmarkShape]) -> dict[str, Any]:
     }
 
 
-def run_d6(methods: list[str], top_k: int) -> dict[str, Any]:
+def run_d6(methods: list[str], top_k: int, allow_arm_subset: bool = False) -> dict[str, Any]:
     """Compare rotation WRAPPERS for the official port under random rotation, then decide.
 
     Two studies, one frozen design, shared ground truths, never mixed:
@@ -1550,6 +1620,11 @@ def run_d6(methods: list[str], top_k: int) -> dict[str, Any]:
     cannot cover a lost human ordering.
     """
     arms = _d6_arms(methods)
+    _require_frozen_d6_arms(
+        [arm.label for arm in arms],
+        any((RESULTS / name).exists() for name in D6_ARTEFACTS),
+        allow_arm_subset,
+    )
     design = _d6_angles()
 
     shapes, _ = load_mpeg7(CACHE)
@@ -1865,6 +1940,9 @@ def run_d6(methods: list[str], top_k: int) -> dict[str, Any]:
             "n_rows": grouped["n_rows"],
             "condition_factor": grouped["condition_factor"],
         },
+        # Stored raw on purpose: the bootstrap delta for key "A|B" already is
+        # agreement(B) - agreement(A), so re-wrapping it in metrics.paired_difference() here would
+        # make the writer emit a shape the committed d6 table does not have.
         "paired_differences": grouped["differences"],
         "paired_differences_angle_randomised": grouped_randomised["differences"],
         "verification_cached_vs_pair_distance": verification,
@@ -2059,6 +2137,8 @@ def write_summary() -> None:
                 "across arms; the angle-randomised interval is a sensitivity, not the headline"
             ),
             "by_arm": d5b["by_arm"],
+            "paired_difference_direction": d5b["paired_difference_direction"],
+            "paired_difference_convention": d5b["paired_difference_convention"],
             "paired_differences": d5b["paired_differences"],
             "differences_supported": d5b["differences_supported"],
             "assumptions": d5b["assumptions"],
@@ -2104,7 +2184,8 @@ def write_summary() -> None:
         }
 
     payload = {
-        "schema": "earthglyph.shape_perception_benchmark/1",
+        # /2: the rollup started carrying the d6 stage and the direction-named d5b block.
+        "schema": "earthglyph.shape_perception_benchmark/2",
         "task": "P0-4.6",
         "git_commit": commit,
         "python": platform.python_version(),
@@ -2177,6 +2258,15 @@ def main() -> None:
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
     parser.add_argument("--top-k", type=int, default=10)
+    parser.add_argument(
+        "--allow-d6-arm-subset",
+        action="store_true",
+        help=(
+            "let --stage d6 write a narrower arm table than the frozen 16-arm comparison "
+            f"(default methods are {', '.join(EARTHGLYPH_METHODS)}, the frozen d6 set is "
+            f"{', '.join(D6_FROZEN_METHODS)})"
+        ),
+    )
     args = parser.parse_args()
     RESULTS.mkdir(parents=True, exist_ok=True)
     for stage in args.stage:
@@ -2195,7 +2285,7 @@ def main() -> None:
         elif stage == "d5b":
             run_d5_grouped()
         elif stage == "d6":
-            run_d6(args.methods, args.top_k)
+            run_d6(args.methods, args.top_k, args.allow_d6_arm_subset)
         else:
             write_summary()
         print(f"=== {stage} done in {time.perf_counter() - started:.1f}s ===", flush=True)

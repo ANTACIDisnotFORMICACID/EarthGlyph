@@ -231,22 +231,57 @@ rotated to 37°/191°/270° moves the **naive** 22-D coordinate by **0.61–2.04
 (0.1523 / 0.4336). Reported per shape, never averaged — canonicalisation is provably a no-op when
 no axis exists (13 of 362 gallery contours).
 
-### Reading the two paired-difference tables (a real trap)
+### One paired-difference convention (fixed 2026-11-09, after the consolidation pass)
 
-`d5_grouped_metrics.json` and `d6_rotation_metrics.json` store the *same* comparison with opposite
-signs, because only the D5b writer flips it onto the agreement scale
-(`scripts/run_shape_benchmark.py:1022` negates `mean`, `ci_low`, `ci_high`; the D6 writer stores the
-raw bootstrap delta at line 1868):
+Before the fix the two pipe-keyed artefacts described the *same* comparison with opposite signs,
+because only the D5b writer flipped it onto the agreement scale
+(`scripts/run_shape_benchmark.py` negated `mean`, `ci_low`, `ci_high`; the D6 writer stored the raw
+bootstrap delta). The flip was a bug, not a design: `bootstrap_grouped_two_level` scores each
+replicate with `spearmanr(distance, human similarity)` — negative for a good arm — and forms
+`values[first] − values[second]`, while the published per-arm agreement is the negation of that
+correlation. The two negations cancel, so the raw delta for key `A|B` is *already*
+`agreement(B) − agreement(A)`, and negating it once more silently reversed the reading. The D5b
+writer now goes through `earthglyph/shape_benchmark/metrics.py::paired_difference`, which states the
+direction in the field names; the D6 writer deliberately keeps storing the raw delta, because it is
+already in that direction and wrapping it would make the writer emit fields the committed table does
+not have until someone spends an hour re-running the stage. Every key reads the same way:
 
-| Artefact | Key | Field | What the number means |
+| Artefact | Key | Canonical field | What the number means |
 |---|---|---|---|
-| `d5_grouped_metrics.json` | `A`\\|`B` | `delta_agreement` | **agreement(A) − agreement(B)**, positive = A better |
-| `d6_rotation_metrics.json` | `A`\\|`B` | `mean` | **agreement(B) − agreement(A)**, positive = B better |
+| `d5_grouped_metrics.json` (schema `/2`) | `A`\\|`B` | `agreement_second_minus_first` | **agreement(B) − agreement(A)**, positive = B better |
+| `d6_rotation_metrics.json` | `A`\\|`B` | `mean` (unchanged, and still correct) | **agreement(B) − agreement(A)**, positive = B better |
+| `d5_grouped_metrics.json` (schema `/2`) | `A`\\|`B` | `agreement_first_minus_second` | the mirrored reading, published so that any number quoted from the pre-fix file is still findable verbatim |
+| `human_metrics.json` | `A-B` (dash) | `observed_difference` | **agreement(A) − agreement(B)**; the key itself states the direction, so it was never ambiguous and is unchanged |
 
-Verified from both files: `E0|E1` is −0.0963 in D5b and +0.0963 in D6, and E1 − E0 = 0.7824 − 0.6831
-= +0.0993. So a positive D6 delta means the **second** arm is the better one. No stored number is
-wrong; only the direction of reading differs. Both tables in `notes.md` quote agreement-scale
-deltas and say which file they came from.
+Verified again from both files: `E0|E1` is **+0.09627444793149513** under
+`agreement_second_minus_first` in `d5_grouped_metrics.json` and bit-identically under `mean` in
+`d6_rotation_metrics.json` (the D6 agreement stage reuses the same grouped bootstrap), so one key
+now means one thing in both artefacts. The pooled agreement behind it is E0 **0.6831** and E1
+**0.7824**: their difference is +0.0993, not +0.0963, because the paired number is a mean over
+bootstrap replicates rather than the difference of two point estimates — same sign, same verdict,
+not the same statistic, and no reading of either file should treat them as interchangeable.
+
+What the fix touched: the d5b artefacts were regenerated (`--stage d5b`, 32 s, same seed and same
+stored CSV) — every field **outside** `paired_differences`, `schema`, `audit_relation` and the two
+new convention keys is identical to schema `/1` (checked one by one: `by_arm`, `reproduction`,
+`differences_supported`, `sampling_unit`, `angle_factor*`, `assumptions`, `n_*`, `angles_deg`), the 42
+(key × scheme) paired entries carry the old number verbatim under the direction-named legacy field,
+and the superseded file's SHA256 + schema are recorded in `audit_relation.superseded_file`. The
+ambiguous bare name `delta_agreement` is gone. `d6_rotation_metrics.json` was **not** re-run and its
+writer gained no fields: its stored numbers already followed the canonical direction, and a rerun
+would only have churned wall-clock timing fields that the reports quote.
+`test_d6_summary_shape_is_pinned_against_writer_drift` holds that contract by pinning the committed
+table's 18 top-level keys and its `d6/1` schema. The convention is pinned by tests
+(`tests/test_shape_benchmark_metrics.py`, `tests/test_shape_benchmark_arm_guard.py`), including a
+check that each artefact's resolved contrasts agree with its own per-arm pooled agreement values,
+and that the CP6 rank-1 denominator really is **21 = 3 targets × 7 non-zero angles**.
+
+`--stage d5b` is safe to run again. It used to record *whatever file was on disk* as the superseded
+one, so a second run would have pointed the audit link at its own `/2` output and lost the only
+reference to `/1`; the writer now recognises its own schema and carries the first run's record
+forward (`tests/test_shape_benchmark_d5b_provenance.py`). Measured: re-running after that change
+rewrote both artefacts byte-for-byte unchanged (`d5_grouped_metrics.json` `712570b2…`,
+`d5_grouped_results.csv` `8ffb4ead…`) and left `superseded_file` on `/1` (`17640d3a…`, 21 056 B).
 
 ### Port faithfulness and the statistics fix, in one line each
 
@@ -281,7 +316,7 @@ deltas and say which file they came from.
 | `results/{d2,d3,d4}_metrics.json`, `metrics.json` | per-stage detail and the combined headline table with provenance |
 | `results/structure_probe_results.csv`, `transform_results.csv` | D3 role probes and D4 transform-stability rows |
 | `results/d5_rotation_{results.csv,metrics.json}` | **CP6, frozen**: 250 pairs × 7 angles × arms, per-row and the old row-independent intervals. Never rewritten (D61) |
-| `results/d5_grouped_{results.csv,metrics.json}` | **CP7-B re-analysis** of the file above (no re-scoring): clustered + paired intervals, `delta_agreement` = A − B, plus the SHA256 audit link back to the frozen D5 artefacts |
+| `results/d5_grouped_{results.csv,metrics.json}` | **CP7-B re-analysis** of the file above (no re-scoring): clustered + paired intervals; schema `/2` publishes each paired contrast under direction-named fields (`agreement_second_minus_first` canonical, `agreement_first_minus_second` = the `/1` number verbatim), the CSV labels its direction column, and the SHA256 audit links cover both the frozen D5 artefacts and the superseded `/1` file |
 | `results/d6_retrieval_results.csv` | **CP7-C**: one row per arm × condition × query × angle-slot cell (T0/T1/T2, 16 × 3 × 72), Top-1, stability, overlap, rank shift, first relevant rank, seconds |
 | `results/d6_top10_hits.csv` | the actual **T2** Top-10 lists behind it (16 arms × 72 cells × 10 = 11 520 rows), with `pose`, `distance`, `same_class`, `is_query_self`, `first_relevant_rank` — everything the failure figures are drawn from |
 | `results/d6_agreement_results.csv` | goal A on the D5 stimuli: 16 arms × 250 rated pairs × 7 stress angles = 28 000 rows, `model_distance` next to `human_mean_similarity` (the published 14-observer mean, never a model estimate of it). The observer panel is re-sampled inside the bootstrap, so it is not a column here |
@@ -323,9 +358,9 @@ deltas and say which file they came from.
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5b   # reads d5_rotation_results.csv only
 
 # 6. the CP7-C frozen rotation-method comparison (16 arms x T0/T1/T2; needs the toolbox)
-#    `--methods` is NOT optional here: it defaults to E0 E1 E3, and running the stage with that
-#    default rewrites d6_* as a 4-arm table (`_d6_arms` adds the 12 wrapper arms per network that
-#    is named). Pass all five methods to reproduce what is stored.
+#    `--methods` is mandatory in effect: it defaults to E0 E1 E3, and --stage d6 now refuses to
+#    rewrite the committed 16-arm artefacts with a narrower table (`_require_frozen_d6_arms`).
+#    Pass all five methods to reproduce what is stored, or --allow-d6-arm-subset to say otherwise.
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
 

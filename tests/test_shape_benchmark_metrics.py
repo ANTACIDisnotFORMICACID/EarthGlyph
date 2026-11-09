@@ -305,14 +305,39 @@ def test_d5b_artefacts_agree_with_the_committed_d5_values() -> None:
         path = REPO / item["path"]
         assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
         assert path.stat().st_size == item["bytes"]
+    assert grouped["paired_difference_direction"] == metrics.PAIRED_DIFFERENCE_DIRECTION
     for key, entry in grouped["paired_differences"].items():
         first, second = key.split("|", 1)
         ordering = (
-            grouped["by_arm"][first]["agreement_pooled"]
-            - grouped["by_arm"][second]["agreement_pooled"]
+            grouped["by_arm"][second]["agreement_pooled"]
+            - grouped["by_arm"][first]["agreement_pooled"]
         )
-        delta = entry["grouped_fixed_angle"]["delta_agreement"]
-        assert np.sign(delta) == np.sign(ordering), key
+        for scheme in ("grouped_fixed_angle", "angle_randomised"):
+            block = entry[scheme]
+            assert block["direction"] == metrics.PAIRED_DIFFERENCE_DIRECTION
+            assert "delta_agreement" not in block, (key, scheme)
+            if abs(ordering) > 1e-12 and abs(block["agreement_second_minus_first"]) > 1e-12:
+                assert (
+                    np.sign(block["agreement_second_minus_first"]) == np.sign(ordering)
+                ), (key, scheme)
+            assert block["agreement_first_minus_second"] == pytest.approx(
+                -block["agreement_second_minus_first"]
+            )
+            assert block["ci_low_second_minus_first"] == pytest.approx(
+                -block["ci_high_first_minus_second"]
+            )
+            assert block["ci_high_second_minus_first"] == pytest.approx(
+                -block["ci_low_first_minus_second"]
+            )
+            assert block["excludes_zero"] is bool(
+                block["ci_low_second_minus_first"] > 0.0
+                or block["ci_high_second_minus_first"] < 0.0
+            )
+
+    superseded = grouped["audit_relation"]["superseded_file"]
+    assert superseded["present"] is True
+    assert superseded["schema"].endswith("d5_grouped/1")
+    assert len(superseded["sha256"]) == 64
 
     with (RESULTS / "d5_grouped_results.csv").open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
@@ -326,6 +351,168 @@ def test_d5b_artefacts_agree_with_the_committed_d5_values() -> None:
     intervals = [row for row in rows if row["record_type"] == "arm_interval"]
     assert len(intervals) == 3 * arms
     assert all(float(row["ci_width"]) > 0.0 for row in rows)
+
+
+# --------------------------------------------------------------------------- conventions
+
+
+def test_paired_difference_helper_publishes_both_directions() -> None:
+    """The ambiguous bare name is gone: every reading says which way it points."""
+    raw = {
+        "mean": 0.04,
+        "std": 0.01,
+        "ci_low": -0.02,
+        "ci_high": 0.1,
+        "excludes_zero": False,
+        "n_valid_replicates": 1980,
+    }
+    block = metrics.paired_difference(raw)
+    assert block["direction"] == metrics.PAIRED_DIFFERENCE_DIRECTION
+    assert block["agreement_second_minus_first"] == pytest.approx(0.04)
+    assert block["agreement_first_minus_second"] == pytest.approx(-0.04)
+    assert block["ci_low_second_minus_first"] == pytest.approx(-0.02)
+    assert block["ci_high_second_minus_first"] == pytest.approx(0.1)
+    assert block["ci_low_first_minus_second"] == pytest.approx(-0.1)
+    assert block["ci_high_first_minus_second"] == pytest.approx(0.02)
+    assert block["excludes_zero"] is False
+    assert block["std"] == pytest.approx(0.01)
+    assert block["n_valid_replicates"] == 1980
+    assert "delta_agreement" not in block
+
+
+def test_paired_difference_helper_rejects_a_missing_field() -> None:
+    with pytest.raises(KeyError):
+        metrics.paired_difference({"mean": 0.1})
+
+
+@pytest.mark.skipif(
+    not (RESULTS / "d6_rotation_metrics.json").exists(),
+    reason="the CP7-C study has not been run in this checkout",
+)
+def test_d6_paired_differences_read_the_same_way_as_d5b() -> None:
+    """One pipe-keyed convention across the benchmark, asserted on the committed artefacts.
+
+    ``bootstrap_grouped_two_level`` forms ``score(first) - score(second)`` of replicates that are
+    themselves negative-for-good correlations, which is ``agreement(second) - agreement(first)``.
+    d5b used to negate that once more when writing, so the same key meant opposite things in the two
+    files. Both artefacts are now asserted to follow the helper's direction, and a resolved contrast
+    must agree with the two arms' own pooled agreement values inside the same artefact.
+    """
+    d6 = json.loads((RESULTS / "d6_rotation_metrics.json").read_text(encoding="utf-8"))
+    pooled = {
+        arm: entry["agreement_pooled"] for arm, entry in d6["agreement_by_arm"].items()
+    }
+    resolved = 0
+    for key, entry in d6["paired_differences"].items():
+        first, second = key.split("|", 1)
+        if not entry["excludes_zero"]:
+            continue
+        ordering = pooled[second] - pooled[first]
+        assert np.sign(entry["mean"]) == np.sign(ordering), key
+        resolved += 1
+    assert resolved >= 60
+
+
+def test_d6_summary_shape_is_pinned_against_writer_drift() -> None:
+    """A field added to the d6 writer must also land in the artefact, which costs a 60-minute rerun.
+
+    Adding summary keys without rerunning is the drift recorded in D79 (the rollup carried a string
+    the code had already fixed). The committed table is what every report quotes, so its shape is
+    pinned here: add a key in the code and this fails until the stage is rerun and schema bumped.
+    """
+    d6 = json.loads((RESULTS / "d6_rotation_metrics.json").read_text(encoding="utf-8"))
+    assert d6["schema"] == "earthglyph.shape_perception_benchmark/d6/1"
+    assert sorted(d6) == [
+        "agreement_bootstrap",
+        "agreement_by_arm",
+        "angles",
+        "arms",
+        "design",
+        "goal_separation",
+        "image_axis_convention_check",
+        "max_abs_deviation_cached_vs_public",
+        "n_boot",
+        "orientation_diagnostics",
+        "paired_differences",
+        "paired_differences_angle_randomised",
+        "precompute_seconds",
+        "retrieval_by_arm",
+        "rows_written",
+        "schema",
+        "seed",
+        "verification_cached_vs_pair_distance",
+    ]
+
+
+@pytest.mark.skipif(
+    not (RESULTS / "d5_grouped_results.csv").exists(),
+    reason="the d5b re-analysis has not been run in this checkout",
+)
+def test_d5_grouped_csv_labels_its_delta_direction() -> None:
+    grouped = json.loads((RESULTS / "d5_grouped_metrics.json").read_text(encoding="utf-8"))
+    with (RESULTS / "d5_grouped_results.csv").open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    paired = [row for row in rows if row["record_type"] == "paired_difference"]
+    intervals = [row for row in rows if row["record_type"] == "arm_interval"]
+    assert paired and intervals
+    assert {row["delta_direction"] for row in paired} == {metrics.PAIRED_DIFFERENCE_DIRECTION}
+    assert {row["delta_direction"] for row in intervals} == {""}
+    for row in paired:
+        entry = grouped["paired_differences"][f"{row['arm']}|{row['other_arm']}"]
+        block = entry["grouped_fixed_angle"] if row["scheme"] == (
+            "grouped_pairs_fixed_angle"
+        ) else entry["angle_randomised"]
+        assert float(row["point_or_delta"]) == pytest.approx(
+            block["agreement_second_minus_first"]
+        )
+        assert float(row["ci_low"]) == pytest.approx(block["ci_low_second_minus_first"])
+        assert float(row["ci_high"]) == pytest.approx(block["ci_high_second_minus_first"])
+
+
+@pytest.mark.skipif(
+    not (RESULTS / "d5_rotation_metrics.json").exists(),
+    reason="the CP6 rotation study has not been run in this checkout",
+)
+def test_d5_target_rank_denominator_is_targets_times_nonzero_angles() -> None:
+    """The 'x/21' in the write-up is a stored fact, not a prose claim.
+
+    Checkpoint 7's documentation pass first attributed this denominator to the 250 rated H1 pairs,
+    which is goal (a)'s unit. The rank counts come from goal (b): three queries against the D4
+    stratified gallery, each turned by every stress angle except 0°, and the 0° cells are kept
+    aside as the control.
+    """
+    d5 = json.loads((RESULTS / "d5_rotation_metrics.json").read_text(encoding="utf-8"))
+    table = d5["retrieval_target_rank"]
+    arms = sorted({key.split("|", 1)[0] for key in table})
+    targets = sorted({key.split("|", 1)[1].rsplit("@", 1)[0] for key in table})
+    angles = sorted({float(key.rsplit("@", 1)[1]) for key in table})
+    assert (len(targets), len(angles)) == (3, 8)
+    assert 0.0 in angles
+    rotated_per_arm = len(targets) * (len(angles) - 1)
+    assert rotated_per_arm == 21
+
+    def rank_one(arm: str, *, rotated: bool) -> int:
+        hits = 0
+        for key, value in table.items():
+            if not key.startswith(f"{arm}|"):
+                continue
+            is_control = float(key.rsplit("@", 1)[1]) == 0.0
+            if is_control == rotated:
+                continue
+            hits += int(value == 1)
+        return hits
+
+    for arm in arms:
+        assert rank_one(arm, rotated=False) == len(targets), arm
+    assert {arm: rank_one(arm, rotated=True) for arm in arms} == {
+        "E0": 21,
+        "E1": 21,
+        "E3": 21,
+        "S0K1": 1,
+        "S0K1+rot": 20,
+        "S0K2": 4,
+        "S0K2+rot": 19,
+    }
 
 
 # --------------------------------------------------------------------------- observers

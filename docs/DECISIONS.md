@@ -614,6 +614,9 @@ E1/E2/E3 的候选按原方向叠加，读者看到的"像不像"里混进了"�
     12 control = **72 单元**、16 臂），故 (b) 一侧只能按"同族 Top-1 / Top-1 稳定性 / 位移"报告，
     **没有**在同一批 21 个旋转单元上重跑那条 rank-1 判据。两套分母不可互换，引用时必须写明来自哪一套；
     本条的否判决定来自 (a) 一侧（同一 250 对 × 7 角度协议，两侧可比），与分母争议无关。
+    **（2026-11-09）本条两处口径已机器化**：上面所有配对差按 D77 的统一方向读（键 `A|B` ⇒ `agreement(B) − agreement(A)`），
+    "21 = 3 目标 × 7 非零角度"连同各臂 rank-1 计数由 `test_d5_target_rank_denominator_is_targets_times_nonzero_angles`
+    从 `d5_rotation_metrics.json` 现算，不再由文字维持。
   - 附带证据：R2 的 agreement 在 7 个压力角度上**逐位完全同一**（`curve_by_angle` 极差 0.000e+00，
     naive 则从 0.8326 摆到 −0.0015），且 `scripts/verify_r2_pose_invariance.py` →
     `results/r2_pose_invariance_check.json` 证明这不是"旋转被丢弃"（见 D67）。
@@ -784,3 +787,60 @@ E1/E2/E3 的候选按原方向叠加，读者看到的"像不像"里混进了"�
   （上游仅"please cite"）；因此不提交原始压缩包、不提交 `.h5`、不 vendor 任何 `.m/.c/.mex`，
   仓库版本化的是 manifest+复现命令。另在 `.gitignore` 增 `*.h5` 与 `shapeComp_*.zip`，
   防止把权重拷到别处就绕过规则。
+
+## 符号约定、臂集合守卫与过期汇总（P0-4.6 CP7 收官后的修复轮，2026-11-09 新增）
+
+CP7 收官的文档整合轮记录了三个"口径问题"并只写进文档。本轮把它们当作**缺陷**处理：两处改代码、
+一处改派生产物，并让每个结论都能在测试里重放。
+
+- **D77：配对差方向反了不是"读法差异"，而是 d5b 写盘时多数翻了一次符号 —— 已统一并出 `/2` 版产物** —
+  机制：`bootstrap_grouped_two_level` 的每个 replicate 是 `spearmanr(距离, 人类**相似**)`（越负越好），
+  配对差取 `values[first] − values[second]`，而发布的 agreement 又把该相关取负 ⇒ **两次取负相消**，
+  键 `A|B` 的原始 `mean` **本就是** `agreement(B) − agreement(A)`；d6 直接存原值（正确），
+  d5b 的 `delta()` 却又取一次负 ⇒ 同一个键在两个文件里含义相反。修法不是"再解释一遍"，而是
+  ① 新增 `earthglyph/shape_benchmark/metrics.py::paired_difference`（配
+  `PAIRED_DIFFERENCE_DIRECTION = "second_minus_first"` 常量）供 d5b 写盘路径使用，**删掉**裸名 `delta_agreement`，
+  并在 `metrics.py` 里把"为什么原值已是该方向"写成注释；② 每条配对同时发布两个方向且名字自带方向
+  （`agreement_second_minus_first` 为头部值，`agreement_first_minus_second` 让 `/1` 里的旧数字**逐位还在**）；
+  ③ CSV 增 `delta_direction` 列（区间行为空）；④ 产物 schema 升到 `d5_grouped/2`，
+  并在 `audit_relation.superseded_file` 记下被替换文件的 sha256 `17640d3abc3ab766…`、字节数 21 056 与 `/1` 标识。
+  **d6 一侧不套 helper 是有意为之**：它存的已是规范方向的原值，套上只会让写盘器产出已提交表里**没有的字段**
+  （产物要等一次 60 分钟重跑才补齐 ⇒ 正是 D79 那类"代码已改、产物未更"的漂移）。改为在该写盘处留注释，
+  并用 `test_d6_summary_shape_is_pinned_against_writer_drift` 钉死 `d6_rotation_metrics.json` 的
+  键集合与 `d6/1` schema：今后加字段必须先重跑并显式升 schema，否则 CI 直接失败。
+  **代价与不变性核对**：`--stage d5b` 重跑 31.9 s（同种子、同读 `d5_rotation_results.csv`、不重算任何距离），
+  逐字段比对证明除 `paired_differences`/`schema`/`audit_relation`/新增约定串之外**全部相同**
+  （`by_arm`、`reproduction`、`differences_supported`、`sampling_unit`、`n_*`、`angles_deg`、`assumptions` 一致），
+  42 条 (键 × 方案) 的旧值与新 `agreement_first_minus_second` **精确相等**、CI 端点互为镜像。
+  `d6_*` 产物**一个字节都没动**（本轮对 d6 写盘器的改动只有注释与守卫）。`human_metrics.json` 的键本是 `A-B` 短横样式、方向自解释，**不在缺陷内、未改**。
+  顺带把 (b) 侧的验收分母也变成机器可核：测试从 `d5_rotation_metrics.json` 的 `retrieval_target_rank`
+  重算出 **21 = 3 目标 × 7 非零角度**（0° control 每臂 3 格单独存在），并复现笔记里的
+  E0/E1/E3 = 21/21、S0K1+rot = 20/21、S0K2+rot = 19/21、S0K1 naive = 1/21、S0K2 naive = 4/21 ⇒
+  收官轮订正过的"21 到底属于哪套协议"从此不再靠 prose 维持。
+  **重跑幂等（本轮写日志时发现的第四个缺陷，已一并修掉）**：`superseded_file` 原先记"磁盘上当前那个文件"，
+  而第二次跑 d5b 时磁盘上已是自己写的 `/2` ⇒ 审计链会被改指向 `/2` 并**丢掉唯一的 `/1` 链接**。
+  现在 `_superseded_d5b_record()` 见 schema 已等于本次目标就把**首次**记录原样携带下去
+  （`tests/test_shape_benchmark_d5b_provenance.py` 6 条覆盖）。实测幂等：修码后重跑 `--stage d5b`（31.3 s）
+  两个产物 sha256 与重跑前**逐字节相同**（`712570b2…`/`8ffb4ead…`），`superseded_file` 仍是 `/1` 的
+  `17640d3abc3ab766…`。
+- **D78：`--stage d6` 静默把 16 臂产物改写成 4 臂是数据安全问题，改为 fail-loud** —
+  `--methods` 默认 `E0 E1 E3` 对 d1–d5 是对的，对 d6 会让 `_d6_arms()` 只生成 4 臂并覆盖
+  `d6_retrieval_results.csv`/`d6_agreement_results.csv`/`d6_top10_hits.csv`/`d6_rotation_metrics.json`，
+  覆盖后**看不出**包装器对照曾被删掉。新增 `D6_FROZEN_METHODS`（= EARTHGLYPH + 两个网络）、
+  `_d6_frozen_labels()` 与 `_require_frozen_d6_arms()`：臂集合不等于冻结 16 臂且产物已存在时直接
+  `SystemExit`，信息里给全复现命令 `--methods E0 E1 E3 S0K1 S0K2` 与显式逃生门 `--allow-d6-arm-subset`；
+  全新检出（产物不存在）不拦。守卫比对的"冻结"集合是代码里的 `D6_FROZEN_METHODS`（16 臂标签由
+  `_d6_arms()` 按固定顺序生成）；`test_frozen_labels_match_the_committed_arm_order` 再把这份代码清单与
+  **已提交产物自己的 `arms` 列表**逐项比对 ⇒ 二者一旦漂移由 CI 报警，而不是等到某次运行悄悄改写结果表。
+- **D79：汇总产物 `metrics.json` 是过期的，重跑 summary 属只读派生且顺带清掉 D75 术语残留** —
+  入库版本由 commit `a417061` 生成：`stages_present` 里没有 `d6`、headline 缺两个包装器块、
+  `arm_availability.S0` 仍写"the ORIGINAL **91**-descriptor ShapeComp MDS space"（CP7-D F3 已改代码里的
+  生成字符串，但没人重跑 summary 把它落到派生产物上）。`--stage summary` 只读已入库的阶段产物再拼装，
+  不重算任何研究 ⇒ 重跑后 `stages_present` 含 d6、d5b 块换成 `/2` 的方向字段、术语串为
+  "109 描述子模型的 22 维 MDS 投影"，`git_commit` 更新为本次运行所在提交。汇总自身的 schema 也从
+  `shape_perception_benchmark/1` 升到 `/2`（它新增了 d6 两块与 d5b 的方向字段），并把
+  `paired_difference_direction`/`_convention` 一并带进 d5b 摘要块，使只读 `metrics.json` 的人也拿得到读法。
+  **结论沿用**：本轮修的是**读法与写盘安全**，D55/D56/D65/D67/D71 的判定与"不建议把 ShapeComp 纳入生产默认检索"不变。
+  验证：`pytest` **893 passed**（新增 19 条：约定单元/两产物一致性/CSV 方向列/21 分母/d6 形状钉/守卫 7 条/d5b 幂等 6 条）、
+  `ruff check .` 全过、`mypy` 40 源文件无问题；`d5_rotation_*`、`d6_*`、`f1_*`、权重与压缩包一律未改，
+  生产默认检索器、真实水体库、Web UI 仍不在本轮范围内。

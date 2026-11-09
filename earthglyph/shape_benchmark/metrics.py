@@ -8,7 +8,7 @@ converts a category label into a similarity score.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from itertools import combinations
 from typing import Any
@@ -144,6 +144,46 @@ def _crossed_grid(
     if (grid < 0).any():
         raise ValueError("the design is incomplete: some stimulus has no row for some condition")
     return grid
+
+
+#: Canonical reading of a pipe-keyed paired difference. :func:`bootstrap_grouped_two_level` scores
+#: each replicate with ``spearmanr(distance, human similarity)`` — negative for a good arm — and
+#: forms ``values[first] - values[second]``, while the published per-arm agreement is the negation
+#: of that correlation. Two negations cancel: the raw difference for key ``"A|B"`` already *is*
+#: ``agreement(B) - agreement(A)``. Writers must store that direction untouched: negating it in one
+#: writer and not another is what made the same key mean opposite things in
+#: ``d5_grouped_metrics.json`` and ``d6_rotation_metrics.json``.
+PAIRED_DIFFERENCE_DIRECTION = "second_minus_first"
+PAIRED_DIFFERENCE_CONVENTION = (
+    'key "A|B" stores score(B) - score(A) on the agreement scale, so a positive value means the '
+    "arm after the pipe is better; the mirrored reading is published beside it under an "
+    "explicitly named field rather than left to the key order"
+)
+
+
+def paired_difference(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Restate one bootstrap difference in both directions, each named by what it means.
+
+    ``raw`` is one entry of :func:`bootstrap_grouped_two_level`'s ``differences`` block. Only the
+    canonical direction is a headline number; ``agreement_first_minus_second`` exists so a reader
+    holding an artefact written before the unification can still find the number they quoted, and so
+    nobody has to infer a sign from the order of a key.
+    """
+    value = float(raw["mean"])
+    low = float(raw["ci_low"])
+    high = float(raw["ci_high"])
+    return {
+        "direction": PAIRED_DIFFERENCE_DIRECTION,
+        "agreement_second_minus_first": value,
+        "agreement_first_minus_second": -value,
+        "ci_low_second_minus_first": low,
+        "ci_high_second_minus_first": high,
+        "ci_low_first_minus_second": -high,
+        "ci_high_first_minus_second": -low,
+        "std": float(raw["std"]),
+        "excludes_zero": bool(raw["excludes_zero"]),
+        "n_valid_replicates": int(raw["n_valid_replicates"]),
+    }
 
 
 def bootstrap_grouped_two_level(

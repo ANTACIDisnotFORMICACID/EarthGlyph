@@ -128,8 +128,22 @@ Hausdorff 上界对称，Chamfer 均值与带符号面积误差不对称。
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
 ```
 
-`--stage d6` **必须**带 `--methods`：默认只含 `E0 E1 E3`，用默认值运行会把已提交的 16 臂产物
-覆写成 4 臂表（`_d6_arms` 按传入的网络追加 12 个包装臂）。
+`--stage d6` **必须**带 `--methods E0 E1 E3 S0K1 S0K2`：默认只含 `E0 E1 E3`，用默认值运行会把已提交的
+16 臂产物覆写成 4 臂表（`_d6_arms` 按传入的网络追加 12 个包装臂）。这条现在是**强制**的而不是提醒——
+`_require_frozen_d6_arms` 在臂集合不等于冻结 16 臂且产物已存在时直接退出，并打印可复制的完整命令；
+确实想做窄表就显式加 `--allow-d6-arm-subset`（D78）。
+
+配对差的读法在两个产物间曾相反（d5b 写盘时多翻了一次符号：replicate 本就是"越负越好"的相关，
+配对取 `first − second`，agreement 又取一次负，两次相消 ⇒ 原值已是规范方向）。统一后约定为
+**键 `A|B` ⇒ agreement(B) − agreement(A)**，正数表示竖线后的臂更好；
+`d5_grouped_metrics.json` 因此升到 schema `/2`，每条配对同时发布两个方向且字段名自带方向，
+裸名 `delta_agreement` 废除、被替换文件的 sha256 记入 `audit_relation.superseded_file`；
+`--stage d5b` 重跑 31.9 s 后除上述字段与 `schema`/`audit_relation` 外**逐字段取值相同**，
+`d6_*` 产物一个字节未改（D77）。d6 一侧的写盘器**保持存原值**（原值已正确）：给它加字段会让代码产出
+与已提交表不一致的结构，故改为用测试钉住 `d6_rotation_metrics.json` 的 18 个顶层键与 `d6/1` schema，
+`--stage d5b` 亦已幂等（重跑不再覆盖 `/1` 的审计链接）。
+`tests/test_shape_benchmark_metrics.py` 另从 `d5_rotation_metrics.json` 重算验收分母
+**21 = 3 目标 × 7 非零角度**，"21/21 属于哪套协议"不再是文字口径问题。
 
 
 ## 4. 诚实评价约束

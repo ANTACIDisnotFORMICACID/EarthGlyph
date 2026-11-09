@@ -675,14 +675,57 @@ Git 检查点：工作提交 `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
   或保留原文并紧接日期更正，覆盖 `docs/DECISIONS.md`（D55/D56/D59 改写 + P0-4.5 ShapeComp-inspired 一条定量收尾）、
   `docs/EXPERIMENTS.md`（新增 §3.3 四层协议表 + §6 门禁"基准不是门禁证据"）、`docs/ROADMAP.md`、`docs/TASKS.md`、
   基准 `README.md`（CP7 整节 + Files/Reproduce 补齐）与 `INTERPRETATION.md`。复核抓到三处口径问题并写进文档：
-  ① `d5_grouped` 与 `d6` 的**配对差符号约定相反**（`run_shape_benchmark.py:1022` 翻号 vs `:1868` 存原值）；
+  ① `d5_grouped` 与 `d6` 的**配对差符号约定相反**（d5b 写盘路径 `delta()` 多翻一次号，d6 存 bootstrap 原值）；
   ② D55 初稿把验收分母 "21/21" 错记为 250 对协议，实为 **3 目标 × 7 非零角度**（0° control 另存
   `unrotated_control_overlap`）⇒ 现写明三套分母不可互换；
-  ③ `--stage d6` 不带 `--methods` 会把 16 臂产物改写成 4 臂 ⇒ 复现命令一律带 `--methods`（只记录，不改码）。
+  ③ `--stage d6` 不带 `--methods` 会把 16 臂产物改写成 4 臂 ⇒ 复现命令一律带 `--methods`（当时只记录，不改码）。
   验证：`pytest` **874 passed**、`ruff` 全过、`mypy` 40 源文件无问题、8 个 md 表格列数 0 处不一致、
   "91 × ShapeComp" 术语命中全为合法用法。结果文件 / 权重 / 压缩包 / 生产默认 **一个都没动**。
   Git 检查点：文档提交 `32b14ba`（7 files / +359 / −25），已推送并核验
   `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`。
+
+#### CP7 收官后的修复轮：把三处口径缺陷改成代码与测试（外加本轮自己发现的第四、五处）（2026-11-09）✅
+
+上一轮只"写进文档"，本轮真正修码，逐条对应：
+
+- **① 符号约定（D77）**：`bootstrap_grouped_two_level` 的 replicate 是 `spearmanr(distance, similarity)`
+  （负号=更好）、配对取 `first − second`，而 agreement 又对该相关取负 ⇒ **两次取负相消**，键 `A|B` 的原始
+  `mean` **本就是** `agreement(B) − agreement(A)`；d5b 写盘路径多翻的那一次才是分歧来源。
+  现在 d5b 经 `metrics.paired_difference()` 输出方向显式命名
+  （`direction = "second_minus_first"` + `agreement_second_minus_first` / `agreement_first_minus_second` 两把尺子并存，
+  CI 同步镜像），不再靠键序猜方向；**d6 一侧原值已正确，故有意不套 helper**——套上会让写盘器产出已提交表里
+  没有的字段（要等一次 60 分钟重跑才补齐，正是 D79 那类漂移），改为在该处留注释并用测试钉住 d6 产物的键集合。
+  `d5_grouped_metrics.json` schema `d5_grouped/1 → /2` 并重跑
+  `--stage d5b`（只读再分析，31.9 s）；`audit_relation.superseded_file` 记下被替换文件的 sha256
+  `17640d3abc3ab766…`（21 056 B，`/1`）。**逐字段证明**：除 `delta_agreement`→改名后的两把尺子外，
+  所有数值与 `/1` 一致，`d6_*` 一个字节没动（选 `second_minus_first` 为规范方向正是为了让最常引用的 d6 产物零改写）。
+- **② 分母（测试固化）**：新增 `test_d5_target_rank_denominator_is_targets_times_nonzero_angles`，
+  直接从 `d5_rotation_metrics.json` 重算 3 目标 × 7 非零角度 = 21，并钉住被引用的 7 个 rank-1 计数
+  `{"E0":21,"E1":21,"E3":21,"S0K1":1,"S0K1+rot":20,"S0K2":4,"S0K2+rot":19}`；0° control 另计，不与 21 混用。
+- **③ d6 臂集合守卫（D78）**：`--stage d6` 现在**默认拒绝**把 16 臂产物改写成更少（`_require_frozen_d6_arms`
+  比对 `_d6_frozen_labels()`（代码里的 `D6_FROZEN_METHODS` 生成的 16 个臂标签）），报错信息点名 4 个受影响文件、
+  完整 `--methods` 命令与显式越权开关 `--allow-d6-arm-subset`；代码清单与**已提交产物的 `arms`** 由
+  `test_frozen_labels_match_the_committed_arm_order` 逐项比对，漂移在 CI 报警而非运行时悄悄覆盖。
+  新增 `tests/test_shape_benchmark_arm_guard.py`（7 条）覆盖默认 4 臂 / 冻结 16 臂 / 收窄必拒 / 越权可放行 / 全新检出可放行。
+  守卫在加载任何形状之前退出（实测 `--stage d6` 立即 `SystemExit`，无写盘）。
+- **附带发现（D79）**：已提交的汇总 `metrics.json` 早于 d6 且仍含"91 维 ShapeComp"旧措辞（代码生成串上一轮已纠正，
+  产物没重跑）⇒ 重跑 `--stage summary` 后 `stages_present` 补上 d6、旧措辞消失，d1–d5 的既有数值逐字段未变
+  （`by_arm` 与两个 headline 键集合 diff 只有"新增 d6 两项"）。汇总自身的 schema 也随之 `…/1 → /2`。
+- **④ 修本轮自己带进来的缺陷（并入 D77）**：`superseded_file` 原本记"磁盘上当前文件"，于是**第二次**跑 d5b 会把
+  审计链改指向自己写的 `/2`、丢掉唯一的 `/1` 链接。现在写盘器认出自身 schema 并把首次记录原样携带下去
+  （`tests/test_shape_benchmark_d5b_provenance.py` 6 条）。实测：修码后重跑 `--stage d5b`（31.3 s）两个产物
+  **sha256 逐字节不变**（`712570b2…` / `8ffb4ead…`），`superseded_file` 仍是 `/1` ⇒ `--stage d5b` 现在可安全重跑。
+- **⑤ 独立复核抓到的一处越界改动**：本轮一度给 d6 摘要加了 `paired_difference_direction`/`_convention` 两个
+  **只存在于写盘器、不存在于已提交产物**的字段（且 schema 仍写 `d6/1`）——即 D79 的同一缺陷类别。已撤销这两行，
+  d6 写盘器本轮只剩"守卫 + 注释"两处改动，并补 `test_d6_summary_shape_is_pinned_against_writer_drift`
+  钉住 `d6_rotation_metrics.json` 的 18 个顶层键与 `d6/1` schema；同时订正文档里"两个写盘路径都用 helper"
+  与"冻结定义取自产物自身"两处**说过头的**表述。
+
+测试：新增 19 条（`paired_difference` 两向发布 + 缺字段报错、d5b/d6 读法一致且 `excludes_zero` 判定 `resolved >= 60`、
+CSV `delta_direction` 列、21 分母、d6 产物形状钉、臂守卫 7 条、d5b 幂等 6 条）。**判定不变**：
+D55/D56/D65/D67/D71 与否决结论一字未动。
+验证：`pytest` **893 passed**、`ruff check .` 全过、`mypy` 40 源文件无问题、md 表格列数 0 处不一致。
+未改：`d5_rotation_*`（D5 原始结果）、`d6_*`、`f1_*`、官方权重、压缩包、生产默认检索器。
 
 **边界遵守**：未改生产默认检索器、未引入真实水体库、官方 MATLAB/权重只读未改；本轮到此停止。
 

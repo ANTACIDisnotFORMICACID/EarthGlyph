@@ -151,6 +151,10 @@ S0K1/S0K2 与发布 S0 统计不可区分，并显著胜过 E3（E3−S0K1 −0.
 > CP6 之后的口径/分母校正以 `docs:` 提交追加（`778c807` 及其后），完整序列见 `git log`。
 > Checkpoint 7 收官的文档整合（D55/D56/D59 改写为已实测判定 + 三处分母/符号口径纠正）为 `32b14ba`，
 > 已推送并核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`。
+> 收官之后的**修复轮**把那三处口径改成代码与测试（配对差方向统一 ⇒ `d5_grouped` schema `/2`、
+> `--stage d6` 的 16 臂 fail-loud 守卫、d5b 审计链幂等、过期 `metrics.json` 重生成），判定不变，
+> 依据见 `docs/DECISIONS.md` 的 D77–D79 与 `experiments/experiment_log.md` 同日期条目；
+> 该轮 commit sha 由紧随其后的 `docs:` 提交记录。
 > 十问回答见 [`notes.md` Checkpoint 4](notes.md)，端口翻译/验证/六臂对比见 [`notes.md` Checkpoint 5](notes.md)，
 > 旋转搜索同条件对比见 [`notes.md` Checkpoint 6](notes.md)，
 > **四方案对照 / 端口逐函数审计 / D5 统计修正 / 接口与许可修复见
