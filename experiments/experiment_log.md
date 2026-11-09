@@ -1073,3 +1073,12 @@ per-rank 反查、逐查询召回分母 min≠max、短库/零相关/`k<=0` 边�
 **边界**：未改官方 `.h5` 与 MATLAB、未改任何算法数学定义、未重写生产检索器、未引入真实水体库、
 未覆盖历史 CSV、未静默缩小失败样本；本轮不做 P1 Web 开发。CP8-B（冻结独立验证集）→ CP8-C（六臂实跑与图）
 → CP8-D（十个问题）继续。
+
+Git 检查点：`254584e8a24465383f511294e92e312e172d4b92`
+（`fix: read the D6 rotation study on 60 turned cells, not 72 with the controls (P0-4.6 CP8-A)`，
+12 files：2 份新增（`d6_rotation_metrics_corrected.json`、`tests/test_shape_benchmark_d6_correction.py`）、
+1 份重生成（`metrics.json`）、8 份文档/代码修改）；已推送 `origin main`（ssh.github.com:443）
+并核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式，作者 `ANTACIDisnotFORMICACID`。
+提交时产物摘要：`d6_rotation_metrics_corrected.json` `715fe3ded8e99b20…`、`metrics.json` `d37034530ed227cb…`；
+零改写侧 `d6_rotation_metrics.json` `0697af1d7261ce98…`、`d6_retrieval_results.csv` `f5b22ad3809b85bb…`、
+`d6_top10_hits.csv` `4cfb8cfc67f166d4…`（三者与 CP7-C 收官时同 sha ⇒ 确实只读未写）。

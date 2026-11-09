@@ -791,6 +791,8 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
   `content_sha256` `525c228761add017…`）、`metrics.json` schema `…/3`。
 - **待做**：CP8-B 冻结独立验证集（≥20 个未用过的 MPEG-7 查询、每查询 ≥5 个非零角度、固定种子、
   **先入库设计再跑检索**）→ CP8-C 六臂检索与图 → CP8-D 回答十个问题并收官。
+- Git 检查点：`254584e8a24465383f511294e92e312e172d4b92`（12 files）已推送并核验
+  `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 

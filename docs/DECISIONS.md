@@ -906,3 +906,6 @@ CP7 收官的文档整合轮记录了三个"口径问题"并只写进文档。�
   另加 Precision/Recall 边界用例，其中一条抓到 `precision_at_k(..., k=0)` 原先返回 0.0 而非报错的真实缺陷，
   已把校验前置并保持两条既有 legacy 语义不变）、`ruff check .` 全过、`mypy` 40 源文件无问题。
   重跑 `--stage d6-correct` 两次产物 sha256 逐字节相同（无时间戳字段）⇒ 该阶段可安全重放。
+  **Git 检查点**：`254584e8a24465383f511294e92e312e172d4b92`（已推送 `origin main` 并核验远端 sha 相同）；
+  零改写侧复核 `d6_rotation_metrics.json` `0697af1d7261ce98…`、`d6_retrieval_results.csv` `f5b22ad3809b85bb…`、
+  `d6_top10_hits.csv` `4cfb8cfc67f166d4…` 三者与 CP7-C 收官时同 sha。
