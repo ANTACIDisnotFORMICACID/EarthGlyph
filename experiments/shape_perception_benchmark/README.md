@@ -375,6 +375,31 @@ overlap columns, S0K1/naive stays cheapest. The middle of the table does: 7 arms
 3 places on T2 Precision@10, 4 on T2 same-class Top-1, 6 on T1 MRR. The correction changes
 magnitudes and mid-table ordering, not the direction of any conclusion.
 
+### CP8-B — the independent query set, frozen as code (no result in this section)
+
+CP7's twelve queries were also the twelve the wrappers were designed against, so `checkpoint8/`
+freezes a replacement sample **before** any retrieval runs: 24 MPEG-7 instances — 4 per family over
+尖角 / 心形 / 弯曲 / 分叉 / 接近圆形 / 不规则自然剪影 — none of which is among the 14 stems that ever
+appeared in a scored cell (`D6_QUERIES` ∪ `D2_QUERIES`), each turned through 5 non-zero angles
+(1 grid angle + 2 grid midpoints + 2 angles ≥ 2° off both) drawn from one `seed 20261110` stream, plus
+its own 0° control kept in a separate denominator (120 rotated cells, 24 controls, 144 total per arm ×
+condition — the split CP8-A made mandatory). Six arms are scored: E0, E1, E3/sample, S0K1/R3,
+S0K2/R3, S0K2/R2, all of them already-frozen D6 arms, so this is a selection and not a new algorithm.
+T2 is primary, T0 a wiring check, intervals clustered by original query.
+
+The design also audits its own labels: each family's stated expectation was restated as numeric bounds
+on the descriptors stored per query, and **17 of 24 queries meet them**. `near_circle` is 0/4 — no
+sampled instance is both disc-like and isotropic — so the isotropic case, the one place a rotation
+wrapper ought to be provably worthless, is **not covered** by this study and its rows may not be
+reported as if it were. `pointed` is 2/4 (`crown-2`, `pencil-6`), `curved` 3/4 (`horseshoe-6`).
+Nothing was re-picked or re-drawn in response; the audit is derived arithmetic and a test pins the
+counts, so loosening a threshold later is a visible change of study, not a fix.
+
+`content_sha256 d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0` is the promise;
+`scripts/design_checkpoint8_validation.py --check` re-derives it from the dataset and the rules and
+**refuses to rewrite** a differing file (a genuinely new study needs a new schema and seed, with the
+old file kept). The file contains no distance, rank or hit — checked by a test that walks every key.
+
 ## Files
 
 | Path | Contents |
@@ -409,6 +434,8 @@ magnitudes and mid-table ordering, not the direction of any conclusion.
 | `results/run_d*.log` | stdout of the staged runs, kept so a reproduce claim can be dated |
 | `figures/` | overview, five comparison families × two poses, three human-evaluation figures (six-arm scatter), `rotation_stress.png` (CP6) |
 | `checkpoint7/` | the five CP7 PNGs: `rotation_methods_overview`, `rotation_rank_stability`, `rotation_human_agreement`, `rotation_failure_cases`, `shapecomp_port_diagnostics` |
+| `checkpoint8/independent_validation_design.json` | **CP8-B, frozen before any retrieval**: 24 new queries (family, class, 128-point descriptors), 5 seeded angles each + control, slot arithmetic, 6 arm labels, T2/T0 roles, two-view cell counts, the self-audit that scores 17/24 against its own family criteria, what is *not* independent, and the provenance block (archive sha256, numpy, commit). `content_sha256 d8589fe8…` |
+| `../earthglyph/shape_benchmark/independent_validation.py` | the CP8-B rules as code: family specs, burned-stem list, angle drawer, seeded class-pool selector, descriptor probes, coverage-audit criteria, `design_content_sha256` |
 | `../earthglyph/shape_benchmark/rotation_methods.py` | the four pose policies R0/R1/R2/R3 + `canonicalise` / `pose_embedding` (48 tests run without the toolbox) |
 | `../earthglyph/shape_benchmark/shapecomp_port.py` | the MATLAB → numpy translation of the official preprocessing and both `.h5` forward passes |
 | `../earthglyph/retrieval/shape_context_baseline.py` | `search_shape(..., allow_mirror=...)`, whose mirror branch is now refused on arms that lack one (F2) |
@@ -447,6 +474,11 @@ magnitudes and mid-table ordering, not the direction of any conclusion.
 #     byte-idempotent). --stage summary refuses to run without this output.
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6-correct
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
+
+# 6c. the CP8-B independent design (~20 s, most of it loading MPEG-7; derives the query set,
+#     scores nothing). Re-running freezes nothing new: a differing design is DESIGN DRIFT and
+#     aborts. Use --check to verify the committed file without writing.
+.venv/Scripts/python.exe scripts/design_checkpoint8_validation.py --check
 
 # 7. read-only verifications that back specific claims
 .venv/Scripts/python.exe scripts/verify_r2_pose_invariance.py            # -> results/r2_pose_invariance_check.json

@@ -335,7 +335,7 @@ E3/E1 相对 E0 的"更好"达到可换默认的量级；E2 修好就能赢（�
 两级结构可用于生产（粗筛盲区未解决）。
 **门禁状态：P0 仍未通过 → 不进入 P1 Web 前端开发。** 是否把 E3 设为正式精排，留给用户审查后决定。
 
-## P0-4.6 ShapeComp 官方复现与独立形状感知检索基准（2026-11-07 启动，Checkpoint 7 收官，**Checkpoint 8 进行中：CP8-A ✅ / CP8-B–D 待做**）
+## P0-4.6 ShapeComp 官方复现与独立形状感知检索基准（2026-11-07 启动，Checkpoint 7 收官，**Checkpoint 8 进行中：CP8-A ✅ / CP8-B ✅ / CP8-C–D 待做**）
 
 任务边界：**完全排除 Overture Maps、水体候选与地理坐标**；不扩大真实地貌库；不改正式产品检索默认；
 不复用旧图库 `REL` 标签当人类真值；不覆盖 P0-4 / P0-4.5 产物。
@@ -738,7 +738,7 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 
 ### Checkpoint 8：先让已有指标完全可信，再用新查询做独立验证（2026-11-09 启动）
 
-**CP8-A：修 D6 检索分母 + 拆 Precision/Recall + 独立重算测试 ✅（本轮已提交，CP8-B/C/D 待做）**
+**CP8-A：修 D6 检索分母 + 拆 Precision/Recall + 独立重算测试 ✅（已提交并推送）**
 
 - **缺陷 A（D80）**：`_d6_summarise()` 按 `(arm, condition)` 聚合时**没排除 `slot == "control"`**，
   于是每个 headline 块的 `n_cells = 72`。真实设计是 **12 查询 × 5 个非零角度 = 60 旋转格 + 12 个 0° control = 72**
@@ -789,10 +789,49 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
   `d6_rotation_metrics.json` `0697af1d7261ce98…`（133 896 B，`d6/1`，仍在库）；
   输出：`d6_rotation_metrics_corrected.json` `715fe3ded8e99b20…`（405 753 B，
   `content_sha256` `525c228761add017…`）、`metrics.json` schema `…/3`。
-- **待做**：CP8-B 冻结独立验证集（≥20 个未用过的 MPEG-7 查询、每查询 ≥5 个非零角度、固定种子、
-  **先入库设计再跑检索**）→ CP8-C 六臂检索与图 → CP8-D 回答十个问题并收官。
+- **待做**：CP8-C 六臂实跑与图 → CP8-D 回答十个问题并收官。
 - Git 检查点：`254584e8a24465383f511294e92e312e172d4b92`（12 files）已推送并核验
   `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式。
+
+**CP8-B：冻结"从未进过评分格子"的独立验证设计 ✅（先入库设计，检索留给 CP8-C）**
+
+- **样本（Task D）**：`checkpoint8/independent_validation_design.json` 冻结 **24 个新查询**（6 家族 × 4：
+  尖角 crown/key/pencil/hammer、心形 Heart×4、弯曲 Comma/horseshoe/Bone/spoon、分叉 fork/tree/bird/fly、
+  接近圆形 HCircle/watch/device2/apple、不规则自然剪影 camel/elephant/lizzard/turtle），
+  全部**不在** `D6_QUERIES`(12) ∪ `D2_QUERIES`(6) 的 **14 个 burned stems** 之内；
+  每查询 **5 个非零角度** = 1 格点 + 2 格中点 + 2 个距网格与中点均 ≥2° 的随机角，另存 1 个精确 0° control。
+  种子 `CP8_SEED = 20261110`（与 D6 的 20261107 不同，杜绝角度撞车）。
+- **两套分母沿用 CP8-A**：每（臂 × 条件）**120 旋转格 + 24 control = 144 格**，`cell_arithmetic` 里写明
+  "never pooled"；主条件 T2、T0 只作接线校验；bootstrap 2 000 次**按原查询聚类**（24×5 行 ≠ 120 个独立观测）。
+- **臂是选择不是新算法**：E0 / E1 / E3/sample / S0K1/R3 / S0K2/R3 / S0K2/R2 六个标签全部已存在于
+  `d6_retrieval_results.csv` 的 16 臂中，数学与参数由各自模块冻结；测试同时钉住"被排除的 10 臂"可枚举，
+  防止把这一份六臂表当成全 16 臂的结论。
+- **设计即代码 + 拒绝漂移**：`earthglyph/shape_benchmark/independent_validation.py`（家族规格、burned 清单、
+  角度抽屉、按种子置换的类别池选择器、描述量探针、审计判据）；
+  `scripts/design_checkpoint8_validation.py` 只在文件不存在时写一次，磁盘 sha 与规则推出的
+  `content_sha256` 不符即 `DESIGN DRIFT` 退出并要求"换 schema + 换种子 + 保留旧文件"，
+  `--check` 永不写盘。MPEG-7 档案 sha 与 manifest 不符直接中止（"不同数据集构建就是不同研究"）。
+- **自审：设计的标签被自己的数值判据检验（`coverage_audit`）**——把每条 `measurable_expectation` 写成对
+  已存描述量（circularity/solidity/elongation/hull-gap runs）的界后，**24 个查询里 17 个达标**：
+  heart/forked/irregular_natural 4/4、curved 3/4（`horseshoe-6` 伸长 0.926）、pointed 2/4
+  （`crown-2` 实心度 0.856、`pencil-6` 0.907 且 0 个凸包缺口）、**near_circle 0/4**。
+  按 brief 要求**只记录不修复**：不换查询、不重抽角度、不放宽阈值 ⇒ 本设计**没有覆盖各向同性（近圆）格**，
+  而那是"旋转包装应当被证明无用"的唯一一格；CP8-C/D 不得把近圆行讲成"圆上包装无用"。
+  判决与失败值都被测试钉住（改阈值会在 CI 里显眼）。
+- 验证：`python -m pytest -q -o addopts=""` → **948 passed**（上一轮 913，新增
+  `tests/test_shape_benchmark_cp8_design.py` **35 条**）；`ruff check .` → All checks passed；
+  `mypy` → no issues in 41 source files。
+- 复现：`python scripts/design_checkpoint8_validation.py --check`（实测 20.6 s，多数在解码 1 400 轮廓）；
+  首次冻结输出同上，两者都报
+  `content_sha256 d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0`。
+  输入 `cache/MPEG7dataset.zip` `ce8d87409d1b87b0…`（1 400 图形 / 70 类，128 点契约，2 张 pocket GIF 按既有规则排除）；
+  输出 `checkpoint8/independent_validation_design.json`：入库 blob（LF 42 404 B）`86821cf6bc695909…`，
+  工作副本（CRLF 43 897 B）`fdc4e019e0e8484c…`；绑定身份是与行尾无关的 `content_sha256`。
+  为过 100 列 ruff 门槛而拆分模块内 25 行字符串字面量后，`content_sha256` 与逐字段常量、120 个角度**全部不变**
+  ⇒ 可证没有改动任何进入设计哈希的文本。
+- **边界**：本轮零检索、零排名、零图；未动算法/参数/权重/官方工具箱；未覆盖历史 CSV；
+  未收新的人类评分（人类感知一侧仍只有 H1，**不**宣称已独立验证感知相似度）；未进 P1 Web 开发。
+- Git 检查点：见下一节（本轮提交后记录并推送）。
 
 ## 当前阶段：P0 — 真实数据与检索可行性验证（进行中）
 

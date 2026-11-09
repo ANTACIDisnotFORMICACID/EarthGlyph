@@ -1645,3 +1645,95 @@ CP8-B freezes an independent query set (≥ 20 MPEG-7 shapes never used as D6 qu
 angles each mixing in-grid / mid-grid / random, fixed seed, design committed **before** any retrieval
 runs) and CP8-C scores it. No number in this section was tuned to a target; the five anchor values
 exist to catch filtering errors and are not objectives.
+
+## Checkpoint 8 — CP8-B: the independent query set, frozen as code before any retrieval ran (2026-11-10)
+
+Task D asked for the one thing CP7 could not give itself: shapes that never entered a scored cell.
+The design is `earthglyph/shape_benchmark/independent_validation.py` (rules) plus
+`scripts/design_checkpoint8_validation.py` (a writer that refuses to rewrite) and
+`checkpoint8/independent_validation_design.json` (the committed promise). **No distance, rank or hit
+exists anywhere in this checkpoint yet** — the file is checked for that, and CP8-C is the first run.
+
+### B1. What was frozen, and how it was drawn
+
+| item | value | drawn by |
+|---|---|---|
+| queries | 24 (6 families × 4) | `select_queries`: class membership minus the 14 burned stems, then a seeded permutation |
+| angles per query | 5 non-zero: 1 on-grid + 2 mid-grid + 2 random | one `default_rng(20261110)` stream, queries and slots in frozen order |
+| control | 1 per query at exactly 0°, stored separately | never pooled: 120 rotated + 24 control = 144 cells per (arm, condition) |
+| arms | 6: E0, E1, E3/sample, S0K1/R3, S0K2/R3, S0K2/R2 | a *selection* from the 16 frozen D6 arms; every label already exists in `d6_retrieval_results.csv` |
+| conditions | primary T2, correctness check T0 | `T2_THRESHOLD = 0.05` near-duplicate rule unchanged |
+| statistics | 2 000 bootstrap, clustered by original query | 24 × 5 rows are 24 observations, not 120 |
+| seed | `CP8_SEED = 20261110`, distinct from D6's `SEED = 20261107` | so no angle could be re-used from D6 by accident |
+
+The 14 burned stems are the union of `D6_QUERIES` (12) and `D2_QUERIES` (6) — 4 stems appear in both,
+so the union is 14, not 18. A test imports the runner and pins that equality, which is what makes the
+list unfalsifiable-by-editing: adding a query to D6 without adding it to the burned list turns the
+build red.
+
+The families are the six the brief names (尖角 / 心形 / 弯曲 / 分叉 / 接近圆形 / 不规则自然剪影), carried by
+24 MPEG-7 classes — e.g. pointed = crown/key/pencil/hammer, near_circle = HCircle/watch/device2/apple.
+`heart` is the single-class family, so its four queries are four *different hearts* (within-class
+sample), which is stated in the file rather than presented as cross-family coverage.
+
+### B2. The coverage audit: which claimed family the frozen draw did not actually deliver
+
+Every `measurable_expectation` was restated as numeric bounds on the descriptors already stored per
+query (`FAMILY_CRITERIA`), and the count is derived, not asserted in prose: **17 of 24 queries meet
+their family's criteria**.
+
+| family | meeting | failing | what failed |
+|---|---|---|---|
+| heart | 4/4 | — | one notch, solidity ≥ 0.85 held exactly |
+| forked | 4/4 | — | 4–8 separate hull gaps |
+| irregular_natural | 4/4 | — | ≥ 2 gaps and elongation ≤ 0.8 |
+| curved | 3/4 | `horseshoe-6` | elongation 0.926 > 0.65: a ring, not a bent axis |
+| pointed | 2/4 | `crown-2`, `pencil-6` | solidity 0.856 / 0.907 > 0.85; pencil also has 0 hull gaps |
+| near_circle | **0/4** | all four | `HCircle-8` elongation 0.665; `watch-11` 0.363/0.243; `device2-6` circularity 0.124; `apple-14` 0.637 |
+
+This is recorded, not repaired. The brief forbids swapping a failing query or redrawing an angle after
+the draw, and loosening a threshold now would be the same act with extra steps. The consequence is
+stated in the file: **the isotropic case — the one place a rotation wrapper should be provably worth-
+less — is not covered by this study**, and its near_circle rows must not be reported as "circles prove
+wrappers are useless". The closest approaches are `HCircle-8` (circularity 0.731, elongation 0.665) and
+`apple-14` (0.637, 0.831), each of which meets one of the two bounds and violates the other, so no query
+here is both disc-like and isotropic. `crown-2` misses solidity by 0.006, which the per-query violation
+table records with its value so a reader sees the margin rather than only the verdict.
+
+### B3. Verification and artefacts
+
+- Freeze command: `python scripts/design_checkpoint8_validation.py` → `frozen 24 queries x 5 rotated
+  angles + control, 6 arms, seed 20261110`; verify-only: `... --check` (writes nothing, errors if no
+  design exists). Measured wall time 20.6 s, almost all of it decoding the 1 400 MPEG-7 outlines; both
+  report `content_sha256 d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0` and are
+  byte-stable across re-runs (no timestamps outside the provenance block, which the hash excludes).
+- Input: `cache/MPEG7dataset.zip` sha256 `ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d`,
+  verified against `dataset_manifest.json` at generation time — a mismatch aborts with
+  "a query set drawn from a different dataset build is a different study".
+- Artefact sha256 (file bytes). `core.autocrlf=true` here, so a text artefact has two byte forms; the
+  binding identity is the line-ending-independent `content_sha256` above:
+  design JSON **committed blob (LF, 42 404 B)** `86821cf6bc695909fcf3091d0077c7ecc12f8aeae71b24f6d146f304ac1d2378`,
+  working copy (CRLF, 43 897 B) `fdc4e019e0e8484c01718aac5d15fa520683b17d620bd3ae99ac11c1c4c507be`,
+  rules module `83a77498b34c28ff5cc225c4d625c726495862ec40728b20b3a7d67ef5c89cf7`, writer script
+  `3eaebab79af7196b2d9c9be9e48120a895c74bf2599d3913a6b04df5c3da8c9e`.
+- Provenance recorded inside the file: python 3.12.10, numpy 2.5.4, git commit `2bc1a3848e4c6066886529eb91c1b77ff3b9c2c1`,
+  seed 20261110, dataset block above, 1 400 stimuli / 70 classes, 128-point contract, 2 archive images
+  (`pocket-11.gif`, `pocket-12.gif`) excluded by the contour loader as in every earlier stage.
+- A line-length reflow of the module (25 string literals split in two) left the design hash unchanged —
+  re-checked after the reflow, so the edit provably moved no text a result depends on.
+- Tests: 35 new in `tests/test_shape_benchmark_cp8_design.py` (slot arithmetic and the "grid angle in
+  disguise" rejection, seed re-derivability, descriptor pose/scale invariance and contract refusals,
+  missing-class and underfilled-pool aborts, burned-stem equality against the runner, arm-set ⊆ the 16
+  frozen arms, 120/24/144 two-view arithmetic, audit recomputation from stored descriptors, the pinned
+  near_circle 0/4 verdict, "a design is not a result" key sweep, and the writer's freeze-once /
+  drift-refuses / check-refuses / different-dataset-refuses branches). Full suite `948 passed`
+  (CP8-A round: 913), `ruff check .` clean, `mypy` clean on 41 source files.
+
+### B4. Boundaries this checkpoint did not cross
+
+No retrieval, no ranking, no figure of results; no algorithm, parameter or weight touched; no official
+toolbox re-run; no historical CSV overwritten (this checkpoint adds a directory, it revises nothing);
+no human ratings collected, so the perceptual axis is *not* independently validated here and CP8-C
+must say so rather than imply it. Design drift is refused in code: a differing `content_sha256` on disk
+aborts and tells the caller to bump `CP8_SCHEMA` and the seed and keep the old file, which is the only
+legitimate route to a second independent study.

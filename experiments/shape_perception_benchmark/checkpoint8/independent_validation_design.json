@@ -1,0 +1,1493 @@
+{
+  "angle_design": {
+    "control_angle_deg": 0.0,
+    "control_slot": "control",
+    "draw": "one numpy default_rng(CP8_SEED) stream, queries in frozen order, slots in frozen order -- no per-query rejection sampling after a result is seen",
+    "grid": {
+      "mid_grid": "step/2 offset, i.e. the worst case a k-step grid can miss by half a step",
+      "on_grid": "a non-zero multiple of the step, i.e. a pose the search grid contains exactly",
+      "random": "uniform on [0, 360), rejected unless at least 2.0 deg from both the grid and its midpoints, and never 0 -- an 'arbitrary' angle one degree off a grid line would be a grid angle in disguise",
+      "step_deg": 15.0
+    },
+    "n_rotated_per_query": 5,
+    "off_grid_margin_deg": 2.0,
+    "rotation_steps": 24,
+    "rows": [
+      {
+        "angle_deg": 270.0,
+        "query_index": 0,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 232.5,
+        "query_index": 0,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 292.5,
+        "query_index": 0,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 229.58513465711746,
+        "query_index": 0,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 220.16867451852394,
+        "query_index": 0,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 60.0,
+        "query_index": 1,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 112.5,
+        "query_index": 1,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 322.5,
+        "query_index": 1,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 92.88787367512434,
+        "query_index": 1,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 78.0555983134599,
+        "query_index": 1,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 285.0,
+        "query_index": 2,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 7.5,
+        "query_index": 2,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 37.5,
+        "query_index": 2,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 222.46420934618376,
+        "query_index": 2,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 47.77322805477077,
+        "query_index": 2,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 105.0,
+        "query_index": 3,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 307.5,
+        "query_index": 3,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 157.5,
+        "query_index": 3,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 25.958112365565604,
+        "query_index": 3,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 295.6963997274151,
+        "query_index": 3,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 255.0,
+        "query_index": 4,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 292.5,
+        "query_index": 4,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 142.5,
+        "query_index": 4,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 296.8139511188277,
+        "query_index": 4,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 168.9386295919516,
+        "query_index": 4,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 165.0,
+        "query_index": 5,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 187.5,
+        "query_index": 5,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 37.5,
+        "query_index": 5,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 348.35840506531235,
+        "query_index": 5,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 49.688179543645646,
+        "query_index": 5,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 345.0,
+        "query_index": 6,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 352.5,
+        "query_index": 6,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 262.5,
+        "query_index": 6,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 259.4993004421134,
+        "query_index": 6,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 9.7175610786383,
+        "query_index": 6,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 135.0,
+        "query_index": 7,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 112.5,
+        "query_index": 7,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 37.5,
+        "query_index": 7,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 25.423895988814948,
+        "query_index": 7,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 2.8420580087882064,
+        "query_index": 7,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 150.0,
+        "query_index": 8,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 262.5,
+        "query_index": 8,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 202.5,
+        "query_index": 8,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 56.27712736312326,
+        "query_index": 8,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 335.1470752024653,
+        "query_index": 8,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 225.0,
+        "query_index": 9,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 172.5,
+        "query_index": 9,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 52.5,
+        "query_index": 9,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 356.8557577269456,
+        "query_index": 9,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 80.3889794092293,
+        "query_index": 9,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 45.0,
+        "query_index": 10,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 247.5,
+        "query_index": 10,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 187.5,
+        "query_index": 10,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 197.04355265410823,
+        "query_index": 10,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 167.5164737081831,
+        "query_index": 10,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 240.0,
+        "query_index": 11,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 217.5,
+        "query_index": 11,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 202.5,
+        "query_index": 11,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 348.6280470070791,
+        "query_index": 11,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 340.3411219292396,
+        "query_index": 11,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 60.0,
+        "query_index": 12,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 307.5,
+        "query_index": 12,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 157.5,
+        "query_index": 12,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 32.58615012804009,
+        "query_index": 12,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 273.4832164583182,
+        "query_index": 12,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 90.0,
+        "query_index": 13,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 52.5,
+        "query_index": 13,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 22.5,
+        "query_index": 13,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 145.26328849701258,
+        "query_index": 13,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 56.558392174820916,
+        "query_index": 13,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 105.0,
+        "query_index": 14,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 157.5,
+        "query_index": 14,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 202.5,
+        "query_index": 14,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 230.35649249401817,
+        "query_index": 14,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 145.8975376696353,
+        "query_index": 14,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 300.0,
+        "query_index": 15,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 337.5,
+        "query_index": 15,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 307.5,
+        "query_index": 15,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 41.0405434909767,
+        "query_index": 15,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 305.2090093040246,
+        "query_index": 15,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 15.0,
+        "query_index": 16,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 172.5,
+        "query_index": 16,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 22.5,
+        "query_index": 16,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 107.14271528037244,
+        "query_index": 16,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 184.5757135907027,
+        "query_index": 16,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 300.0,
+        "query_index": 17,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 112.5,
+        "query_index": 17,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 52.5,
+        "query_index": 17,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 220.16147947826212,
+        "query_index": 17,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 190.0141230217636,
+        "query_index": 17,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 255.0,
+        "query_index": 18,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 202.5,
+        "query_index": 18,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 52.5,
+        "query_index": 18,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 39.699597390096315,
+        "query_index": 18,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 200.11496491754147,
+        "query_index": 18,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 135.0,
+        "query_index": 19,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 262.5,
+        "query_index": 19,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 277.5,
+        "query_index": 19,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 177.87488444987173,
+        "query_index": 19,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 159.69319994587656,
+        "query_index": 19,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 75.0,
+        "query_index": 20,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 187.5,
+        "query_index": 20,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 217.5,
+        "query_index": 20,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 228.51731679010888,
+        "query_index": 20,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 64.90666603636681,
+        "query_index": 20,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 135.0,
+        "query_index": 21,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 277.5,
+        "query_index": 21,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 172.5,
+        "query_index": 21,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 230.17673242331992,
+        "query_index": 21,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 146.39344401362294,
+        "query_index": 21,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 165.0,
+        "query_index": 22,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 127.5,
+        "query_index": 22,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 127.5,
+        "query_index": 22,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 184.69819848378464,
+        "query_index": 22,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 296.15512344471733,
+        "query_index": 22,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 255.0,
+        "query_index": 23,
+        "slot": "on_grid"
+      },
+      {
+        "angle_deg": 187.5,
+        "query_index": 23,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 127.5,
+        "query_index": 23,
+        "slot": "mid_grid"
+      },
+      {
+        "angle_deg": 101.08285545273955,
+        "query_index": 23,
+        "slot": "random"
+      },
+      {
+        "angle_deg": 77.76794881550109,
+        "query_index": 23,
+        "slot": "random"
+      }
+    ],
+    "slots_per_query": [
+      "on_grid",
+      "mid_grid",
+      "mid_grid",
+      "random",
+      "random"
+    ]
+  },
+  "arms": {
+    "labels": [
+      "E0",
+      "E1",
+      "E3/sample",
+      "S0K1/R3",
+      "S0K2/R3",
+      "S0K2/R2"
+    ],
+    "note": "selection of six arms, all with math and parameters already frozen elsewhere. The S0K arms need the official toolbox, which is not redistributable and is read from a gitignored directory; if it is absent the run reports which arms are blocked rather than quietly dropping them."
+  },
+  "cell_arithmetic": {
+    "n_cells_per_arm_condition": 144,
+    "n_control_cells_per_arm_condition": 24,
+    "n_rotated_cells_per_arm_condition": 120,
+    "note": "reported as two views, never pooled. CP8-A exists because pooling the control into a rotation headline inflated pose-blind arms by 12 free perfect scores."
+  },
+  "conditions": {
+    "correctness_check": "T0",
+    "definitions": {
+      "T0": "full gallery, exact target kept -- a wiring check, not the headline",
+      "T1": "exact target removed",
+      "T2": "exact target and rigid near-duplicates removed -- the primary condition"
+    },
+    "near_duplicate_rule": "E0 aligned distance below T2_THRESHOLD, as in CP7-C",
+    "primary": "T2"
+  },
+  "content_sha256": "d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0",
+  "coverage_audit": {
+    "derived_from": "the descriptors in queries[]; no query, class or angle was changed by it",
+    "honest_finding": "a family whose n_meeting is below n_queries is under-covered: the label describes the design intent, the count states what the frozen draw actually supplies, and a headline for that family may only be read over the queries that pass.",
+    "method": "each family's measurable_expectation restated as bounds on circularity, solidity, elongation and hull-gap runs, evaluated per query and counted per family",
+    "n_queries": 24,
+    "n_queries_meeting": 17,
+    "per_family": {
+      "curved": {
+        "criteria": [
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "the concavity of the C or U"
+          },
+          {
+            "bound": 0.65,
+            "metric": "elongation",
+            "op": "<=",
+            "why": "a dominant principal axis"
+          }
+        ],
+        "failing_stems": [
+          "horseshoe-6"
+        ],
+        "if_short_falls_then": "a query that fails the axis bound is a ring-like outline; it still tests rotation observability, just not the 'bent' story",
+        "n_meeting": 3,
+        "n_queries": 4
+      },
+      "forked": {
+        "criteria": [
+          {
+            "bound": 2.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "more than one branch gap"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "branch-heavy outlines are where a single principal axis stops meaning anything; fewer of them weakens the strongest argument against pose search",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "heart": {
+        "criteria": [
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": "==",
+            "why": "exactly one apical notch"
+          },
+          {
+            "bound": 0.85,
+            "metric": "solidity",
+            "op": ">=",
+            "why": "two lobes fill most of the hull"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "the heart family is the only one whose label is unambiguous, so it carries the shape-specific claim",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "irregular_natural": {
+        "criteria": [
+          {
+            "bound": 2.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "protruding parts make several separate gaps"
+          },
+          {
+            "bound": 0.8,
+            "metric": "elongation",
+            "op": "<=",
+            "why": "not a disc"
+          }
+        ],
+        "failing_stems": [],
+        "if_short_falls_then": "these are the closest thing to a real silhouette, so a shortfall here is a shortfall in the most transfer-relevant family",
+        "n_meeting": 4,
+        "n_queries": 4
+      },
+      "near_circle": {
+        "criteria": [
+          {
+            "bound": 0.7,
+            "metric": "circularity",
+            "op": ">=",
+            "why": "a near-disc boundary"
+          },
+          {
+            "bound": 0.8,
+            "metric": "elongation",
+            "op": ">=",
+            "why": "isotropic, so rotation is nearly unobservable"
+          }
+        ],
+        "failing_stems": [
+          "HCircle-8",
+          "watch-11",
+          "device2-6",
+          "apple-14"
+        ],
+        "if_short_falls_then": "the isotropic case is the one place a rotation wrapper should be provably worthless; if these queries are not isotropic the study cannot make that claim, only measure the roundish ones that survive",
+        "n_meeting": 0,
+        "n_queries": 4
+      },
+      "pointed": {
+        "criteria": [
+          {
+            "bound": 0.85,
+            "metric": "solidity",
+            "op": "<=",
+            "why": "deep corners remove area from the hull"
+          },
+          {
+            "bound": 1.0,
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "why": "at least one excursion away from the hull"
+          }
+        ],
+        "failing_stems": [
+          "crown-2",
+          "pencil-6"
+        ],
+        "if_short_falls_then": "a cornered-shape conclusion rests on the queries that pass; a smooth one in the pool is an ellipse-with-a-lid case, not a pointed case",
+        "n_meeting": 2,
+        "n_queries": 4
+      }
+    },
+    "per_query": [
+      {
+        "family": "pointed",
+        "meets_expectation": false,
+        "stem": "crown-2",
+        "violations": [
+          {
+            "bound": 0.85,
+            "expected": "deep corners remove area from the hull",
+            "metric": "solidity",
+            "op": "<=",
+            "value": 0.8562841200511233
+          }
+        ]
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": true,
+        "stem": "key-15",
+        "violations": []
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": false,
+        "stem": "pencil-6",
+        "violations": [
+          {
+            "bound": 0.85,
+            "expected": "deep corners remove area from the hull",
+            "metric": "solidity",
+            "op": "<=",
+            "value": 0.9071086576217804
+          },
+          {
+            "bound": 1.0,
+            "expected": "at least one excursion away from the hull",
+            "metric": "deep_gap_runs",
+            "op": ">=",
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "family": "pointed",
+        "meets_expectation": true,
+        "stem": "hammer-7",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-4",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-19",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-7",
+        "violations": []
+      },
+      {
+        "family": "heart",
+        "meets_expectation": true,
+        "stem": "Heart-9",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "Comma-18",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": false,
+        "stem": "horseshoe-6",
+        "violations": [
+          {
+            "bound": 0.65,
+            "expected": "a dominant principal axis",
+            "metric": "elongation",
+            "op": "<=",
+            "value": 0.926066942579447
+          }
+        ]
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "Bone-10",
+        "violations": []
+      },
+      {
+        "family": "curved",
+        "meets_expectation": true,
+        "stem": "spoon-5",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "fork-3",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "tree-7",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "bird-2",
+        "violations": []
+      },
+      {
+        "family": "forked",
+        "meets_expectation": true,
+        "stem": "fly-17",
+        "violations": []
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "HCircle-8",
+        "violations": [
+          {
+            "bound": 0.8,
+            "expected": "isotropic, so rotation is nearly unobservable",
+            "metric": "elongation",
+            "op": ">=",
+            "value": 0.6646234496587885
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "watch-11",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.36262060622127285
+          },
+          {
+            "bound": 0.8,
+            "expected": "isotropic, so rotation is nearly unobservable",
+            "metric": "elongation",
+            "op": ">=",
+            "value": 0.24348879954315888
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "device2-6",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.12353755329594168
+          }
+        ]
+      },
+      {
+        "family": "near_circle",
+        "meets_expectation": false,
+        "stem": "apple-14",
+        "violations": [
+          {
+            "bound": 0.7,
+            "expected": "a near-disc boundary",
+            "metric": "circularity",
+            "op": ">=",
+            "value": 0.6365562317917683
+          }
+        ]
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "camel-5",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "elephant-16",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "lizzard-3",
+        "violations": []
+      },
+      {
+        "family": "irregular_natural",
+        "meets_expectation": true,
+        "stem": "turtle-3",
+        "violations": []
+      }
+    ]
+  },
+  "families": {
+    "curved": {
+      "classes": [
+        "Comma",
+        "horseshoe",
+        "Bone",
+        "spoon"
+      ],
+      "honest_gap": "horseshoe-1 and Comma-1 are burned instances; the class pools supply the rest",
+      "label_zh": "\u5f2f\u66f2",
+      "measurable_expectation": "one large concavity and an elongated principal axis",
+      "n_selected": 4,
+      "why_these_classes": "C- and U-shaped outlines with a dominant curvature axis (comma, horseshoe, a bone's two bowed ends, a spoon's bowl and handle)"
+    },
+    "forked": {
+      "classes": [
+        "fork",
+        "tree",
+        "bird",
+        "fly"
+      ],
+      "honest_gap": "fork-1 and tree-1 are burned; bird and fly are winged silhouettes rather than binary forks, included because the dataset has few true two-prong outlines left",
+      "label_zh": "\u5206\u53c9",
+      "measurable_expectation": "several separate hull gaps, i.e. more than one deep notch",
+      "n_selected": 4,
+      "why_these_classes": "multi-branch outlines: a fork's tines, a tree's crown, spread wings -- the case where a single principal axis is not a meaningful pose cue"
+    },
+    "heart": {
+      "classes": [
+        "Heart"
+      ],
+      "honest_gap": "one class only, so these four queries are a within-class sample (four different hearts), not a cross-family test of heart-like shapes; Heart-1 itself is burned and excluded",
+      "label_zh": "\u5fc3\u5f62",
+      "measurable_expectation": "exactly one deep notch and a high area-to-hull ratio",
+      "n_selected": 4,
+      "why_these_classes": "the dataset's one heart class, two lobes over a single apical notch"
+    },
+    "irregular_natural": {
+      "classes": [
+        "camel",
+        "elephant",
+        "lizzard",
+        "turtle"
+      ],
+      "honest_gap": "MPEG-7 CE-Shape-1 silhouettes are single-part, simplified outlines; nothing here has occlusion, attached parts at arbitrary angles, or the ragged boundary of a real leaf/rock, so 'irregular natural' is bounded by the dataset's own stylisation",
+      "label_zh": "\u4e0d\u89c4\u5219\u81ea\u7136\u526a\u5f71",
+      "measurable_expectation": "no symmetry axis, elongation away from 1.0, several hull gaps",
+      "n_selected": 4,
+      "why_these_classes": "asymmetric natural outlines with protruding parts (humps, a trunk, limbs, a head) -- closest to a real-world silhouette that nothing was designed around"
+    },
+    "near_circle": {
+      "classes": [
+        "HCircle",
+        "watch",
+        "device2",
+        "apple"
+      ],
+      "honest_gap": "HCircle-1 and device2-1 are burned; HCircle is hand-traced and deliberately wobbly, and an apple's stalk dent keeps it from being a disc -- no class is a true circle",
+      "label_zh": "\u63a5\u8fd1\u5706\u5f62",
+      "measurable_expectation": "circularity above 0.7 and elongation near 1.0",
+      "n_selected": 4,
+      "why_these_classes": "isotropic outlines whose rotation is nearly unobservable, which is exactly where a rotation-search wrapper should be provably worthless rather than supposedly harmless"
+    },
+    "pointed": {
+      "classes": [
+        "crown",
+        "key",
+        "pencil",
+        "hammer"
+      ],
+      "honest_gap": "MPEG-7 has no star or spiky class; four man-made outlines are the closest available, so 'pointed' here means cornered, not needle-thin",
+      "label_zh": "\u5c16\u89d2",
+      "measurable_expectation": "solidity well under 1 and turning energy concentrated in few vertices",
+      "n_selected": 4,
+      "why_these_classes": "each silhouette carries deep, narrow corners (crown points, key teeth, a pencil tip, a hammer head) rather than a smooth boundary"
+    }
+  },
+  "immutability": "a query swap or angle redraw after seeing a result is a new study with a new seed and a new schema version, recorded as such. The generator refuses to rewrite this file in place; see scripts/design_checkpoint8_validation.py.",
+  "n_queries": 24,
+  "not_independent": [
+    "Independent means **disjoint query instances from the scored cells of this benchmark**, not a different data distribution: gallery and queries are both MPEG-7 CE-Shape-1, so a wrapper that happens to fit this dataset's drawing style still fits.",
+    "The 1 400-shape pool was already the *candidate* set in D2/D6, so the queries are new while the gallery is not. Nothing in this round can measure transfer to a pool the arms have never seen.",
+    "No new human ratings are collected. The human-perception axis is re-used from H1 with its own provenance, so this study does NOT independently validate perceptual similarity and must not be reported as if it did.",
+    "The categories are MPEG-7 object labels. They are a relevance proxy for class retrieval only, never a similarity judgement.",
+    "Six arms are scored, not sixteen: the cheapest and the strongest wrapper families are represented (R2/R3 on both networks) plus the three EarthGlyph references, while R0/R1_36/R1_72 and E3/canonical are deliberately absent. A claim about *those* arms cannot come from this file.",
+    "The family labels state a design intent; ``coverage_audit`` counts, from the descriptors already in ``queries``, how many frozen draws actually satisfy that intent's geometric criteria. A family below its full count is under-covered, and its headline may only be read over the queries that pass -- loosening a criterion after seeing a shortfall would be result-shopping."
+  ],
+  "objective": "test whether the CP7 conclusions hold on query shapes that never entered a scored cell, using the frozen math of every arm and the CP8-A two-view statistics",
+  "prohibitions_honoured": [
+    "no official ShapeComp weight or MATLAB file was touched",
+    "no algorithm definition, parameter or training was changed",
+    "no production retriever, real water-body data or Web UI work",
+    "no historical CSV overwritten; this file is new, not a revision",
+    "no category label or H1 reuse presented as a new human judgement"
+  ],
+  "provenance": {
+    "command": "python scripts/design_checkpoint8_validation.py",
+    "dataset": {
+      "archive_sha256": "ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d",
+      "archive_sha256_verified_on_disk": "ce8d87409d1b87b07352ebf6e0eafb8884bea6e4027cb7a23c228e7a3685bd0d",
+      "class_count": 70,
+      "contour_contract": "128 points, centroided, unit RMS, CCW",
+      "name": "MPEG-7 CE-Shape-1 (S1)",
+      "stimulus_count": 1400,
+      "url": "https://dabi.temple.edu/external/shape/MPEG7/MPEG7dataset.zip"
+    },
+    "generated_by_python": "3.12.10",
+    "git_commit": "2bc1a3848e4c6066886529eb91c1b77ff3b9c2c1",
+    "numpy": "2.5.4",
+    "seed": 20261110
+  },
+  "queries": [
+    {
+      "class": "crown",
+      "descriptors": {
+        "area": 2.681081275293127,
+        "circularity": 0.4669761495426335,
+        "deep_gap_runs": 8.0,
+        "deepest_gap": 0.33859468608377574,
+        "elongation": 0.5511769624324533,
+        "solidity": 0.8562841200511233
+      },
+      "family": "pointed",
+      "family_zh": "\u5c16\u89d2",
+      "shape_id": "mpeg7_crown-2",
+      "stem": "crown-2"
+    },
+    {
+      "class": "key",
+      "descriptors": {
+        "area": 2.0034801114464855,
+        "circularity": 0.43618404316034487,
+        "deep_gap_runs": 3.0,
+        "deepest_gap": 0.2999883184654127,
+        "elongation": 0.4072595966834416,
+        "solidity": 0.7744974121113308
+      },
+      "family": "pointed",
+      "family_zh": "\u5c16\u89d2",
+      "shape_id": "mpeg7_key-15",
+      "stem": "key-15"
+    },
+    {
+      "class": "pencil",
+      "descriptors": {
+        "area": 0.9841301728444867,
+        "circularity": 0.25994655819520157,
+        "deep_gap_runs": 0.0,
+        "deepest_gap": 0.07268419779409473,
+        "elongation": 0.15410467940382752,
+        "solidity": 0.9071086576217804
+      },
+      "family": "pointed",
+      "family_zh": "\u5c16\u89d2",
+      "shape_id": "mpeg7_pencil-6",
+      "stem": "pencil-6"
+    },
+    {
+      "class": "hammer",
+      "descriptors": {
+        "area": 1.4327975966614948,
+        "circularity": 0.2508363463736507,
+        "deep_gap_runs": 2.0,
+        "deepest_gap": 0.5889188929119912,
+        "elongation": 0.3625583355739791,
+        "solidity": 0.5351932349847801
+      },
+      "family": "pointed",
+      "family_zh": "\u5c16\u89d2",
+      "shape_id": "mpeg7_hammer-7",
+      "stem": "hammer-7"
+    },
+    {
+      "class": "Heart",
+      "descriptors": {
+        "area": 3.0390895763969676,
+        "circularity": 0.8070188937150563,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.31033142493767096,
+        "elongation": 0.8108235304586183,
+        "solidity": 0.9510372902232728
+      },
+      "family": "heart",
+      "family_zh": "\u5fc3\u5f62",
+      "shape_id": "mpeg7_Heart-4",
+      "stem": "Heart-4"
+    },
+    {
+      "class": "Heart",
+      "descriptors": {
+        "area": 3.0399779590462317,
+        "circularity": 0.6219087680544706,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.6599394005668926,
+        "elongation": 0.7920737916160095,
+        "solidity": 0.8713380541511809
+      },
+      "family": "heart",
+      "family_zh": "\u5fc3\u5f62",
+      "shape_id": "mpeg7_Heart-19",
+      "stem": "Heart-19"
+    },
+    {
+      "class": "Heart",
+      "descriptors": {
+        "area": 3.171138201860946,
+        "circularity": 0.6550684478208455,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.6865157223088583,
+        "elongation": 0.7991507418453673,
+        "solidity": 0.9191065483561651
+      },
+      "family": "heart",
+      "family_zh": "\u5fc3\u5f62",
+      "shape_id": "mpeg7_Heart-7",
+      "stem": "Heart-7"
+    },
+    {
+      "class": "Heart",
+      "descriptors": {
+        "area": 3.199158900312433,
+        "circularity": 0.6910497666932324,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.7008316764817158,
+        "elongation": 0.8684269280835221,
+        "solidity": 0.9121338830343002
+      },
+      "family": "heart",
+      "family_zh": "\u5fc3\u5f62",
+      "shape_id": "mpeg7_Heart-9",
+      "stem": "Heart-9"
+    },
+    {
+      "class": "Comma",
+      "descriptors": {
+        "area": 2.288430644629294,
+        "circularity": 0.5400727992852423,
+        "deep_gap_runs": 2.0,
+        "deepest_gap": 0.3874813853541636,
+        "elongation": 0.5126682126880551,
+        "solidity": 0.788273611137821
+      },
+      "family": "curved",
+      "family_zh": "\u5f2f\u66f2",
+      "shape_id": "mpeg7_Comma-18",
+      "stem": "Comma-18"
+    },
+    {
+      "class": "horseshoe",
+      "descriptors": {
+        "area": 2.7499077150813633,
+        "circularity": 0.3397609330919962,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.6728250267913339,
+        "elongation": 0.926066942579447,
+        "solidity": 0.6843958691029705
+      },
+      "family": "curved",
+      "family_zh": "\u5f2f\u66f2",
+      "shape_id": "mpeg7_horseshoe-6",
+      "stem": "horseshoe-6"
+    },
+    {
+      "class": "Bone",
+      "descriptors": {
+        "area": 1.1291795118043524,
+        "circularity": 0.2062134097525932,
+        "deep_gap_runs": 4.0,
+        "deepest_gap": 0.3307080134218082,
+        "elongation": 0.23794287199003858,
+        "solidity": 0.5048582710562074
+      },
+      "family": "curved",
+      "family_zh": "\u5f2f\u66f2",
+      "shape_id": "mpeg7_Bone-10",
+      "stem": "Bone-10"
+    },
+    {
+      "class": "spoon",
+      "descriptors": {
+        "area": 1.4455583179518108,
+        "circularity": 0.34910184724362386,
+        "deep_gap_runs": 2.0,
+        "deepest_gap": 0.26861529333948886,
+        "elongation": 0.25570568581183417,
+        "solidity": 0.7503435526467874
+      },
+      "family": "curved",
+      "family_zh": "\u5f2f\u66f2",
+      "shape_id": "mpeg7_spoon-5",
+      "stem": "spoon-5"
+    },
+    {
+      "class": "fork",
+      "descriptors": {
+        "area": 1.271407128113534,
+        "circularity": 0.07279126496154854,
+        "deep_gap_runs": 5.0,
+        "deepest_gap": 0.5906589599785348,
+        "elongation": 0.3955398576351653,
+        "solidity": 0.40434588237230074
+      },
+      "family": "forked",
+      "family_zh": "\u5206\u53c9",
+      "shape_id": "mpeg7_fork-3",
+      "stem": "fork-3"
+    },
+    {
+      "class": "tree",
+      "descriptors": {
+        "area": 1.6801822578415484,
+        "circularity": 0.28787635115441723,
+        "deep_gap_runs": 6.0,
+        "deepest_gap": 0.4513716069319672,
+        "elongation": 0.3295392122140757,
+        "solidity": 0.669471842616087
+      },
+      "family": "forked",
+      "family_zh": "\u5206\u53c9",
+      "shape_id": "mpeg7_tree-7",
+      "stem": "tree-7"
+    },
+    {
+      "class": "bird",
+      "descriptors": {
+        "area": 2.3135722732954296,
+        "circularity": 0.3786713411028511,
+        "deep_gap_runs": 4.0,
+        "deepest_gap": 0.4912741528844088,
+        "elongation": 0.6468050103717793,
+        "solidity": 0.7122702092890109
+      },
+      "family": "forked",
+      "family_zh": "\u5206\u53c9",
+      "shape_id": "mpeg7_bird-2",
+      "stem": "bird-2"
+    },
+    {
+      "class": "fly",
+      "descriptors": {
+        "area": 2.4678292091843206,
+        "circularity": 0.09223975321020669,
+        "deep_gap_runs": 8.0,
+        "deepest_gap": 0.880686934576619,
+        "elongation": 0.7358043543289478,
+        "solidity": 0.461516150762033
+      },
+      "family": "forked",
+      "family_zh": "\u5206\u53c9",
+      "shape_id": "mpeg7_fly-17",
+      "stem": "fly-17"
+    },
+    {
+      "class": "HCircle",
+      "descriptors": {
+        "area": 2.772057034743062,
+        "circularity": 0.7311255614133384,
+        "deep_gap_runs": 1.0,
+        "deepest_gap": 0.21673194786898273,
+        "elongation": 0.6646234496587885,
+        "solidity": 0.9679748829460914
+      },
+      "family": "near_circle",
+      "family_zh": "\u63a5\u8fd1\u5706\u5f62",
+      "shape_id": "mpeg7_HCircle-8",
+      "stem": "HCircle-8"
+    },
+    {
+      "class": "watch",
+      "descriptors": {
+        "area": 1.4756433374348514,
+        "circularity": 0.36262060622127285,
+        "deep_gap_runs": 4.0,
+        "deepest_gap": 0.1556570771591299,
+        "elongation": 0.24348879954315888,
+        "solidity": 0.8023844628645478
+      },
+      "family": "near_circle",
+      "family_zh": "\u63a5\u8fd1\u5706\u5f62",
+      "shape_id": "mpeg7_watch-11",
+      "stem": "watch-11"
+    },
+    {
+      "class": "device2",
+      "descriptors": {
+        "area": 3.031918414981384,
+        "circularity": 0.12353755329594168,
+        "deep_gap_runs": 8.0,
+        "deepest_gap": 0.869023320564599,
+        "elongation": 0.9820739602528029,
+        "solidity": 0.5609273909360857
+      },
+      "family": "near_circle",
+      "family_zh": "\u63a5\u8fd1\u5706\u5f62",
+      "shape_id": "mpeg7_device2-6",
+      "stem": "device2-6"
+    },
+    {
+      "class": "apple",
+      "descriptors": {
+        "area": 3.1915928093264414,
+        "circularity": 0.6365562317917683,
+        "deep_gap_runs": 3.0,
+        "deepest_gap": 0.38102225992823235,
+        "elongation": 0.8307811823453948,
+        "solidity": 0.9374838216254949
+      },
+      "family": "near_circle",
+      "family_zh": "\u63a5\u8fd1\u5706\u5f62",
+      "shape_id": "mpeg7_apple-14",
+      "stem": "apple-14"
+    },
+    {
+      "class": "camel",
+      "descriptors": {
+        "area": 2.3004668260723307,
+        "circularity": 0.2229970394888344,
+        "deep_gap_runs": 6.0,
+        "deepest_gap": 0.6781273833115338,
+        "elongation": 0.5158733095277692,
+        "solidity": 0.6394720695597159
+      },
+      "family": "irregular_natural",
+      "family_zh": "\u4e0d\u89c4\u5219\u81ea\u7136\u526a\u5f71",
+      "shape_id": "mpeg7_camel-5",
+      "stem": "camel-5"
+    },
+    {
+      "class": "elephant",
+      "descriptors": {
+        "area": 3.2138140230774237,
+        "circularity": 0.22962771314318697,
+        "deep_gap_runs": 6.0,
+        "deepest_gap": 0.8209581268118031,
+        "elongation": 0.7447323228805197,
+        "solidity": 0.7420002494164971
+      },
+      "family": "irregular_natural",
+      "family_zh": "\u4e0d\u89c4\u5219\u81ea\u7136\u526a\u5f71",
+      "shape_id": "mpeg7_elephant-16",
+      "stem": "elephant-16"
+    },
+    {
+      "class": "lizzard",
+      "descriptors": {
+        "area": 2.3766615705453473,
+        "circularity": 0.14978429381115904,
+        "deep_gap_runs": 5.0,
+        "deepest_gap": 0.9705911040117079,
+        "elongation": 0.6905301894674736,
+        "solidity": 0.5235779325642936
+      },
+      "family": "irregular_natural",
+      "family_zh": "\u4e0d\u89c4\u5219\u81ea\u7136\u526a\u5f71",
+      "shape_id": "mpeg7_lizzard-3",
+      "stem": "lizzard-3"
+    },
+    {
+      "class": "turtle",
+      "descriptors": {
+        "area": 2.171386460161873,
+        "circularity": 0.3365948474311071,
+        "deep_gap_runs": 4.0,
+        "deepest_gap": 0.34987942063404365,
+        "elongation": 0.43847159062352625,
+        "solidity": 0.7538259563122263
+      },
+      "family": "irregular_natural",
+      "family_zh": "\u4e0d\u89c4\u5219\u81ea\u7136\u526a\u5f71",
+      "shape_id": "mpeg7_turtle-3",
+      "stem": "turtle-3"
+    }
+  ],
+  "schema": "earthglyph.shape_perception_benchmark/independent_validation/1",
+  "seed": 20261110,
+  "statistics": {
+    "metric_conventions": [
+      "Precision@K = hits / min(k, returned); Recall@K = hits / the same-class candidates this query retained, a per-query denominator, undefined when nothing remains",
+      "paired differences are published as agreement(B) - agreement(A) under the name second_minus_first, the one convention CP8-A made enforced"
+    ],
+    "n_boot": 2000,
+    "report_separately": [
+      "category retrieval (Precision@10, Recall@10, NDCG@10, same-class Top-1, MRR)",
+      "rotation stability (Top-1 stability, Top-10 Jaccard, rank shift, in-grid vs off-grid)",
+      "engineering cost (gallery precompute, mean query time, P95 where samples allow)"
+    ],
+    "statistical_unit": "the original query: five rotated cells share one shape, so intervals cluster by query and 24 x 5 rows are never treated as 120 independent observations"
+  },
+  "status": "frozen before any retrieval ran in this study. The file is a design, not a result: it contains no distance, no rank and no hit.",
+  "task": "P0-4.6 CP8-B",
+  "top_k": 10
+}

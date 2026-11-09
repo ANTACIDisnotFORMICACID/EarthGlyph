@@ -1082,3 +1082,82 @@ Git 检查点：`254584e8a24465383f511294e92e312e172d4b92`
 提交时产物摘要：`d6_rotation_metrics_corrected.json` `715fe3ded8e99b20…`、`metrics.json` `d37034530ed227cb…`；
 零改写侧 `d6_rotation_metrics.json` `0697af1d7261ce98…`、`d6_retrieval_results.csv` `f5b22ad3809b85bb…`、
 `d6_top10_hits.csv` `4cfb8cfc67f166d4…`（三者与 CP7-C 收官时同 sha ⇒ 确实只读未写）。
+
+## shape_perception_benchmark · Checkpoint 8 CP8-B：冻结"从未进过评分格子"的独立验证设计（P0-4.6，2026-11-10）
+
+**输入**：`cache/MPEG7dataset.zip`（sha256 `ce8d87409d1b87b0…`，生成时与 `dataset_manifest.json` 逐字节比对，
+不一致即 `SystemExit`）1 400 图形 / 70 类、128 点共享轮廓契约；已用查询清单取自运行脚本的
+`D6_QUERIES`（12）与 `D2_QUERIES`（6），交集 4 个 ⇒ **14 个 burned stems**。
+**本轮没有任何检索、没有排名、没有距离、没有图**：设计先入库，检索属于 CP8-C。
+
+**冻结了什么（规则即代码，不是散文）**
+
+| 项 | 值 | 由谁保证 |
+|---|---|---|
+| 查询 | 24 个（6 家族 × 4），全部不在 14 个 burned stems 内 | `select_queries()`：类别池 − burned，再按种子置换 |
+| 角度 | 每查询 5 个非零：1 个格点 + 2 个格中点 + 2 个距两者 ≥2° 的随机角 | 单一 `default_rng(20261110)` 流，查询与槽位顺序冻结 |
+| control | 每查询 1 个精确 0°，**另册**：120 旋转 + 24 control = 144 格/（臂 × 条件） | `cell_arithmetic` + CP8-A 的两套分母 |
+| 臂 | 6 个：E0、E1、E3/sample、S0K1/R3、S0K2/R3、S0K2/R2 | 全部是 `d6_retrieval_results.csv` 里已存在的臂标签 ⇒ 是**选择**不是新算法 |
+| 条件 | 主 T2、接线校验 T0 | `T2_THRESHOLD = 0.05` 近重复规则一字未动 |
+| 统计 | 2 000 次 bootstrap，按**原查询**聚类 | 24×5 行是 24 个观测，不是 120 个 |
+| 家族 | 尖角/心形/弯曲/分叉/接近圆形/不规则自然剪影 | 6 个 `FamilySpec`，各带类别、理由、可测量期望与诚实缺口 |
+
+**自审：设计把自己的标签当断言检验（`coverage_audit`）**
+把每条 `measurable_expectation` 改写成对已存描述量的数值界，逐查询算 ⇒ **24 个里 17 个达标**：
+
+| 家族 | 达标 | 未达标 | 失败的具体界 |
+|---|---|---|---|
+| heart / forked / irregular_natural | 4/4 | — | — |
+| curved | 3/4 | `horseshoe-6` | 伸长 0.926 > 0.65（是环，不是弯轴） |
+| pointed | 2/4 | `crown-2`、`pencil-6` | 实心度 0.856 / 0.907 > 0.85；pencil 凸包缺口 0 个 |
+| near_circle | **0/4** | 全部 | `HCircle-8` 伸长 0.665；`watch-11` 0.363/0.243；`device2-6` 圆度 0.124；`apple-14` 0.637 |
+
+结论按 brief 的要求**记录而不修复**：不换查询、不重抽角度、不放宽阈值（那等于事后改样本）。代价写进文件：
+**各向同性（近圆）这一族本设计没有覆盖**，而它恰是"旋转包装应当被证明无用"的那一格；因此 CP8-C/D
+不得把近圆行说成"圆上包装无用"，只能说这两条各满足一半界（HCircle-8 圆度 0.731/伸长 0.665，
+apple-14 0.637/0.831）的查询。`crown-2` 只差 0.006 也连数值一起存，让读者看到界限而不只见判决。
+
+**命令（实测）**
+
+```bash
+.venv/Scripts/python.exe scripts/design_checkpoint8_validation.py          # 首次冻结，20.6 s（多数在解码 1400 轮廓）
+.venv/Scripts/python.exe scripts/design_checkpoint8_validation.py --check  # 只核验不写盘；无文件则报错
+```
+两者都报 `content_sha256 d8589fe8d133111afe7546632483bebb0803d76ecda409bc829353658c8755d0`。
+写盘器语义：文件已存在且 sha 不同 ⇒ `DESIGN DRIFT` 退出（要求换 schema + 换种子并**保留旧文件**），
+sha 相同 ⇒ 报"already frozen and unchanged"，绝不原地重写。
+
+**幂等与"没动文字"的证明**：为过 `ruff` 的 100 列门槛，把模块里 25 行超长字符串拆成相邻字面量
+（脚本在中点空格处断开，语义不变），改完再算 `content_sha256` 仍为 `d8589fe8…` ⇒ 可证没有改动任何
+进入设计哈希的文本；`FAMILIES / FAMILY_CRITERIA / FAMILY_COVERAGE_CONSEQUENCE / INDEPENDENCE_LIMITS /
+CP8_ARMS / CP8_SEED / CP8_ANGLE_SLOTS / BURNED_QUERY_STEMS` 与重抽的 120 个角度在改动前后逐项相等
+（脚本对照备份逐字段核过）。
+
+**产物 SHA256**
+
+| 文件 | sha256 |
+|---|---|
+| `checkpoint8/independent_validation_design.json`（**入库 blob，LF 42 404 B**） | `86821cf6bc695909fcf3091d0077c7ecc12f8aeae71b24f6d146f304ac1d2378` |
+| 同上（工作副本，`core.autocrlf=true` ⇒ CRLF 43 897 B） | `fdc4e019e0e8484c01718aac5d15fa520683b17d620bd3ae99ac11c1c4c507be` |
+| `earthglyph/shape_benchmark/independent_validation.py` | `83a77498b34c28ff5cc225c4d625c726495862ec40728b20b3a7d67ef5c89cf7` |
+| `scripts/design_checkpoint8_validation.py` | `3eaebab79af7196b2d9c9be9e48120a895c74bf2599d3913a6b04df5c3da8c9e` |
+| `tests/test_shape_benchmark_cp8_design.py` | `9139e2dd0d25416c5ffcc483a7a0b89e2be9bfaf2bcf7ea4b7f1105442b4a8f8` |
+
+绑定身份是与行尾无关的 `content_sha256 d8589fe8…`（对解析后的设计做 canonical JSON），字节哈希只是副本指纹。
+
+设计内 provenance：python 3.12.10 / numpy 2.5.4 / git commit `2bc1a3848e4c6066886529eb91c1b77ff3b9c2c1` /
+seed 20261110 / 档案 sha 已实盘核验 / 2 张 pocket GIF 按既有规则由轮廓加载器排除。
+
+**测试**：新增 `tests/test_shape_benchmark_cp8_design.py` **35 条**——槽位算术与"距网格 1° 的伪随机角必须
+被拒"、按种子可重导（换种子必须不同）、描述量对旋转与缩放不变且拒绝非 128 点/非 (n,2) 输入、
+缺类别与池不足时 `select_queries` 报错、burned 清单与运行脚本两份查询表并集逐字相等、
+6 臂 ⊆ 16 个冻结 D6 臂标签且被排除的 10 臂可枚举、120/24/144 两视图分母、审计由 `queries[]` 里已存
+描述量重算必须等于发布值、近圆 0/4 与 17/24 的判决被钉住（防日后放宽阈值）、"设计文件不含结果"的
+键遍历、以及写盘器四个分支（首次冻结 / 幂等 / DRIFT 拒绝且不改文件 / `--check` 无文件报错 /
+数据集 sha 不符报错）。`python -m pytest -q -o addopts=""` → **948 passed**（上一轮 913）；
+`ruff check .` → All checks passed；`mypy` → no issues found in 41 source files。
+
+**边界**：未跑检索、未产生排名或图；未改任何算法数学、参数、权重或官方工具箱；未覆盖历史 CSV；
+未收新的人类评分（人类感知一侧仍只有 H1，本轮**不**宣称独立验证了感知相似度）；未进 P1 Web 开发。
+下一步 CP8-C：按此文件跑 6 臂 × T2（+T0 校验），存 Top-10 与完整可重算排名、候选 ID、距离、
+同类集合、耗时、排除清单，并按原查询聚类给区间。
