@@ -71,6 +71,15 @@ leave the networks mostly intact (S0K1 overlap 1.00). So the human-validated net
 dropped into EarthGlyph's rotation-invariant pipeline as-is — they would need a rotation search or
 invariant wrapper, unvalidated here.
 
+> **Correction (2026-11-09, Checkpoint 7-C).** That last clause *is* now validated: four wrappers
+> (R0 24-pose query search, R1 36/72-pose, R2 bilateral canonicalisation, R3 24×24) were measured
+> against E0/E1/E3 on a frozen 12-query × 5-angle × 3-condition design. The headline is that
+> **no wrapper reaches E1's same-class Top-1 once the answer is removed from the gallery**
+> (best network arm 0.764 vs E1 0.833) and the cheapest invariant arm (R2) is the *worst* of the
+> wrappers at tracking human ratings (0.639 / 0.677 vs E3/sample 0.839). See
+> [Checkpoint 7](#checkpoint-7--rotation-methods-r0r1r2r3-official-port-audit-and-the-d5-statistics-fix)
+> below and `notes.md` §C3–C5; the ShapeComp route is **not** recommended for production retrieval.
+
 Per-query cost at ~1400 candidates: E0 ≈ 0.1 s, E1 ≈ 12 s, E3 ≈ 55 s. The networks score the gallery
 **once** (absolute coords, no corpus fitting; ~20 s one-time) then each query is a single forward
 pass + L2 → **≈ 0 s marginal**, far cheaper than E3 at query time — but rotation-sensitive.
@@ -143,6 +152,115 @@ pass + L2 → **≈ 0 s marginal**, far cheaper than E3 at query time — but ro
 Reproducing both from the raw `.mat` files is the evidence that the loaders and the
 distance direction are wired correctly before any EarthGlyph arm is compared.
 
+## Checkpoint 7 — rotation methods (R0/R1/R2/R3), official port audit, and the D5 statistics fix
+
+**2026-11-09, the last checkpoint of P0-4.6.** Four sub-checkpoints, each its own commit;
+full prose in `notes.md` §Checkpoint 7 (A1–A5, B1–B6, C1–C7, D1–D6) and the ten acceptance
+questions answered from the artefacts at the end of that file. Decisions: **D57–D76**.
+
+### What the four wrappers are, and what they cost
+
+`earthglyph/shape_benchmark/rotation_methods.py`. Every arm scores the *same* candidate set, the
+pose choice reads **one contour only** (never the gallery, its class or the target id — pinned by
+`test_pose_choice_never_consults_the_gallery`), and multi-pose candidates stay **one entry per
+shape** (`test_r3_adds_gallery_poses_without_changing_the_query_grid`):
+
+| Wrapper | Pose policy | Gallery precompute | Query cost (K1 / K2) |
+|---|---|---|---|
+| `naive` | none — score the contour as stored | none | 0.003 / 0.009 s |
+| `R0` | min over 24 query poses (15° grid) = CP6's search, bit-for-bit | none | 0.062 / 0.209 s |
+| `R1_36`, `R1_72` | same, 10° / 5° grid | none | 0.092–0.183 / 0.313–0.626 s |
+| `R2` | bilateral canonicalisation of the contour, one forward pass | only if canonical/bilateral | 0.003 / 0.009 s |
+| `R3` | bilateral min, 24 poses on **both** sides | **22.4 s / 78.4 s** one-time | 0.086 / 0.232 s |
+
+### The two goals, in two tables (they disagree, and that is the finding)
+
+Frozen design **before** running: 12 queries × 5 declared angle slots (on-grid, two mid-grid, two
+off-grid random ≥2° from any grid or midpoint) × T0/T1/T2, primary condition **T2** (exact target
+*and* rigid near-duplicates removed), 72 cells per arm per condition, seed 20261107, 2000
+replicates. `results/d6_rotation_metrics.json → retrieval_by_arm["T2"]`:
+
+| arm | same-class Top-1 | Top-1 stability | Recall@10 | MRR | rank shift mean/max | cells with nothing same-class in Top-10 | s/query |
+|---|---|---|---|---|---|---|---|
+| **E1** | **0.833** | 1.000 | 0.267 | 0.879 | 0.2 / 25 | 6 | 0.013 |
+| E0 | 0.750 | 1.000 | 0.250 | 0.775 | 0.0 / 0 | 12 | 0.029 |
+| E3/sample | 0.694 | 0.764 | 0.251 | 0.793 | 3.9 / 67 | 4 | 14.098 |
+| E3/canonical | 0.500 | 1.000 | 0.208 | 0.630 | 0.0 / 0 | 6 | 0.585 |
+| S0K1/R3 | 0.694 | 0.778 | **0.288** | **0.811** | 5.1 / 133 | **0** | 0.086 |
+| S0K2/R2 | 0.764 | **0.972** | 0.225 | 0.819 | 0.7 / 55 | 6 | **0.009** |
+| S0K1/R2 | 0.583 | 0.958 | 0.250 | 0.663 | 0.3 / 54 | **0** | **0.003** |
+| S0K1/R0 | 0.611 | 0.736 | 0.240 | 0.731 | 5.3 / 119 | 4 | 0.062 |
+| S0K1/naive | 0.264 | 0.250 | 0.107 | 0.345 | 46.5 / 343 | **36** | 0.003 |
+| S0K2/naive | 0.250 | 0.208 | 0.092 | 0.312 | 45.9 / 324 | **40** | 0.009 |
+
+Agreement (goal A) is a **separate** measurement on the 250 rated H1 pairs × 7 stress angles × 14
+observers, pooled as distance-vs-dissimilarity Spearman; it never mixes into the table above
+(D54/D71). Full 16-arm curves in `notes.md` §C5; headline: **E3/sample 0.8387** is the best arm
+that can score a new contour, S0K1/R3 0.8296 and S0K2/R3 0.8295 follow, E1 0.7824, the R2 arms
+are last at 0.6386 / 0.6770, and naive sits at 0.4341 / 0.4582.
+
+Three claims, stated separately because collapsing them is the misleading version:
+
+1. **Nothing in the ShapeComp family reaches E1's same-class Top-1 under T2** (best 0.764 vs 0.833).
+2. **Class-level depth belongs to R3**, not to the arm with the best Top-1.
+3. **Stability and depth are different properties** — R2 is the most stable and cheapest wrapper
+   with *below-average* MRR on KerNet1.
+
+The pre-declared acceptance bar for replacing the query-side `min` with canonicalisation
+(**D55**: `(b) ≥ 21/21 rank 1` **and** `(a) ≥ E3's 0.839`) is **not met**: R2's agreement is
+significantly *below* R0's, paired −0.1083 [−0.1803, −0.0451] (K1) and −0.0965 [−0.1635, −0.0368]
+(K2). So flattening the ordering by taking a `min` was never the main cause of the agreement loss.
+Finer grids (**D56**) do not rescue goal A either: +0.0068 / +0.0097 at 3× query cost, which buys
+stability, not accuracy.
+
+Denominators are not interchangeable. That bar's `21` is Checkpoint 6's goal-(b) protocol —
+**3 targets × 7 non-zero angles** on the 30-member D4 stratified gallery, the 0° control excluded
+and stored separately as `unrotated_control_overlap` (`notes.md` §Checkpoint 6) — while the `(a)`
+side of the same bar is 250 rated pairs × 7 rotated angles. Checkpoint 7-C's frozen design is a
+third denominator (12 queries × 5 angle slots + 12 controls = 72 cells × 16 arms), so its goal-(b)
+verdicts are reported as same-class Top-1 / stability / rank shift, **not** as a recount of that
+21. The veto in D55 rests on the `(a)` side, where both sides of the comparison share the protocol.
+
+### R2's invariance is real, and it is also nothing on an axis-less shape
+
+`scripts/verify_r2_pose_invariance.py` → `results/r2_pose_invariance_check.json`: the same contour
+rotated to 37°/191°/270° moves the **naive** 22-D coordinate by **0.61–2.04** (coordinate norm
+≈ 1.22, i.e. further than its own length), while R2 moves it by **≤ 5.1e-14** (KerNet1) or
+**exactly 0.0** (KerNet2) on the 11 shapes that have a principal axis. The 12th frozen query,
+`device2-1`, is the only `isotropic-fallback`: its R2 displacement is **bit-identical to naive**
+(0.1523 / 0.4336). Reported per shape, never averaged — canonicalisation is provably a no-op when
+no axis exists (13 of 362 gallery contours).
+
+### Reading the two paired-difference tables (a real trap)
+
+`d5_grouped_metrics.json` and `d6_rotation_metrics.json` store the *same* comparison with opposite
+signs, because only the D5b writer flips it onto the agreement scale
+(`scripts/run_shape_benchmark.py:1022` negates `mean`, `ci_low`, `ci_high`; the D6 writer stores the
+raw bootstrap delta at line 1868):
+
+| Artefact | Key | Field | What the number means |
+|---|---|---|---|
+| `d5_grouped_metrics.json` | `A`\\|`B` | `delta_agreement` | **agreement(A) − agreement(B)**, positive = A better |
+| `d6_rotation_metrics.json` | `A`\\|`B` | `mean` | **agreement(B) − agreement(A)**, positive = B better |
+
+Verified from both files: `E0|E1` is −0.0963 in D5b and +0.0963 in D6, and E1 − E0 = 0.7824 − 0.6831
+= +0.0993. So a positive D6 delta means the **second** arm is the better one. No stored number is
+wrong; only the direction of reading differs. Both tables in `notes.md` quote agreement-scale
+deltas and say which file they came from.
+
+### Port faithfulness and the statistics fix, in one line each
+
+- **CP7-A**: the numpy port reproduces the authors' published KerNet2 coordinates to
+  **8/15 H2 shapes < 1e-6** once start index / direction / archive file are aligned (native-phase
+  median 1.5e-02); the other 7 stay at 4.8e-3–1.8e-2 and are labelled **unattributed**. The
+  verified path's headline RMSE is **bit-identical** before and after the audit
+  (`0.006496161383207664`), so the audit introduced no precision regression (D57).
+  Illegal inputs now raise `ShapeCompInputError` instead of emitting NaN or a zero vector (D58).
+- **CP7-B**: D5's interval now resamples the **250 rated pairs** as clusters, not the 1 750 rows.
+  Widths grow ×1.49–2.13, every **point estimate is unchanged**, 19 of 21 orderings survive, and
+  two pairs become statistically indistinguishable. The old files are untouched and their SHA256
+  is recorded in the new artefact (D61–D63).
+
 ## Files
 
 | Path | Contents |
@@ -161,9 +279,24 @@ distance direction are wired correctly before any EarthGlyph arm is compared.
 | `results/excluded_candidates.csv` | T2 near-duplicate removal ledger, with the E0 distance that triggered it |
 | `results/d2_full_rankings.npz` | complete rankings (not just Top-10), −1-padded, keyed `query\|condition\|method` |
 | `results/{d2,d3,d4}_metrics.json`, `metrics.json` | per-stage detail and the combined headline table with provenance |
+| `results/structure_probe_results.csv`, `transform_results.csv` | D3 role probes and D4 transform-stability rows |
+| `results/d5_rotation_{results.csv,metrics.json}` | **CP6, frozen**: 250 pairs × 7 angles × arms, per-row and the old row-independent intervals. Never rewritten (D61) |
+| `results/d5_grouped_{results.csv,metrics.json}` | **CP7-B re-analysis** of the file above (no re-scoring): clustered + paired intervals, `delta_agreement` = A − B, plus the SHA256 audit link back to the frozen D5 artefacts |
+| `results/d6_retrieval_results.csv` | **CP7-C**: one row per arm × condition × query × angle-slot cell (T0/T1/T2, 16 × 3 × 72), Top-1, stability, overlap, rank shift, first relevant rank, seconds |
+| `results/d6_top10_hits.csv` | the actual **T2** Top-10 lists behind it (16 arms × 72 cells × 10 = 11 520 rows), with `pose`, `distance`, `same_class`, `is_query_self`, `first_relevant_rank` — everything the failure figures are drawn from |
+| `results/d6_agreement_results.csv` | goal A on the D5 stimuli: 16 arms × 250 rated pairs × 7 stress angles = 28 000 rows, `model_distance` next to `human_mean_similarity` (the published 14-observer mean, never a model estimate of it). The observer panel is re-sampled inside the bootstrap, so it is not a column here |
+| `results/d6_rotation_metrics.json` | the frozen design block, per-arm/per-condition tables, grouped + angle-randomised CIs, 120 paired deltas (**mean = B − A**, see the reading trap above), cached-vs-pairwise verification, orientation diagnostics, `image_axis_convention_check`, `goal_separation` |
+| `results/f1_e1_orientation_sensitivity.{csv,json}` | **CP7-D F1**: 11 synthetic probes × 12 poses through `principal_frame`, per-block drift, the 90° axis defect, and the costed-but-not-adopted 24-pose E1 scheme |
+| `results/r2_pose_invariance_check.json` | **CP7-C/D**: 12 frozen query contours × 0/37/191/270°, naive vs R2 coordinate displacement per shape with the frame status |
+| `results/official_toolbox_hashes.json` | SHA256 + byte count + upstream mtime for the 24 toolbox files the port reads, the weights' layer shapes, `tensorflow_used`/`matlab_used` flags, and the `redistribution` statement |
 | `results/figure8_network_audit.json` | raw-array recomputation of the official MatNet/KerNet correlations, input-contract and H1-overlap checks; model-vs-model only |
 | `results/shapecomp_port_validation.json` | port faithfulness vs published **network** outputs (H2 KerNet2 ≈ exact, Figure 8 KerNet1/2), plus the H1 approximation-to-original check (explicitly not faithfulness) |
-| `figures/` | overview, five comparison families × two poses, three human-evaluation figures (six-arm scatter) |
+| `results/run_d*.log` | stdout of the staged runs, kept so a reproduce claim can be dated |
+| `figures/` | overview, five comparison families × two poses, three human-evaluation figures (six-arm scatter), `rotation_stress.png` (CP6) |
+| `checkpoint7/` | the five CP7 PNGs: `rotation_methods_overview`, `rotation_rank_stability`, `rotation_human_agreement`, `rotation_failure_cases`, `shapecomp_port_diagnostics` |
+| `../earthglyph/shape_benchmark/rotation_methods.py` | the four pose policies R0/R1/R2/R3 + `canonicalise` / `pose_embedding` (48 tests run without the toolbox) |
+| `../earthglyph/shape_benchmark/shapecomp_port.py` | the MATLAB → numpy translation of the official preprocessing and both `.h5` forward passes |
+| `../earthglyph/retrieval/shape_context_baseline.py` | `search_shape(..., allow_mirror=...)`, whose mirror branch is now refused on arms that lack one (F2) |
 
 ## Reproduce
 
@@ -176,7 +309,8 @@ distance direction are wired correctly before any EarthGlyph arm is compared.
 .venv/Scripts/python.exe -m pip install -e ".[shapecomp]"   # h5py + matplotlib
 
 # 2. validate the port against published network outputs (seconds; writes the faithfulness JSON)
-.venv/Scripts/python.exe scripts/validate_shapecomp_port.py
+.venv/Scripts/python.exe scripts/hash_shapecomp_toolbox.py     # -> results/official_toolbox_hashes.json
+.venv/Scripts/python.exe scripts/validate_shapecomp_port.py    # -> results/shapecomp_port_validation.json
 
 # 3. human-rating prediction (fast, ~50 s) — S0 is appended automatically for this stage
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d1 --methods E0 E1 E3 S0K1 S0K2
@@ -184,14 +318,28 @@ distance direction are wired correctly before any EarthGlyph arm is compared.
 # 4. retrieval stages (~40 min with the run networks; E3 is ~55 s per full-gallery query)
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3 S0K1 S0K2
 
-# 5. combined headline table
+# 5. rotation stress (CP6) and the CP7-B re-analysis of those stored rows (~30 s, no toolbox needed)
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5 --methods E0 E1 E3 S0K1 S0K2
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d5b   # reads d5_rotation_results.csv only
+
+# 6. the CP7-C frozen rotation-method comparison (16 arms x T0/T1/T2; needs the toolbox)
+#    `--methods` is NOT optional here: it defaults to E0 E1 E3, and running the stage with that
+#    default rewrites d6_* as a 4-arm table (`_d6_arms` adds the 12 wrapper arms per network that
+#    is named). Pass all five methods to reproduce what is stored.
+.venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2
 .venv/Scripts/python.exe scripts/run_shape_benchmark.py --stage summary
 
-# 5b. official-network audit (seconds; model-vs-model, no human ratings)
+# 7. read-only verifications that back specific claims
+.venv/Scripts/python.exe scripts/verify_r2_pose_invariance.py            # -> results/r2_pose_invariance_check.json
+.venv/Scripts/python.exe scripts/measure_e1_orientation_sensitivity.py   # -> results/f1_e1_orientation_sensitivity.*
+
+# 8. official-network audit (seconds; model-vs-model, no human ratings)
 .venv/Scripts/python.exe scripts/audit_figure8_networks.py
 
-# 6. figures (reads the stored rankings; re-ranks nothing)
+# 9. figures (reads the stored rankings; re-ranks nothing)
 .venv/Scripts/python.exe scripts/plot_shape_benchmark.py --figure all
+.venv/Scripts/python.exe scripts/plot_rotation_checkpoint7.py             # -> checkpoint7/*.png
+.venv/Scripts/python.exe scripts/plot_checkpoint7.py                     # -> checkpoint7/shapecomp_port_diagnostics.png
 
 # single query, required CLI
 .venv/Scripts/python.exe scripts/search_shape_benchmark.py --query mpeg7_Heart-1 --gallery mpeg7 --method E3 --top-k 10
@@ -256,7 +404,12 @@ Read off that table:
 2. **S0K1 / S0K2** — the authors' **own KerNet1 / KerNet2 weights actually run** through the
    numpy port (h5py forward pass, no TensorFlow, no retraining). These *are* official network
    outputs (validated against the published columns), can score new shapes, and appear in every
-   retrieval stage. Not rotation/mirror invariant.
+   retrieval stage. **Not rotation-invariant as shipped** — every rotated use needs one of the
+   four wrappers measured in Checkpoint 7-C (`earthglyph/shape_benchmark/rotation_methods.py`),
+   and each wrapper changes what the arm measures: `S0Kx/naive` is the network alone,
+   `S0Kx/R0|R1|R2|R3` is network + a declared pose policy. Never quote one label for the other.
+   Mirror invariance is not a property of these arms at all: `allow_mirror=True` on
+   `S0`/`S0K1`/`S0K2` **raises** instead of silently doing nothing (D72).
 3. **E1** — EarthGlyph **ShapeComp-inspired**, 91 self-written descriptors. Never relabelled as
    official, never credited with official results, and **never described as a port of the 109**.
 4. **E0 / E3** — EarthGlyph geometric alignment / Shape Context.

@@ -833,3 +833,51 @@ Git 检查点：工作提交 `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
 文档提交 `b4840d1cf301d792218205b7388034534e0f815c`；已推送 `origin main`（ssh.github.com:443）并核验
 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`，作者 `ANTACIDisnotFORMICACID`。
 CP7-A `82af902`、CP7-B `193c0f8` 见上节。
+
+## shape_perception_benchmark · Checkpoint 7 收官：文档整合与口径复核（P0-4.6，2026-11-09，纯文档轮）
+
+**输入**：CP7-A…CP7-D 已入库的产物（`results/d6_rotation_metrics.json`、`d6_retrieval_results.csv`、
+`d6_top10_hits.csv`、`d6_agreement_results.csv`、`r2_pose_invariance_check.json`、`f1_*`、
+`d5_grouped_metrics.json`、`official_toolbox_hashes.json`）与 CP1–CP7 全部文档。
+**本轮没有运行任何 stage、没有重算任何数字、没有新图** ⇒ 不产生新的结果文件，只做"文字是否与产物一致"。
+
+**改了什么（7 个文档文件）**
+
+1. `docs/DECISIONS.md`：**D55 / D56 / D59** 从"假设 / 待验证"改写为**已实测判定**，每条给出产物路径、
+   点估计与配对区间；原推断文字保留并注明是当时的推断（不覆盖历史）。P0-4.5 的
+   "ShapeComp-inspired 基线能否成立"一条由悬空问题改为**已定量回答**（E1 agreement 0.782 /
+   T2 同族 Top-1 0.833，网络臂对齐姿态 0.903 但最佳包装 0.764），并按 D60 收窄 D46 的范围。
+2. `docs/EXPERIMENTS.md`：新增 §3.3 基准协议表（D1 / D2–D4 / D5–D5b / D6 四层，逐层写明**禁止的解读**），
+   并在 §6 门禁处补一段：门禁状态**未变**，本基准**不是**门禁证据（14 人评分对 ≠ ≥10 个不同用户的真人手绘；
+   MPEG-7 类别 ≠ 人类感知相似度），只贡献三条方法学结论（两个独立属性、按簇置信区间、材料重复先于算法归因）。
+3. `docs/ROADMAP.md`：P0 门禁下补一段记录 CP1–CP7 与"不纳入生产默认"的结论（D54/D65/D67/D71），写明门禁不变。
+4. `docs/TASKS.md`：P0-4.6 标题改为 **Checkpoint 7 收官**；CP6 的"下一步（优先）"里两条当时未实测的推断
+   补上 CP7-C 的判定与数字。
+5. `experiments/shape_perception_benchmark/README.md`：新增 Checkpoint 7 整节（包装器×策略×成本表、
+   16 臂 T2 指标表、agreement 排名与三条分开陈述的结论、D55 否判、R2 不变性小节、配对差**读法陷阱**表、
+   CP7-A/B 一句话结论），并把 `## Files` 与 `## Reproduce` 补齐到本轮全部脚本与 CSV。
+6. `experiments/shape_perception_benchmark/INTERPRETATION.md`：旧"尚未实测"处就地补**已实测并判否**的日期块，
+   含最终定夺与 git 检查点序列（CP7-A `82af902`、CP7-B `193c0f8`、CP7-C/D `2edce1a`）。
+
+**复核中抓到的三处真实口径问题**（都已写进文档，不改代码）
+
+- **配对差的符号约定在两个产物里相反**：`d5_grouped_metrics.json` 的 `delta_agreement` 由
+  `scripts/run_shape_benchmark.py:1022` 的 `delta()` 翻到 agreement 尺度，而 `d6_rotation_metrics.json`
+  在 `run_shape_benchmark.py:1868` 直接存 `earthglyph/shape_benchmark/metrics.py:249` 的原始 bootstrap delta。
+  ⇒ 键 `A|B` 在 d6 里 `mean = agreement(B) − agreement(A)`。README 现出表说明，避免把 −0.108 读成 +0.108。
+- **D55 的分母曾被写错**：初稿把"21/21"说成"250 对 H1 刺激上按对计的 rank-1 统计"。核对
+  `notes.md` §Checkpoint 6 后确认 **21 = 3 个目标 × 7 个非零角度**、材料是 30 成员的 D4 分层 MPEG-7 图库，
+  0° control 不进头部统计而单独存为 `unrotated_control_overlap`；250 对 × 7 角度 = 1750 行属于 **(a)** 侧。
+  ⇒ D55 与 README 现在都写明三套分母（CP6-b 的 21 / CP6-a 的 1750 / CP7-C 的 72×16）不可互换，
+  且否判依据在 (a) 侧、与分母争议无关。
+- **`--stage d6` 的覆盖陷阱**：`run_d6` 的臂列表由 `_d6_arms()`（`run_shape_benchmark.py:1276`）按
+  `--methods` 生成，而 `--methods` 默认只有 `("E0","E1","E3")` ⇒ 不带 `--methods` 重跑会把 16 臂的
+  `d6_*` 产物**改写成 4 臂表**。这是已存在行为，本轮按边界只记录不改码，复现命令一律带 `--methods`。
+
+**验证**（本轮实际执行）：`pytest -q -o addopts=""` → **874 passed in 94.29s**；`ruff check .` → All checks passed；
+`mypy` → no issues found in 40 source files。另跑两项文档自检：8 个 markdown 文件的表格列数一致性 **0 处不一致**；
+术语扫描（"91 × ShapeComp"）命中 8 行全为**合法用法**（E1 自写 91 维的标注，或纠正说明本身）。
+所有引用的数字都回到产物重取，不抄 prose。
+
+**边界**：结果文件、`.h5` 权重、官方压缩包、生产默认检索器、真实水体库、Web UI 均未触碰；
+`git diff --stat` 只含文档文件。本轮到此停止。
