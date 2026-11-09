@@ -75,3 +75,7 @@ shapeComp_17_12_2024/
 # these binaries is the SHA256 manifest, not the bytes.
 *.h5
 shapeComp_*.zip
+
+# A `--limit-queries` CP8 run writes its plumbing table here and nowhere else. Keeping it out of
+# Git means a 1-query smoke can never be committed, read or plotted as the frozen 24-query result.
+experiments/shape_perception_benchmark/checkpoint8/_smoke/
