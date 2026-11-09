@@ -17,6 +17,11 @@ Stages:
         0-degree control cells reported as separate views, Precision@K renamed and a real
         Recall@K added. Reads the frozen d6 tables, re-runs no inference, writes a new
         versioned artefact and leaves every input byte-identical
+    cp8  the independent validation run: scores the 24 queries and 120 angles frozen by
+        CP8-B (checkpoint8/independent_validation_design.json) with the six arms that file
+        names, against the whole MPEG-7 archive, and writes checkpoint8/. The gate re-derives
+        the design from its seed before the first search, so a sample that moved cannot be
+        scored quietly
 
 Every stage writes real distances and timings. S0 appears only where the authors published
 official coordinates; it is never fabricated for MPEG-7.
@@ -25,6 +30,7 @@ Usage:
     python scripts/run_shape_benchmark.py --stage d1
     python scripts/run_shape_benchmark.py --stage d2 d3 d4 --methods E0 E1 E3
     python scripts/run_shape_benchmark.py --stage d6 --methods E0 E1 E3 S0K1 S0K2
+    python scripts/run_shape_benchmark.py --stage cp8
 """
 
 from __future__ import annotations
@@ -35,7 +41,7 @@ import hashlib
 import itertools
 import json
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -46,6 +52,7 @@ from scipy.stats import rankdata
 from earthglyph.retrieval import perceptual_features as e1
 from earthglyph.retrieval import perceptual_methods as pm
 from earthglyph.retrieval import shape_context_baseline as e3
+from earthglyph.shape_benchmark import independent_validation as iv
 from earthglyph.shape_benchmark import metrics
 from earthglyph.shape_benchmark import rotation_methods as rm
 from earthglyph.shape_benchmark import shapecomp_port as port
@@ -66,6 +73,7 @@ from earthglyph.shape_benchmark.retrieval import (
     EARTHGLYPH_METHODS,
     SHAPECOMP_RUN_METHODS,
     Gallery,
+    _load_shapecomp_nets,
     _scorer_for,
     kernet_rotation_frames,
     pair_distance,
@@ -2543,6 +2551,849 @@ def correct_d6_rotation_statistics(top_k: int = 10) -> dict[str, Any]:
     return payload
 
 
+# ---------------------------------------------------------------- CP8-C independent validation
+
+CP8_OUT = BENCH / "checkpoint8"
+CP8_DESIGN_PATH = CP8_OUT / "independent_validation_design.json"
+#: A partial sample can only ever land here. The directory is chosen by the code from the query
+#: count, not by a caller remembering a flag, so a smoke run cannot be mistaken for the table.
+CP8_SMOKE_DIR = CP8_OUT / "_smoke"
+CP8_RESULT_SCHEMA = "earthglyph.shape_perception_benchmark/independent_validation_results/1"
+CP8_ARTEFACTS = (
+    "cp8_retrieval_results.csv",
+    "cp8_top10_hits.csv",
+    "cp8_exclusions.csv",
+    "independent_metrics.json",
+)
+MANIFEST = BENCH / "dataset_manifest.json"
+
+#: The numeric columns of one CP8 cell, split by the type they must come back as. A cell table is
+#: the only place the headline is derived from, so reading it back has to be unambiguous.
+CP8_CELL_FLOAT_FIELDS: tuple[str, ...] = (
+    "angle_deg",
+    "self_distance",
+    "best_wrong_class_distance",
+    "precision_at_10",
+    "recall_at_10",
+    "ndcg_at_10",
+    "top_10_overlap_vs_unrotated",
+    "mean_abs_rank_shift",
+    "max_abs_rank_shift",
+    "spearman_between_rankings",
+    "elapsed_seconds",
+)
+CP8_CELL_INT_FIELDS: tuple[str, ...] = (
+    "n_kept",
+    "n_same_class_kept",
+    "same_class_hits_at_10",
+    "top1_is_target",
+    "top1_is_same_class",
+    "top1_matches_unrotated",
+    "target_rank",
+    "first_relevant_rank",
+)
+
+#: Headline name -> the per-cell value it is a mean of. Only mean-type statistics get an interval:
+#: a median or a maximum over cells does not decompose per query, so resampling queries would not
+#: be measuring the same quantity the point estimate reports.
+CP8_CI_STATISTICS: dict[str, Callable[[Mapping[str, Any]], float | None]] = {
+    "top1_accuracy": lambda row: row["top1_is_target"],
+    "top1_same_class_accuracy": lambda row: row["top1_is_same_class"],
+    "top1_stability_vs_unrotated": lambda row: row["top1_matches_unrotated"],
+    "target_rank_mean": lambda row: row["target_rank"],
+    "self_distance_mean": lambda row: row["self_distance"],
+    "attraction_gap_mean": lambda row: (
+        None
+        if row["best_wrong_class_distance"] is None
+        else float(row["best_wrong_class_distance"]) - float(row["self_distance"])
+    ),
+    "precision_at_10": lambda row: row["precision_at_10"],
+    "recall_at_10": lambda row: row["recall_at_10"],
+    "ndcg_at_10": lambda row: row["ndcg_at_10"],
+    "class_mrr": lambda row: (
+        1.0 / int(row["first_relevant_rank"]) if row["first_relevant_rank"] else 0.0
+    ),
+    "top_10_overlap_vs_unrotated": lambda row: row["top_10_overlap_vs_unrotated"],
+    "mean_abs_rank_shift": lambda row: row["mean_abs_rank_shift"],
+    "seconds_per_query_mean": lambda row: row["elapsed_seconds"],
+}
+
+#: Metric -> whether a larger value is the better arm. Quoting the wrong direction flips a verdict.
+CP8_RANKING_DIRECTIONS: dict[str, bool] = {
+    "top1_same_class_accuracy": True,
+    "top1_stability_vs_unrotated": True,
+    "precision_at_10": True,
+    "recall_at_10": True,
+    "ndcg_at_10": True,
+    "class_mrr": True,
+    "top_10_overlap_vs_unrotated": True,
+    "mean_abs_rank_shift": False,
+    "target_rank_mean": False,
+    "seconds_per_query_mean": False,
+}
+
+
+def _cp8_gate(design_path: Path = CP8_DESIGN_PATH) -> dict[str, Any]:
+    """Load the frozen CP8-B design, re-deriving it from the seed instead of trusting the file.
+
+    "Independent" is only a claim if the sample cannot have been edited between freezing and
+    scoring. Every check below therefore recomputes what the stored file says it froze: the content
+    hash, the 120 angles, the arm labels, the cell arithmetic. A mismatch is a stop, not a warning.
+    """
+    if not design_path.exists():
+        raise SystemExit(
+            f"no frozen design at {_repo_relative(design_path)}. CP8-C scores a sample, it does "
+            "not invent one: run python scripts/design_checkpoint8_validation.py first, before "
+            "any retrieval."
+        )
+    design = read_json(design_path)
+    problems: list[str] = []
+
+    if design.get("schema") != iv.CP8_SCHEMA:
+        problems.append(f"schema {design.get('schema')!r} is not the frozen {iv.CP8_SCHEMA!r}")
+    if design.get("seed") != iv.CP8_SEED:
+        problems.append(f"seed {design.get('seed')!r} is not the frozen {iv.CP8_SEED}")
+    queries = list(design.get("queries", []))
+    stored_hash = str(design.get("content_sha256"))
+    derived_hash = iv.design_content_sha256(design)
+    if stored_hash != derived_hash:
+        problems.append(f"content_sha256 {stored_hash} != re-derived {derived_hash}")
+    stored_rows = list(design.get("angle_design", {}).get("rows", []))
+    redrawn = iv.draw_angles(np.random.default_rng(iv.CP8_SEED), len(queries))
+    if [(int(a["query_index"]), str(a["slot"]), float(a["angle_deg"])) for a in stored_rows] != [
+        (int(a["query_index"]), str(a["slot"]), float(a["angle_deg"])) for a in redrawn
+    ]:
+        problems.append(
+            f"the {len(stored_rows)} stored angles are not what seed {iv.CP8_SEED} draws "
+            f"({len(redrawn)} rows) -- an angle was redrawn after the freeze"
+        )
+    labels = list(design.get("arms", {}).get("labels", []))
+    if labels != list(iv.CP8_ARMS):
+        problems.append(f"arms {labels} are not the frozen {list(iv.CP8_ARMS)}")
+
+    slots = len(design.get("angle_design", {}).get("slots_per_query", []))
+    arithmetic = design.get("cell_arithmetic", {})
+    for key, expected in (
+        ("n_rotated_cells_per_arm_condition", len(queries) * slots),
+        ("n_control_cells_per_arm_condition", len(queries)),
+        ("n_cells_per_arm_condition", len(queries) * (slots + 1)),
+    ):
+        if arithmetic.get(key) != expected:
+            problems.append(f"cell_arithmetic.{key}={arithmetic.get(key)!r} != {expected}")
+    if problems:
+        raise SystemExit(
+            "the design on disk is not the design CP8-B froze:\n  "
+            + "\n  ".join(problems)
+            + "\nRefusing to score it: results from a sample that moved are not the promised test."
+        )
+    return design
+
+
+def _cp8_arms(labels: Sequence[str]) -> list[D6Arm]:
+    """Map the design's six labels onto the frozen D6 arm table, so no arm is invented here."""
+    frozen = {arm.label: arm for arm in _d6_arms(list(D6_FROZEN_METHODS))}
+    unknown = [label for label in labels if label not in frozen]
+    if unknown:
+        raise SystemExit(
+            f"CP8 arm labels that are not frozen D6 arms: {unknown}. A new method inside what is "
+            "meant to be an independent test of existing ones is a different study."
+        )
+    return [frozen[label] for label in labels]
+
+
+def _cp8_toolbox(arms: Sequence[D6Arm]) -> dict[str, Any]:
+    """Report the official-weights dependency, and stop if a needed arm cannot run.
+
+    The port arms read the gitignored official toolbox. Silently dropping them would publish a
+    table that looks like the promised six-arm comparison and is not, so the absence is an error.
+    """
+    needed = sorted({arm.method for arm in arms if arm.method in SHAPECOMP_RUN_METHODS})
+    if not needed:
+        return {"needed_networks": [], "status": "no arm in this table needs the official weights"}
+    try:
+        nets = _load_shapecomp_nets()
+    except (OSError, ImportError) as error:
+        blocked = [arm.label for arm in arms if arm.method in needed]
+        raise SystemExit(
+            f"the official toolbox is unavailable ({error!r}), so these frozen CP8 arms cannot "
+            f"run: {blocked}. They are reported as blocked, not dropped: a narrower table would "
+            "look like the promised comparison and not be one. Put the gitignored "
+            "shapeComp_17_12_2024 directory back, or run a study that says it covers fewer arms."
+        ) from error
+    return {
+        "needed_networks": needed,
+        "toolbox": str(port.DEFAULT_TOOLBOX),
+        "weights_sha256": dict(nets.weight_sha256),
+        "status": "official weights loaded read-only; nothing here modifies them",
+    }
+
+
+def _cp8_cluster_values(
+    cells: Sequence[Mapping[str, Any]],
+    extract: Callable[[Mapping[str, Any]], float | None],
+) -> dict[str, list[float]]:
+    """Group one statistic by its original query, dropping cells where it is undefined."""
+    grouped: dict[str, list[float]] = {}
+    for cell in cells:
+        value = extract(cell)
+        if value is None or not np.isfinite(float(value)):
+            continue
+        grouped.setdefault(str(cell["query_id"]), []).append(float(value))
+    return grouped
+
+
+def _cp8_cluster_ci(
+    values_by_query: Mapping[str, Sequence[float]], *, n_boot: int, seed: int
+) -> dict[str, Any]:
+    """Percentile interval for a mean whose sampling unit is the query, never the cell.
+
+    Five rotated cells share one shape, so treating 120 cells as 120 independent draws would
+    narrow every interval by about sqrt(5) and invent significance the design does not support.
+    """
+    if not values_by_query:
+        return {"estimate": None, "n_clusters": 0, "n_cells": 0, "note": "no defined cell"}
+    keys = sorted(values_by_query)
+    arrays = [np.asarray(values_by_query[key], dtype=float) for key in keys]
+    pooled = np.concatenate(arrays)
+    rng = np.random.default_rng(seed)
+    replicates = np.empty(n_boot, dtype=float)
+    for index in range(n_boot):
+        drawn = rng.integers(0, len(arrays), len(arrays))
+        replicates[index] = float(np.mean(np.concatenate([arrays[int(i)] for i in drawn])))
+    low, high = np.percentile(replicates, [2.5, 97.5])
+    return {
+        "estimate": float(pooled.mean()),
+        "ci_low": float(low),
+        "ci_high": float(high),
+        "n_boot": n_boot,
+        "bootstrap_seed": seed,
+        "sampling_unit": "original query, with all of its cells moving together",
+        "n_clusters": len(keys),
+        "n_cells": int(pooled.size),
+        "cluster_size_min": int(min(array.size for array in arrays)),
+        "cluster_size_max": int(max(array.size for array in arrays)),
+    }
+
+
+def _cp8_cell(row: Mapping[str, Any]) -> dict[str, Any]:
+    """Coerce one cell to measurable types, whether it came from memory or from the CSV."""
+    out: dict[str, Any] = dict(row)
+    for field in CP8_CELL_FLOAT_FIELDS:
+        value = out.get(field)
+        out[field] = (
+            None if value is None or str(value).strip() in ("", "None", "nan") else float(value)
+        )
+    for field in CP8_CELL_INT_FIELDS:
+        value = out.get(field)
+        out[field] = (
+            None if value is None or str(value).strip() in ("", "None", "nan")
+            else int(round(float(value)))
+        )
+    return out
+
+
+def _cp8_condition_row(
+    arm: D6Arm,
+    condition: str,
+    entry: Mapping[str, Any],
+    angle_row: Mapping[str, Any],
+    distances: np.ndarray,
+    gallery: Gallery,
+    target_index: int,
+    drop: Sequence[str],
+    ref_order: np.ndarray,
+    elapsed: float,
+    details: Mapping[str, Any],
+    k: int = iv.CP8_TOP_K,
+) -> dict[str, Any]:
+    """Every headline statistic for one (arm, condition, query, pose) cell, correctly named.
+
+    This is the CP8-A convention applied to a new table from the start: rotated cells and control
+    cells are distinguished by ``slot``, and the same-class ratio is published as
+    ``precision_at_10`` next to a real ``recall_at_10`` whose denominator is this query's own
+    retained relevant count -- not a fixed 10, and not the legacy misnomer.
+    """
+    query_category = str(entry["class"])
+    order = _d6_rank(distances, gallery, drop)
+    positions = {int(index): rank for rank, index in enumerate(order, start=1)}
+    categories = [str(gallery.shapes[int(index)].category) for index in order]
+    relevant = [1 if category == query_category else 0 for category in categories]
+    n_relevant = int(sum(relevant))
+    hits = metrics.same_class_hits_in_top_k(categories, query_category, k)
+    target_rank = positions.get(int(target_index))
+    first_relevant = next((rank for rank, flag in enumerate(relevant, start=1) if flag), None)
+    top1 = gallery.shapes[int(order[0])].shape_id
+    wrong = np.array(
+        [
+            float(distances[int(index)])
+            for index in range(len(gallery))
+            if str(gallery.shapes[int(index)].category) != query_category
+            and np.isfinite(distances[int(index)])
+        ]
+    )
+    displacement = metrics.rank_displacement(ref_order, order)
+    return {
+        "arm": arm.label,
+        "method": arm.method,
+        "rotation_strategy": arm.strategy,
+        "orientation": arm.orientation,
+        "condition": condition,
+        "query_id": str(entry["shape_id"]),
+        "family": str(entry["family"]),
+        "query_class": query_category,
+        "slot": str(angle_row["slot"]),
+        "angle_deg": float(angle_row["angle_deg"]),
+        "n_kept": int(len(order)),
+        "n_same_class_kept": n_relevant,
+        f"same_class_hits_at_{k}": hits,
+        "top1": top1,
+        "top1_is_target": int(top1 == gallery.shapes[int(target_index)].shape_id),
+        "top1_is_same_class": int(categories[0] == query_category),
+        "top1_matches_unrotated": int(top1 == gallery.shapes[int(ref_order[0])].shape_id),
+        "target_rank": target_rank,
+        "self_distance": float(distances[int(target_index)]),
+        "best_wrong_class_distance": float(wrong.min()) if wrong.size else None,
+        f"precision_at_{k}": metrics.precision_at_k(categories, query_category, k),
+        f"recall_at_{k}": metrics.recall_at_k(categories, query_category, n_relevant, k),
+        "first_relevant_rank": first_relevant,
+        f"ndcg_at_{k}": metrics.ndcg_at_k(relevant, k) if first_relevant else None,
+        f"top_{k}_overlap_vs_unrotated": metrics.top_k_overlap(ref_order, order, k),
+        "mean_abs_rank_shift": displacement["mean_abs_shift"],
+        "max_abs_rank_shift": float(displacement["max_abs_shift"]),
+        "spearman_between_rankings": displacement["spearman_between_rankings"],
+        "forward_passes": details.get("forward_passes"),
+        "query_poses": details.get("query_poses"),
+        "elapsed_seconds": elapsed,
+    }
+
+
+def _cp8_summarise_cells(
+    cells: list[dict[str, Any]],
+    view: str,
+    condition: str,
+    n_rotated: int,
+    n_control: int,
+    *,
+    k: int = iv.CP8_TOP_K,
+    n_boot: int = iv.CP8_N_BOOT,
+    seed: int = iv.CP8_SEED,
+    with_ci: bool = True,
+) -> dict[str, Any]:
+    """Headline for one (view, condition), over exactly the cells that view may use."""
+    ranks = [int(row["target_rank"]) for row in cells if row["target_rank"]]
+    recall = [row[f"recall_at_{k}"] for row in cells if row[f"recall_at_{k}"] is not None]
+    ndcg = [row[f"ndcg_at_{k}"] for row in cells if row[f"ndcg_at_{k}"] is not None]
+    denominators = [int(row["n_same_class_kept"]) for row in cells]
+    gaps = [
+        float(row["best_wrong_class_distance"]) - float(row["self_distance"])
+        for row in cells
+        if row["best_wrong_class_distance"] is not None
+    ]
+    seconds = [float(row["elapsed_seconds"]) for row in cells]
+    out: dict[str, Any] = {
+        "view": view,
+        "cell_filter": 'slot == "control"' if view == metrics.CONTROL_VIEW else 'slot != "control"',
+        "n_cells": len(cells),
+        "n_rotated_cells": n_rotated,
+        "n_control_cells": n_control,
+        "exact_target_present": condition == iv.CP8_CHECK_CONDITION,
+        "top1_accuracy": _d6_mean([row["top1_is_target"] for row in cells]),
+        "top1_same_class_accuracy": _d6_mean([row["top1_is_same_class"] for row in cells]),
+        "top1_stability_vs_unrotated": _d6_mean([row["top1_matches_unrotated"] for row in cells]),
+        "target_rank_mean": _d6_mean(ranks),
+        "target_rank_median": float(np.median(ranks)) if ranks else None,
+        "target_rank_worst": int(max(ranks)) if ranks else None,
+        "n_target_rank_undefined": len(cells) - len(ranks),
+        "self_distance_mean": _d6_mean([row["self_distance"] for row in cells]),
+        "self_distance_max": float(max(row["self_distance"] for row in cells)),
+        "attraction_gap_mean": _d6_mean(gaps),
+        f"precision_at_{k}": _d6_mean([row[f"precision_at_{k}"] for row in cells]),
+        f"recall_at_{k}": float(np.mean(recall)) if recall else None,
+        f"recall_at_{k}_n_scored": len(recall),
+        f"recall_at_{k}_undefined_cells": len(cells) - len(recall),
+        "n_relevant_retained_mean": _d6_mean(denominators),
+        "n_relevant_retained_min": min(denominators),
+        "n_relevant_retained_max": max(denominators),
+        "class_mrr": metrics.mean_reciprocal_rank([row["first_relevant_rank"] for row in cells]),
+        f"ndcg_at_{k}": _d6_mean([row[f"ndcg_at_{k}"] for row in cells]),
+        f"ndcg_at_{k}_n_scored": len(ndcg),
+        f"top_{k}_overlap_vs_unrotated": _d6_mean(
+            [row[f"top_{k}_overlap_vs_unrotated"] for row in cells]
+        ),
+        f"top_{k}_overlap_min": float(min(row[f"top_{k}_overlap_vs_unrotated"] for row in cells)),
+        "mean_abs_rank_shift": _d6_mean([row["mean_abs_rank_shift"] for row in cells]),
+        "max_abs_rank_shift": float(max(row["max_abs_rank_shift"] for row in cells)),
+        "seconds_per_query_mean": _d6_mean(seconds),
+        "seconds_per_query_p95": float(np.percentile(seconds, 95)),
+        "seconds_per_query_max": float(max(seconds)),
+    }
+    if view == metrics.CONTROL_VIEW:
+        out["note"] = (
+            "unrotated poses only. top1_stability_vs_unrotated is 1.0 here by construction, so "
+            "this view is a wiring check on the pipeline and never a rotation measurement."
+        )
+    elif with_ci:
+        out["query_clustered_ci"] = {
+            name: _cp8_cluster_ci(_cp8_cluster_values(cells, extract), n_boot=n_boot, seed=seed)
+            for name, extract in CP8_CI_STATISTICS.items()
+        }
+    return out
+
+
+def _cp8_summarise(
+    rows: list[dict[str, Any]],
+    *,
+    k: int = iv.CP8_TOP_K,
+    n_boot: int = iv.CP8_N_BOOT,
+    seed: int = iv.CP8_SEED,
+) -> dict[str, Any]:
+    """Collapse the tidy cells into per-view, per-condition headlines. Two views, never pooled."""
+    cells = [_cp8_cell(row) for row in rows]
+    by_view = metrics.split_rotation_and_control(cells, control_slot=iv.CP8_CONTROL_SLOT)
+    conditions = [iv.CP8_PRIMARY_CONDITION, iv.CP8_CHECK_CONDITION]
+    counts = {
+        view: {
+            condition: sum(1 for row in view_rows if row["condition"] == condition)
+            for condition in conditions
+        }
+        for view, view_rows in by_view.items()
+    }
+    out: dict[str, Any] = {}
+    for view in metrics.VIEWS:
+        per_condition: dict[str, Any] = {}
+        for condition in conditions:
+            view_cells = [row for row in by_view[view] if row["condition"] == condition]
+            if not view_cells:
+                continue
+            per_condition[condition] = _cp8_summarise_cells(
+                view_cells,
+                view,
+                condition,
+                n_rotated=counts[metrics.ROTATION_VIEW][condition],
+                n_control=counts[metrics.CONTROL_VIEW][condition],
+                k=k,
+                n_boot=n_boot,
+                seed=seed,
+            )
+        out[view] = per_condition
+    return out
+
+
+def _cp8_slot_view(rows: list[dict[str, Any]], *, k: int = iv.CP8_TOP_K) -> dict[str, Any]:
+    """Rotation behaviour split by angle slot: what an on-grid pose hides from a coarse wrapper."""
+    out: dict[str, Any] = {}
+    for arm_label in dict.fromkeys(str(row["arm"]) for row in rows):
+        by_slot: dict[str, Any] = {}
+        for slot in iv.CP8_ANGLE_SLOTS:
+            cells = [
+                _cp8_cell(row)
+                for row in rows
+                if row["arm"] == arm_label
+                and row["condition"] == iv.CP8_PRIMARY_CONDITION
+                and row["slot"] == slot
+            ]
+            if not cells:
+                continue
+            by_slot[slot] = {
+                "n_cells": len(cells),
+                "top1_same_class_accuracy": _d6_mean(
+                    [row["top1_is_same_class"] for row in cells]
+                ),
+                "top1_stability_vs_unrotated": _d6_mean(
+                    [row["top1_matches_unrotated"] for row in cells]
+                ),
+                f"top_{k}_overlap_vs_unrotated": _d6_mean(
+                    [row[f"top_{k}_overlap_vs_unrotated"] for row in cells]
+                ),
+                "mean_abs_rank_shift": _d6_mean([row["mean_abs_rank_shift"] for row in cells]),
+                "first_relevant_rank_mean": _d6_mean(
+                    [row["first_relevant_rank"] for row in cells]
+                ),
+            }
+        out[arm_label] = by_slot
+    return out
+
+
+def _cp8_rankings(
+    retrieval_by_arm: Mapping[str, Mapping[str, Mapping[str, dict[str, Any]]]],
+) -> dict[str, Any]:
+    """Rank the arms by each headline statistic, so no single metric can be quoted as the winner."""
+    headline = {
+        arm: blocks[metrics.ROTATION_VIEW][iv.CP8_PRIMARY_CONDITION]
+        for arm, blocks in retrieval_by_arm.items()
+    }
+    out: dict[str, Any] = {}
+    for metric_name, higher_is_better in CP8_RANKING_DIRECTIONS.items():
+        values = {
+            arm: float(block[metric_name])
+            for arm, block in headline.items()
+            if block.get(metric_name) is not None
+        }
+        out[metric_name] = {
+            "higher_is_better": higher_is_better,
+            "order": _d6_rank_arms(values, higher_is_better),
+            "values": values,
+        }
+    return out
+
+
+def run_cp8(top_k: int = 10, limit_queries: int = 0) -> dict[str, Any]:
+    """Score the frozen CP8-B sample with the six frozen arms -- and change nothing else.
+
+    Nothing here picks a query, an angle, a gallery member or a threshold after seeing a result:
+    the design file is re-derived from its seed before the first search runs. The library is the
+    whole MPEG-7 archive because 22 of the 24 frozen queries are not in the 5-per-class D4 gallery
+    that D6 used; the choice is recorded in provenance rather than passed off as the same gallery.
+    """
+    import platform
+    import subprocess
+
+    if top_k != iv.CP8_TOP_K:
+        raise SystemExit(
+            f"--top-k {top_k} is not the frozen CP8 top_k {iv.CP8_TOP_K}: the design promised one "
+            "list length, and scoring another is a different study."
+        )
+    design = _cp8_gate()
+    arms = _cp8_arms(list(design["arms"]["labels"]))
+    weights = _cp8_toolbox(arms)
+
+    smoke = 0 < limit_queries < len(design["queries"])
+    out_dir = CP8_SMOKE_DIR if smoke else CP8_OUT
+    queries = list(design["queries"])[: limit_queries or len(design["queries"])]
+    if smoke:
+        print(
+            f"  SMOKE RUN: {len(queries)} of {len(design['queries'])} queries -> "
+            f"{_repo_relative(out_dir)}; this is plumbing, not a result, and it is never published "
+            "in checkpoint8/",
+            flush=True,
+        )
+
+    shapes, excluded_images = load_mpeg7(CACHE)
+    by_stem = {shape.shape_id.removeprefix("mpeg7_"): shape for shape in shapes}
+    missing = [entry["stem"] for entry in queries if entry["stem"] not in by_stem]
+    if missing:
+        raise SystemExit(f"frozen CP8 queries absent from the archive: {missing}")
+    archive = CACHE / "MPEG7dataset.zip"
+    archive_sha = hashlib.sha256(archive.read_bytes()).hexdigest()
+    frozen_archive_sha = design["provenance"]["dataset"]["archive_sha256"]
+    if archive_sha != frozen_archive_sha:
+        raise SystemExit(
+            f"the MPEG-7 archive on disk hashes to {archive_sha}, not the {frozen_archive_sha} "
+            "the design was frozen against. A different dataset build is a different study."
+        )
+    redrew = iv.select_queries(shapes)
+    if [(row["stem"], row["class"], row["family"]) for row in redrew] != [
+        (row["stem"], row["class"], row["family"]) for row in design["queries"]
+    ]:
+        raise SystemExit(
+            "the selection rules now derive a different 24 shapes than the design froze. The "
+            "sample moved, so this is no longer the promised independent test."
+        )
+
+    gallery_started = time.perf_counter()
+    gallery = Gallery(shapes, name="mpeg7_full")
+    precompute = {"gallery_mpeg7_full": time.perf_counter() - gallery_started}
+    for network in SHAPECOMP_RUN_METHODS:
+        if not any(arm.method == network for arm in arms):
+            continue
+        started = time.perf_counter()
+        for strategy in ("R3", "R2"):
+            gallery.pose_embeddings(_RUN_NETWORK[network], strategy)
+        precompute[f"gallery_pose_embeddings_{network}"] = time.perf_counter() - started
+
+    angles_by_index: dict[int, list[dict[str, Any]]] = {}
+    for row in design["angle_design"]["rows"]:
+        angles_by_index.setdefault(int(row["query_index"]), []).append(row)
+
+    run_started = time.perf_counter()
+    cells: list[dict[str, Any]] = []
+    hit_rows: list[dict[str, Any]] = []
+    exclusion_rows: list[dict[str, Any]] = []
+    orders: dict[str, np.ndarray] = {}
+    conditions = [iv.CP8_PRIMARY_CONDITION, iv.CP8_CHECK_CONDITION]
+    for index, entry in enumerate(queries):
+        base = by_stem[entry["stem"]]
+        target_index = int(gallery.index_of(base.shape_id))
+        query_category = str(base.category)
+        if query_category != str(entry["class"]):
+            raise SystemExit(
+                f"{entry['stem']} is class {query_category} in the archive on disk but "
+                f"{entry['class']} in the design -- the dataset changed under a frozen sample"
+            )
+        e0_full = search_shape(base, gallery, "E0", top_k=len(gallery))
+        near = [
+            gallery.shapes[int(position)].shape_id
+            for position in e0_full.order
+            if e0_full.distances[int(position)] < T2_THRESHOLD
+            and gallery.shapes[int(position)].shape_id != base.shape_id
+        ]
+        drops = {
+            iv.CP8_CHECK_CONDITION: [],
+            iv.CP8_PRIMARY_CONDITION: [base.shape_id, *near],
+        }
+        exclusion_rows.append(
+            {
+                "query_id": base.shape_id,
+                "family": entry["family"],
+                "query_class": query_category,
+                "n_gallery": len(gallery),
+                "n_near_duplicates": len(near),
+                "near_duplicate_ids": json.dumps(near),
+                "n_kept_t0": len(gallery) - len(drops[iv.CP8_CHECK_CONDITION]),
+                "n_kept_t2": len(gallery) - len(drops[iv.CP8_PRIMARY_CONDITION]),
+                "n_same_class_in_gallery": sum(
+                    1 for shape in gallery.shapes if str(shape.category) == query_category
+                ),
+                "rule": (
+                    f"E0 aligned distance < {T2_THRESHOLD}, defined once per query for all arms"
+                ),
+            }
+        )
+        angle_rows = angles_by_index.get(index, [])
+        if len(angle_rows) != len(design["angle_design"]["slots_per_query"]):
+            raise SystemExit(f"design angle rows for query {index} are incomplete")
+        for arm in arms:
+            reference = arm.search(base, gallery, len(gallery))
+            ref_orders = {
+                condition: _d6_rank(reference.distances, gallery, drop)
+                for condition, drop in drops.items()
+            }
+            poses: list[tuple[str, Mapping[str, Any], BenchmarkShape, Any]] = [
+                (
+                    "unrotated",
+                    {"slot": iv.CP8_CONTROL_SLOT, "angle_deg": 0.0},
+                    base,
+                    reference,
+                )
+            ] + [
+                (
+                    f"rotate_{row['angle_deg']:g}",
+                    row,
+                    _rotated(base, float(row["angle_deg"])),
+                    None,
+                )
+                for row in angle_rows
+            ]
+            for pose_label, angle_row, query, precomputed in poses:
+                result = precomputed if precomputed is not None else arm.search(
+                    query, gallery, len(gallery)
+                )
+                for condition, drop in drops.items():
+                    cells.append(
+                        _cp8_condition_row(
+                            arm,
+                            condition,
+                            entry,
+                            angle_row,
+                            result.distances,
+                            gallery,
+                            target_index,
+                            drop,
+                            ref_orders[condition],
+                            result.elapsed_seconds,
+                            result.details,
+                            top_k,
+                        )
+                    )
+                    if condition == iv.CP8_PRIMARY_CONDITION and not smoke:
+                        orders[f"{arm.label}|{base.shape_id}|{pose_label}"] = _d6_rank(
+                            result.distances, gallery, drop
+                        )
+                    for rank, position in enumerate(
+                        _d6_rank(result.distances, gallery, drop)[:top_k], start=1
+                    ):
+                        hit_rows.append(
+                            {
+                                "query_id": base.shape_id,
+                                "family": entry["family"],
+                                "arm": arm.label,
+                                "condition": condition,
+                                "pose": pose_label,
+                                "slot": angle_row["slot"],
+                                "angle_deg": angle_row["angle_deg"],
+                                "rank": rank,
+                                "shape_id": gallery.shapes[int(position)].shape_id,
+                                "category": gallery.shapes[int(position)].category,
+                                "distance": float(result.distances[int(position)]),
+                                "is_same_class": int(
+                                    str(gallery.shapes[int(position)].category) == query_category
+                                ),
+                            }
+                        )
+        print(
+            f"  {entry['stem']:14s} {query_category:14s} near-duplicates={len(near):2d} "
+            f"cells={len(cells):5d} elapsed={time.perf_counter() - run_started:7.1f}s",
+            flush=True,
+        )
+
+    started_run = time.perf_counter()
+    retrieval_by_arm = {
+        arm.label: _cp8_summarise([row for row in cells if row["arm"] == arm.label])
+        for arm in arms
+    }
+    rotated_t2 = [
+        row
+        for row in cells
+        if row["condition"] == iv.CP8_PRIMARY_CONDITION and row["slot"] != iv.CP8_CONTROL_SLOT
+    ]
+    undefined = sorted({str(row["slot"]) for row in rotated_t2} - set(iv.CP8_ANGLE_SLOTS))
+    if undefined:
+        raise SystemExit(f"cells carry slots the frozen design never declared: {undefined}")
+
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = "unknown"
+    mpeg7_manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))["mpeg7"]
+
+    summary: dict[str, Any] = {
+        "schema": CP8_RESULT_SCHEMA,
+        "task": "P0-4.6 CP8-C",
+        "objective": (
+            "test the frozen rotation wrappers on a sample that never entered any earlier grid, "
+            "after CP8-A made the existing statistics trustworthy"
+        ),
+        "design": {
+            "path": _repo_relative(CP8_DESIGN_PATH),
+            "sha256": _file_sha256(CP8_DESIGN_PATH),
+            "content_sha256": design["content_sha256"],
+            "seed": design["seed"],
+            "n_queries": len(queries),
+            "n_rotated_angles_per_query": len(design["angle_design"]["slots_per_query"]),
+            "n_control_cells_per_arm_condition": len(queries),
+            "conditions": conditions,
+            "primary_condition": iv.CP8_PRIMARY_CONDITION,
+            "check_condition": iv.CP8_CHECK_CONDITION,
+            "t2_threshold_e0": T2_THRESHOLD,
+            "top_k": top_k,
+            "rotation_step_deg": design["angle_design"]["grid"]["step_deg"],
+            "frozen_before_run": True,
+            "gate": (
+                "the runner re-derived the content hash, all 120 angles from the seed, the arm "
+                "labels and the cell arithmetic before scoring anything, and aborts on any "
+                "mismatch: an independent test is only independent if the sample cannot have "
+                "moved after the freeze"
+            ),
+        },
+        "provenance": {
+            "command": (
+                "python scripts/run_shape_benchmark.py --stage cp8"
+                + (f" --limit-queries {limit_queries}" if limit_queries else "")
+            ),
+            "generated_by_python": platform.python_version(),
+            "numpy": np.__version__,
+            "git_commit": commit,
+            "dataset": {
+                "name": "MPEG-7 CE-Shape-1 (S1)",
+                "url": mpeg7_manifest["url"],
+                "archive_sha256": archive_sha,
+                "archive_sha256_gate": (
+                    "the run refuses to start unless the archive on disk is the build the design "
+                    "was frozen against"
+                ),
+                "stimulus_count": mpeg7_manifest["stimulus_count"],
+                "class_count": mpeg7_manifest["class_count"],
+                "images_excluded_by_contour_loader": len(excluded_images),
+            },
+            "gallery": {
+                "name": gallery.name,
+                "n_shapes": len(gallery),
+                "n_classes": len({str(shape.category) for shape in gallery.shapes}),
+                "why": (
+                    "the whole archive, not the 5-per-class D4 gallery: only 2 of the 24 frozen "
+                    "queries are in that subset, and T0 needs the exact target present. A larger "
+                    "library is the harder test, and no candidate was chosen after seeing a result."
+                ),
+                "differs_from_d6": True,
+            },
+            "official_toolbox": weights,
+            "precompute_seconds": precompute,
+            "summary_seconds": time.perf_counter() - started_run,
+            "smoke_run": {
+                "limited_to_queries": len(queries) if smoke else None,
+                "published": not smoke,
+                "note": (
+                    "a limited run writes only to checkpoint8/_smoke, so a partial sample can "
+                    "never be read as the promised 24-query table"
+                ),
+            },
+        },
+        "arms": [
+            {
+                "label": arm.label,
+                "method": arm.method,
+                "rotation_strategy": arm.strategy,
+                "orientation": arm.orientation,
+                "contract": arm.description(),
+                "blocked": False,
+            }
+            for arm in arms
+        ],
+        "metric_definitions": design["statistics"]["metric_conventions"],
+        "coverage_audit": design["coverage_audit"],
+        "retrieval_by_arm": retrieval_by_arm,
+        "rotation_by_angle_slot": _cp8_slot_view(cells),
+        "arm_rankings_primary": _cp8_rankings(retrieval_by_arm),
+        "human_perception": {
+            "new_ratings_collected": 0,
+            "status": (
+                "CP8-C collects no human ratings and therefore adds no independent perceptual "
+                "evidence. The only perceptual study remains the H1 agreement table, which scores "
+                "the 250 rated pairs -- a different stimulus set from these 24 MPEG-7 shapes."
+            ),
+            "reference": {
+                "path": _repo_relative(RESULTS / "d6_rotation_metrics.json"),
+                "sha256": _file_sha256(RESULTS / "d6_rotation_metrics.json"),
+                "schema": read_json(RESULTS / "d6_rotation_metrics.json")["schema"],
+            },
+            "category_labels_are": "a relevance proxy, not a similarity judgement",
+        },
+        "limits": [
+            *iv.INDEPENDENCE_LIMITS,
+            (
+                "the gallery is the full archive while D6 scored a 5-per-class subset, so a CP8 "
+                "number is not comparable digit-for-digit with a D6 number -- only the direction "
+                "and the ranking are quoted across the two"
+            ),
+            (
+                "24 queries is the promised sample, not a large one: intervals are clustered by "
+                "query and stay wide, which is the honest reading rather than a defect"
+            ),
+        ],
+        "rows_written": {
+            "cells": len(cells),
+            "top10_hits": len(hit_rows),
+            "exclusions": len(exclusion_rows),
+            "full_rankings_stored": len(orders),
+        },
+    }
+
+    write_csv(out_dir / "cp8_retrieval_results.csv", cells)
+    write_csv(out_dir / "cp8_top10_hits.csv", hit_rows)
+    write_csv(out_dir / "cp8_exclusions.csv", exclusion_rows)
+    if orders:
+        write_rankings(out_dir / "cp8_full_rankings_T2.npz", orders)
+        summary["files"] = {
+            "cp8_full_rankings_T2.npz": {
+                "sha256": _file_sha256(out_dir / "cp8_full_rankings_T2.npz"),
+                "bytes": (out_dir / "cp8_full_rankings_T2.npz").stat().st_size,
+                "note": (
+                    "full T2 ranking per (arm, query, pose), so every headline can be recomputed "
+                    "without running an encoder again"
+                ),
+            }
+        }
+    write_json(out_dir / "independent_metrics.json", summary)
+    print(
+        f"  {len(queries)} queries x {len(arms)} arms -> {len(cells)} cells, "
+        f"{len(hit_rows)} hit rows, {_repo_relative(out_dir)}",
+        flush=True,
+    )
+    return summary
+
+
 def write_summary() -> None:
     """Combine whatever stages have run into one headline table with full provenance."""
     import platform
@@ -2882,7 +3733,7 @@ def main() -> None:
         "--stage",
         nargs="+",
         required=True,
-        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "d6", "d6-correct", "summary"],
+        choices=["d1", "d2", "d3", "d4", "d5", "d5b", "d6", "d6-correct", "cp8", "summary"],
     )
     parser.add_argument("--methods", nargs="+", default=list(EARTHGLYPH_METHODS),
                         choices=["E0", "E1", "E3", "S0", "S0K1", "S0K2"])
@@ -2896,7 +3747,21 @@ def main() -> None:
             f"{', '.join(D6_FROZEN_METHODS)})"
         ),
     )
+    parser.add_argument(
+        "--limit-queries",
+        type=int,
+        default=0,
+        help=(
+            "with --stage cp8, score only the first N frozen queries as a plumbing smoke test; "
+            f"a partial table can only ever be written to {_repo_relative(CP8_SMOKE_DIR)}"
+        ),
+    )
     args = parser.parse_args()
+    if "cp8" in args.stage and set(args.methods) != set(EARTHGLYPH_METHODS):
+        raise SystemExit(
+            "--stage cp8 takes its six arms from the frozen design file, so --methods would be "
+            "ignored here. Refusing the combination instead of silently dropping it."
+        )
     RESULTS.mkdir(parents=True, exist_ok=True)
     for stage in args.stage:
         print(f"=== {stage} ===", flush=True)
@@ -2917,6 +3782,8 @@ def main() -> None:
             run_d6(args.methods, args.top_k, args.allow_d6_arm_subset)
         elif stage == "d6-correct":
             correct_d6_rotation_statistics(args.top_k)
+        elif stage == "cp8":
+            run_cp8(args.top_k, args.limit_queries)
         elif stage == "summary":
             write_summary()
         else:
