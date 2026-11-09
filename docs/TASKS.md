@@ -681,6 +681,8 @@ Git 检查点：工作提交 `2edce1a87cbaed087d7e662bc974ec9a660fdcbd`
   ③ `--stage d6` 不带 `--methods` 会把 16 臂产物改写成 4 臂 ⇒ 复现命令一律带 `--methods`（只记录，不改码）。
   验证：`pytest` **874 passed**、`ruff` 全过、`mypy` 40 源文件无问题、8 个 md 表格列数 0 处不一致、
   "91 × ShapeComp" 术语命中全为合法用法。结果文件 / 权重 / 压缩包 / 生产默认 **一个都没动**。
+  Git 检查点：文档提交 `32b14ba`（7 files / +359 / −25），已推送并核验
+  `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`。
 
 **边界遵守**：未改生产默认检索器、未引入真实水体库、官方 MATLAB/权重只读未改；本轮到此停止。
 

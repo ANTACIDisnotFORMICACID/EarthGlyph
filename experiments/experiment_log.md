@@ -881,3 +881,8 @@ CP7-A `82af902`、CP7-B `193c0f8` 见上节。
 
 **边界**：结果文件、`.h5` 权重、官方压缩包、生产默认检索器、真实水体库、Web UI 均未触碰；
 `git diff --stat` 只含文档文件。本轮到此停止。
+
+Git 检查点：文档提交 `32b14bad9408d170b0b350c2f6906e029018d3f2`
+（`docs: consolidate the CP7 verdicts into every record and fix three provenance slips (P0-4.6)`，
+7 files / +359 / −25）；已推送 `origin main`（ssh.github.com:443）并核验
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式，作者 `ANTACIDisnotFORMICACID`。

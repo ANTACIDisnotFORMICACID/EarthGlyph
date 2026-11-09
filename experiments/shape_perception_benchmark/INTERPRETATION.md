@@ -149,6 +149,8 @@ S0K1/S0K2 与发布 S0 统计不可区分，并显著胜过 E3（E3−S0K1 −0.
 > Git 检查点：CP1 `1e4d6ca`、CP2 `46e2fad`、CP3 `5e84530`、CP4 `a70c7bd`、CP5 `31e6b00`、CP6 `e43f587`、
 > CP7-A `82af902`、CP7-B `193c0f8`、CP7-C/D `2edce1a`（均已推送并核验 `git ls-remote` == `HEAD`）；
 > CP6 之后的口径/分母校正以 `docs:` 提交追加（`778c807` 及其后），完整序列见 `git log`。
+> Checkpoint 7 收官的文档整合（D55/D56/D59 改写为已实测判定 + 三处分母/符号口径纠正）为 `32b14ba`，
+> 已推送并核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD`。
 > 十问回答见 [`notes.md` Checkpoint 4](notes.md)，端口翻译/验证/六臂对比见 [`notes.md` Checkpoint 5](notes.md)，
 > 旋转搜索同条件对比见 [`notes.md` Checkpoint 6](notes.md)，
 > **四方案对照 / 端口逐函数审计 / D5 统计修正 / 接口与许可修复见
