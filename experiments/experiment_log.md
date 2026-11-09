@@ -978,7 +978,7 @@ d5b 与 d6 用同一读法且 `excludes_zero` 的 `resolved >= 60`、d6 产物�
 `tests/test_shape_benchmark_arm_guard.py` 7 条，`tests/test_shape_benchmark_d5b_provenance.py` 6 条。
 复核跑的三项文件里 **0 skipped**（skipif 未触发，产物都在），d6 一致性测试实际过滤出 98 条 resolved。
 
-**验证**（订正后最终一次全量）：`pytest -q -o addopts=""` → **893 passed in 95.95s**；
+**验证**（订正后全量跑两次）：`pytest -q -o addopts=""` → **893 passed**（95.95s，代码订正后；93.00s，写本记录前）；
 `ruff check .` → All checks passed；`mypy` → no issues found in 40 source files；
 8 个 markdown 文件的表格列数检查 43 张表 **0 处不一致**。
 （订正前的同轮快照为 892 passed，差的那一条就是新加的 d6 形状钉。）
@@ -987,3 +987,12 @@ d5b 与 d6 用同一读法且 `excludes_zero` 的 `resolved >= 60`、d6 产物�
 "不建议把 ShapeComp 纳入生产默认检索"一字未改。
 
 **边界**：未改生产默认检索器；未引入真实水体数据；官方 MATLAB 与 `.h5` 只读未改；不做 Web UI、不扩大图库。
+
+Git 检查点：修复提交 `44d8c08c6b4bf684123c17fbc78fd12cf0fa0178`
+（`fix: make the paired-difference direction and the d6 arm set enforced, not described (P0-4.6)`，
+15 files / +3 424 / −367，含 3 份重生成/新增的结果产物与 2 个新测试文件）；已推送 `origin main`
+（ssh.github.com:443）并核验 `git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == 上式，
+作者 `ANTACIDisnotFORMICACID`。提交时产物摘要：`d5_grouped_metrics.json` `712570b2db94d157…`、
+`d5_grouped_results.csv` `8ffb4ead765cbae3…`、`metrics.json` `c56525a6c45d0c74…`；
+零改写侧 `d6_rotation_metrics.json` `0697af1d7261ce98…`、`d5_rotation_metrics.json` `9bfe5ffd47a89d4e…`
+（与 `32b14ba` 时同 sha）。被本轮回溯替换的 `/1` 文件记为 `17640d3abc3ab766…`（21 056 B）。

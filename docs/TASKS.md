@@ -726,6 +726,13 @@ CSV `delta_direction` 列、21 分母、d6 产物形状钉、臂守卫 7 条、d
 D55/D56/D65/D67/D71 与否决结论一字未动。
 验证：`pytest` **893 passed**、`ruff check .` 全过、`mypy` 40 源文件无问题、md 表格列数 0 处不一致。
 未改：`d5_rotation_*`（D5 原始结果）、`d6_*`、`f1_*`、官方权重、压缩包、生产默认检索器。
+产物摘要（本轮提交时）：`d5_grouped_metrics.json` `712570b2db94d157…`、`d5_grouped_results.csv` `8ffb4ead765cbae3…`、
+`metrics.json` `c56525a6c45d0c74…`；未动的 `d6_rotation_metrics.json` `0697af1d7261ce98…`、
+`d5_rotation_metrics.json` `9bfe5ffd47a89d4e…`（后两者与 `32b14ba` 同 sha ⇒ 确实零改写）。
+复现：`--stage d5b`（幂等，约 31 s）→ `--stage summary`（只读拼装）；`--stage d6` 现在必须带
+`--methods E0 E1 E3 S0K1 S0K2`，否则守卫直接退出。
+Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推送并核验
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == `44d8c08c6b4bf684123c17fbc78fd12cf0fa0178`。
 
 **边界遵守**：未改生产默认检索器、未引入真实水体库、官方 MATLAB/权重只读未改；本轮到此停止。
 
