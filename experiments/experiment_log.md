@@ -1325,4 +1325,6 @@ D2 的循环逐条件更换子集（T0/T1/T2/T3），每个新子集都触发一
 把 D87 的机制钉住：同集合命中、换子集未命中、超过 `max_entries` 后旧集合必须重建、命中返回副本）；
 `ruff check .` → All checks passed；`mypy` → no issues found in 41 source files。
 **边界**：无新算法、无新参数、无新权重改动、无新数据入库、无 Web UI、无生产默认改动。
-Git 检查点：文档提交本身无法写出自己的 sha（CP8-B 先例），故本段的 sha 由下一条"记录 sha"提交补写。
+Git 检查点：`75c98b57e2fb63d2caddea2299badce582f81d8e`（9 files / +694 / −6），
+推送 `a892a4e..75c98b5 main -> main`，`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` 已核验。
+文档提交写不出自己的 sha，因此本行的"记录 sha"由紧随其后的 `docs:` 提交补写（CP8-B/CP7 先例）。

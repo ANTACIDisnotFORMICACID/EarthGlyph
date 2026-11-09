@@ -906,7 +906,8 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 - **检查点记录**：复现命令见 `checkpoint8/notes.md` §4；输入/输出哈希见上（CP8-C 段）与 `notes.md` §4.1；
   本轮门禁 `python -m pytest -q -o addopts=""` → **1008 passed**（CP8-C 轮 1007）、
   `ruff check .` → All checks passed、`mypy` → no issues found in 41 source files；
-  Git 提交 = 本轮 `docs:` 提交（无法写入自身 sha，故不另立检查点，沿用 CP8-B 的处理）；
+  Git 提交 = `75c98b57e2fb63d2caddea2299badce582f81d8e`（9 files / +694 / −6，推送 `a892a4e..75c98b5`，
+  远端 sha == 本地 HEAD 已核验；文档提交无法写入自身 sha，故由下一条"记录 sha"提交补记，沿用 CP8-B 的处理）；
   **未解决项**：近圆家族覆盖 0/4、人类感知 0 新评分、H1 与原始 MDS 输出的残差归因仍未完全证实、
   E3/sample 的 56 s/搜索成本未做任何工程优化（本轮禁止）。
 - **本轮明确未做**：不重训/不调参、不改算法数学定义、不动官方 `.h5` 与 MATLAB 原件、

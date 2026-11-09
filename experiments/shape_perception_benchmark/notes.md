@@ -1851,5 +1851,5 @@ Verification after the doc pass: `python -m pytest -q -o addopts=""` **1008 pass
 **Explicitly not done, per the brief:** no P1 Web work, no retraining or parameter tuning, no
 modification of official MATLAB sources or `.h5` weights, no real water-body database, no overwrite of
 any historical CSV, no H1-based tuning presented as an independent test. Commits: `730b52f` (stage),
-`f97eec8` (figures), `a892a4e` (published run + duplicate-aware figures), and the documentation
-checkpoint that follows.
+`f97eec8` (figures), `a892a4e` (published run + duplicate-aware figures), `75c98b5` (this doc pass),
+each pushed and verified against `git ls-remote origin`.
