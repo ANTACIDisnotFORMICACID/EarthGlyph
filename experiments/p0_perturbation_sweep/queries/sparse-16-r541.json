@@ -1,0 +1,85 @@
+{
+ "points": [
+  [
+   -0.692,
+   -0.002
+  ],
+  [
+   -0.948,
+   -0.208
+  ],
+  [
+   -0.876,
+   -0.586
+  ],
+  [
+   -0.717,
+   -0.969
+  ],
+  [
+   -0.329,
+   -1.075
+  ],
+  [
+   0.046,
+   -0.904
+  ],
+  [
+   0.398,
+   -0.673
+  ],
+  [
+   0.794,
+   -0.527
+  ],
+  [
+   1.006,
+   -0.187
+  ],
+  [
+   1.048,
+   0.229
+  ],
+  [
+   0.876,
+   0.606
+  ],
+  [
+   0.56,
+   0.882
+  ],
+  [
+   0.217,
+   1.129
+  ],
+  [
+   -0.185,
+   1.083
+  ],
+  [
+   -0.445,
+   0.761
+  ],
+  [
+   -0.666,
+   0.408
+  ]
+ ],
+ "closed": true,
+ "unit": "canvas",
+ "y_axis": "up (flipped from the canvas' downward axis at export)",
+ "canvas": {
+  "width": 520,
+  "height": 520
+ },
+ "tool": "scripts/make_retrieval_queries.py",
+ "note": "raw trace samples, nothing smoothed or snapped",
+ "family": "probe",
+ "perturbation": "sparse",
+ "params": {
+  "n": 16,
+  "query_seed": 20261165108
+ },
+ "source_row": 541,
+ "source_candidate_id": "cddc915e-34f3-3588-86c5-75e77f7a6b40"
+}

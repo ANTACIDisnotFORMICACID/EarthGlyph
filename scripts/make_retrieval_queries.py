@@ -81,13 +81,23 @@ def wobble(points: np.ndarray, *, seed: int, amplitude: float) -> np.ndarray:
     )[:, None]
 
 
-def resample_uneven(points: np.ndarray, *, seed: int, n: int = MIN_TRACE_POINTS) -> np.ndarray:
-    """Re-sample along the perimeter with uneven steps, as a stroke actually comes out."""
+def resample_uneven(
+    points: np.ndarray,
+    *,
+    seed: int,
+    n: int = MIN_TRACE_POINTS,
+    sigma: float = PEN_STEP_NOISE,
+) -> np.ndarray:
+    """Re-sample along the perimeter with uneven steps, as a stroke actually comes out.
+
+    ``sigma`` is the spread of the step-length noise in units of the mean step;
+    the default is the P0-4 pen, so existing query sets regenerate unchanged.
+    """
     ring = np.vstack([points, points[:1]])
     step = np.linalg.norm(np.diff(ring, axis=0), axis=1)
     total = float(step.sum())
     rng = np.random.default_rng(seed)
-    weights = np.abs(rng.normal(1.0, PEN_STEP_NOISE, n)) + 1e-3
+    weights = np.abs(rng.normal(1.0, sigma, n)) + 1e-3
     targets = np.cumsum(weights / weights.sum()) * total
     cum = np.concatenate([[0.0], np.cumsum(step)])
     index = np.clip(np.searchsorted(cum, targets, side="right") - 1, 0, len(step) - 1)
