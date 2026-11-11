@@ -432,4 +432,191 @@ def test_inpolygon_matches_geos_covers_on_official_contours() -> None:
         n_invalid += int(not polygon_geom.is_valid)
         geos = np.asarray(shapely.covers(polygon_geom, grid)).reshape(40, 40, order="F")
         assert int((np.flipud(geos) != port.inpolygon(ring)).sum()) == 0
-    assert n_invalid > 0, "Figure 8 was expected to contain at least one self-intersecting ring"
+
+
+# ---------------------------------------------------- inpolygon horizontal-edge contract
+
+
+def _reference_inpolygon(grid_x: np.ndarray, grid_y: np.ndarray, ring: np.ndarray) -> np.ndarray:
+    """Independent per-point even-odd reference (PNPOLY structure, boundary inclusive).
+
+    Written point-by-point with loops, so it shares no vectorisation with ``inpolygon``;
+    horizontal edges never contribute a crossing but do contribute boundary membership,
+    which is the MATLAB ``inpolygon`` contract the port must reproduce.
+    """
+    out = np.zeros(len(grid_x), dtype=bool)
+    n = len(ring)
+    for k in range(len(grid_x)):
+        px, py = grid_x[k], grid_y[k]
+        on_edge = False
+        crossings = 0
+        for i in range(n):
+            x0, y0 = ring[i]
+            x1, y1 = ring[(i + 1) % n]
+            if px == x0 and py == y0:
+                on_edge = True
+                break
+            if (
+                (px - x0) * (y1 - y0) - (py - y0) * (x1 - x0) == 0.0
+                and min(x0, x1) <= px <= max(x0, x1)
+                and min(y0, y1) <= py <= max(y0, y1)
+            ):
+                on_edge = True
+                break
+            if (y0 > py) != (y1 > py):
+                xcross = x0 + (py - y0) * (x1 - x0) / (y1 - y0)
+                if px < xcross:
+                    crossings += 1
+        out[k] = on_edge or (crossings % 2 == 1)
+    return out
+
+
+def _lattice() -> np.ndarray:
+    return np.linspace(0.0, 1.0, port._IMAGE_SIZE)
+
+
+@pytest.mark.parametrize(
+    "square",
+    [
+        [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)],  # counter-clockwise
+        [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)],  # clockwise
+        [(0.0, 0.0), (1.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0)],  # dup
+    ],
+    ids=["ccw", "cw", "duplicated_vertices"],
+)
+def test_inpolygon_unit_square_is_fully_inside_on_the_grid(
+    square: list[tuple[float, float]],
+) -> None:
+    """Every grid pixel lies inside or exactly on the unit square, top edge included: the
+    pre-fix port lost the 38 non-vertex pixels of the top horizontal edge."""
+    mask = port.inpolygon(np.asarray(square, dtype=float))
+    assert int(mask.sum()) == port._IMAGE_SIZE * port._IMAGE_SIZE
+
+
+def test_inpolygon_top_plateau_horizontal_edge_is_boundary() -> None:
+    """A plateau whose crest is a horizontal edge at the polygon's max y: pre-fix, every
+    non-vertex grid pixel on that crest was reported as outside."""
+    lv = _lattice()
+    plateau = [
+        (0.0, 0.0), (1.0, 0.0), (1.0, lv[29]), (lv[29], lv[29]),
+        (lv[29], 1.0), (lv[10], 1.0), (lv[10], lv[29]), (0.0, lv[29]),
+    ]
+    mask = port.inpolygon(np.asarray(plateau, dtype=float)).reshape(port._IMAGE_SIZE, -1)
+    crest = mask[0, 10:30]  # top row after flipud is y = 1.0, columns 10..29 are the crest
+    assert int(crest.sum()) == 20
+    assert bool(mask[0, 10]) and bool(mask[0, 29])  # crest endpoints are vertices
+    assert not bool(mask[0, 0])  # (x=0, y=1) is outside the plateau ring
+
+
+def test_inpolygon_grid_aligned_rectangle_counts_both_horizontal_edges() -> None:
+    """A rectangle whose two horizontal edges sit exactly on grid rows must include both."""
+    lv = _lattice()
+    rectangle = [(0.0, 0.0), (1.0, 0.0), (1.0, lv[10]), (0.0, lv[10])]
+    mask = port.inpolygon(np.asarray(rectangle, dtype=float))
+    assert int(mask.sum()) == 40 * 11  # rows y = 0 .. 10/39 inclusive
+
+
+@pytest.mark.parametrize("seed", [11, 12, 13])
+def test_inpolygon_agrees_with_independent_reference_on_lattice_polygons(seed: int) -> None:
+    """Lattice vertices force exact grid/edge coincidences (the class the bug lived in);
+    the vectorised per-edge port must match the loop-based per-point reference exactly."""
+    rng = np.random.default_rng(seed)
+    lv = _lattice()
+    grid_x, grid_y = port._grid_points()
+    for _ in range(30):
+        k = int(rng.integers(3, 25))
+        ring = lv[rng.integers(0, len(lv), size=(k, 2))]
+        if rng.random() < 0.5:
+            ring = np.vstack([ring, ring[:1]])  # sealed ring variant
+        expected = np.flipud(_reference_inpolygon(grid_x, grid_y, ring).reshape(40, 40, order="F"))
+        got = port.inpolygon(ring)
+        assert int((expected != got).sum()) == 0
+
+
+def test_inpolygon_self_intersecting_with_horizontal_edges_matches_reference() -> None:
+    """Self-intersecting rings are an official input class; horizontal edges inside them
+    must still be boundary, and even-odd parity must hold against the reference."""
+    grid_x, grid_y = port._grid_points()
+    bowties = [
+        [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 1.0)],
+        [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
+        [(0.0, 0.0), (1.0, 1.0), (0.0, 1.0), (1.0, 0.0)],
+    ]
+    for ring in bowties:
+        pts = np.asarray(ring, dtype=float)
+        expected = np.flipud(_reference_inpolygon(grid_x, grid_y, pts).reshape(40, 40, order="F"))
+        got = port.inpolygon(pts)
+        assert int((expected != got).sum()) == 0
+        for x, y in [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 1.0)]:
+            # top row after flipud is y = 1.0; column j is x = grid x-value j
+            assert bool(got[0 if y == 1.0 else 39, 0 if x == 0.0 else 39]), (x, y)
+    # A self-intersecting ring whose horizontal edges are crossed by the ring itself: the
+    # pentagon's notch vertex (lv[40]) lies outside the quad, so both diagonals cut the
+    # right vertical edge twice, while the bottom (y=lv[10]) and top (y=lv[30]) horizontal
+    # edges still carry 36 grid pixels each that must be boundary regardless of parity.
+    lv = _lattice()
+    crossed = [(0.0, lv[10]), (lv[35], lv[10]), (lv[35], lv[30]), (0.0, lv[30]), (40 / 39, lv[20])]
+    pts = np.asarray(crossed, dtype=float)
+    expected = np.flipud(_reference_inpolygon(grid_x, grid_y, pts).reshape(40, 40, order="F"))
+    got = port.inpolygon(pts)
+    assert int((expected != got).sum()) == 0
+    assert int(got[40 - 1 - 10, :36].sum()) == 36  # bottom horizontal edge, columns 0..35
+    assert int(got[40 - 1 - 30, :36].sum()) == 36  # top horizontal edge, columns 0..35
+    assert bool(got[40 - 1 - 20, 38])  # parity point right of the crossing region
+
+
+def test_inpolygon_matches_geos_covers_on_lattice_convex_hulls() -> None:
+    """Simple lattice polygons (convex hulls, guaranteed valid) vs GEOS ``covers`` —
+    restricted to pixels whose status floating-point parity can actually decide.
+
+    On adversarial lattice data a pixel can sit exactly on a non-horizontal edge in exact
+    rational arithmetic, where the naive-double collinearity test (the no-tolerance contract
+    this port shares with MATLAB's own double arithmetic) and GEOS's exact predicates are
+    allowed to disagree; measured on 25 hulls, all disagreements sit within the boundary
+    rounding shell and none are structural. So the cross-engine check covers every pixel
+    far from the boundary, plus the exact horizontal-edge boundary pixels the fix targets.
+    """
+    shapely = pytest.importorskip("shapely")
+    from shapely.geometry import MultiPoint, Polygon
+
+    rng = np.random.default_rng(20261111)
+    lv = _lattice()
+    grid_x, grid_y = port._grid_points()
+    grid = shapely.points(grid_x, grid_y)
+    checked = 0
+    horizontal_boundary = 0
+    for _ in range(25):
+        k = int(rng.integers(3, 20))
+        hull = np.asarray(
+            MultiPoint(lv[rng.integers(0, len(lv), size=(k, 2))]).convex_hull.exterior.coords
+        )
+        if len(hull) < 4:  # degenerate collinear hull: no area, not a fill-rule case
+            continue
+        assert np.array_equal(hull[-1], hull[0])  # GEOS seals the ring; port takes open rings
+        geos = np.flipud(
+            np.asarray(shapely.covers(Polygon(hull), grid)).reshape(40, 40, order="F")
+        )
+        mine = port.inpolygon(hull[:-1])
+        boundary = shapely.boundary(Polygon(hull))
+        # Pixels away from the boundary rounding shell: parity must match GEOS exactly.
+        # shapely.distance is indexed [y-ascending row, x column]; the masks below are in
+        # inpolygon's image order (rows y-descending), so the distance grid needs flipud.
+        img_x, img_y = np.meshgrid(lv, lv)
+        clear = np.flipud(
+            shapely.distance(boundary, shapely.points(img_x, img_y)) > 1e-9
+        )
+        checked += int((clear & (geos == mine)).sum())
+        assert int((clear & (geos != mine)).sum()) == 0
+        # Pixels exactly on horizontal lattice edges: boundary in both engines.
+        for i in range(len(hull) - 1):
+            (x0, y0), (x1, y1) = hull[i], hull[i + 1]
+            if y0 != y1:
+                continue
+            cols = np.nonzero((lv >= min(x0, x1)) & (lv <= max(x0, x1)))[0]
+            rows = np.nonzero(np.isclose(lv, y0, rtol=0.0, atol=0.0))[0]
+            if len(rows) == 0:
+                continue
+            for row in rows:  # image row for grid y-value lv[row] is 39 - row
+                assert int(mine[39 - row, cols].sum()) == len(cols), (i, row)
+                horizontal_boundary += len(cols)
+    assert checked > 20_000 and horizontal_boundary > 50

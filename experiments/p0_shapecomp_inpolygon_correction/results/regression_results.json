@@ -1,0 +1,52 @@
+{
+  "pre_fix_source": "commit fd7db93 earthglyph/shape_benchmark/shapecomp_port.py inpolygon",
+  "post_fix_source": "working tree inpolygon (horizontal edges join the boundary test)",
+  "weight_sha256": {
+    "net/keras/shape2sc22a.h5": "a6fd1f06cee40626d1b548867fac9961a668caa8d30e92026d60f84d7f9b374a",
+    "net/keras/im2sc22d.h5": "035f655b5c9af13b32f889f21c86b27aa6f671fa6238c4d3a9319b85a355a843"
+  },
+  "families": {
+    "figure8": {
+      "n_contours": 60,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    },
+    "gallery_candidates": {
+      "n_contours": 839,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    },
+    "h2_fig7d_file": {
+      "n_contours": 15,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    },
+    "h2_keras_file": {
+      "n_contours": 15,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    },
+    "queries_MPEG7": {
+      "n_contours": 33,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    },
+    "queries_synthetic_probe": {
+      "n_contours": 5,
+      "n_changed_masks": 0,
+      "total_pixels_added": 0,
+      "total_pixels_removed": 0,
+      "changed": []
+    }
+  }
+}

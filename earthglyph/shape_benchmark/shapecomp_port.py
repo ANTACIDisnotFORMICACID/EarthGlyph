@@ -195,7 +195,10 @@ def inpolygon(points: np.ndarray) -> np.ndarray:
     A direct translation of the documented primitive rather than a GEOS predicate, because
     ``resamplePolygon`` can emit a self-intersecting ring (GAN shapes may self-intersect) and
     GEOS gives no guaranteed fill rule for an invalid polygon. Verified pixel-for-pixel against
-    ``shapely.covers`` on every official contour used by the benchmark.
+    ``shapely.covers`` on every official contour used by the benchmark, plus dedicated
+    horizontal-edge tests (the boundary test must run on every edge, horizontal included, or
+    grid pixels lying exactly on a top plateau edge are lost — MATLAB ``inpolygon`` reports
+    those as ``on``).
     """
     grid_x, grid_y = _grid_points()
     xv = points[:, 0]
@@ -208,17 +211,9 @@ def inpolygon(points: np.ndarray) -> np.ndarray:
         x0, y0, x1, y1 = xv[i], yv[i], xv[j], yv[j]
         # A vertex exactly on the ring is inside; the crossing rule itself skips it.
         on_boundary |= (grid_x == x0) & (grid_y == y0)
-        if y0 == y1:
-            continue
-        # Half-open span [min, max) on the lower side only, so a shared vertex is counted once.
-        rising = y0 < y1
-        lo, hi = (y0, y1) if rising else (y1, y0)
-        sel = (grid_y >= lo) & (grid_y < hi)
-        if not sel.any():
-            continue
-        cross_x = x0 + (grid_y[sel] - y0) * (x1 - x0) / (y1 - y0)
-        inside[sel] ^= grid_x[sel] < cross_x
-        # Exact collinear-and-within test: no tolerance, so this cannot absorb near-misses.
+        # Exact collinear-and-within test on EVERY edge — horizontal edges included — so a
+        # grid pixel on a plateau edge is boundary, not outside. No tolerance, so this
+        # cannot absorb near-misses.
         dx = x1 - x0
         dy = y1 - y0
         cross = (grid_x - x0) * dy - (grid_y - y0) * dx
@@ -229,6 +224,18 @@ def inpolygon(points: np.ndarray) -> np.ndarray:
             & (grid_y >= min(y0, y1))
             & (grid_y <= max(y0, y1))
         )
+        if y0 == y1:
+            # Horizontal edges carry no crossing: the ray at their own y IS the edge, so
+            # parity is defined by the non-horizontal edges alone.
+            continue
+        # Half-open span [min, max) on the lower side only, so a shared vertex is counted once.
+        rising = y0 < y1
+        lo, hi = (y0, y1) if rising else (y1, y0)
+        sel = (grid_y >= lo) & (grid_y < hi)
+        if not sel.any():
+            continue
+        cross_x = x0 + (grid_y[sel] - y0) * (x1 - x0) / (y1 - y0)
+        inside[sel] ^= grid_x[sel] < cross_x
     return np.flipud(np.reshape(inside | on_boundary, (_IMAGE_SIZE, _IMAGE_SIZE), order="F"))
 
 
