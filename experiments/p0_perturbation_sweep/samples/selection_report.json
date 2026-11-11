@@ -1,0 +1,141 @@
+{
+ "generated_by": "scripts/make_p05_samples.py",
+ "command": "python scripts/make_p05_samples.py --index data\\index --out experiments\\p0_perturbation_sweep\\samples",
+ "seed": 20261111,
+ "index_manifest_git_commit": "77b083c931b72cf4fd153a9185254f5a9486aeab",
+ "git_head_at_generation": "9349cbe35c28f8ac0a748b4c2b7e92a7045341c0",
+ "rules": {
+  "representative": "per source_id, largest area_m2 part (tie-break smallest candidate_id); source 4b2c4aea-4e72-3a7c-9377-b1e862f43e6b overridden to library row 294 (P0-4 documented forked-reservoir failure, declared in advance)",
+  "compactness_min_near_circular": 0.85,
+  "axis_ratio_min_elongated": 3.0,
+  "solidity_max_concave": 0.7,
+  "forked_compactness_max": 0.15,
+  "irregular_detail_cut_on_representatives": 0.00097131,
+  "irregular_detail_quantile": 0.9,
+  "per_family": 20,
+  "near_dup_align_max": 0.05,
+  "dedup_passes_used": 7,
+  "refill_order": "same family pool, sorted by candidate_id, first unused"
+ },
+ "library": {
+  "n_candidates": 839,
+  "n_sources": 831,
+  "measured_quantiles": {
+   "compact": {
+    "0.05": 0.15745,
+    "0.25": 0.40234,
+    "0.5": 0.6138,
+    "0.75": 0.77793,
+    "0.95": 0.90568
+   },
+   "elong": {
+    "0.05": 1.13896,
+    "0.25": 1.36884,
+    "0.5": 1.77107,
+    "0.75": 2.41886,
+    "0.95": 4.65674
+   },
+   "solid": {
+    "0.05": 0.47922,
+    "0.25": 0.77762,
+    "0.5": 0.90358,
+    "0.75": 0.97384,
+    "0.95": 1.0
+   },
+   "detail": {
+    "0.05": 2e-05,
+    "0.25": 6e-05,
+    "0.5": 0.00014,
+    "0.75": 0.00037,
+    "0.95": 0.00168
+   }
+  }
+ },
+ "family_pools": {
+  "near_circular": {
+   "pool_size": 113,
+   "requested": 20,
+   "sampled_final": 20,
+   "shortfall": 0
+  },
+  "elongated": {
+   "pool_size": 114,
+   "requested": 20,
+   "sampled_final": 20,
+   "shortfall": 0
+  },
+  "forked": {
+   "pool_size": 18,
+   "requested": 20,
+   "sampled_final": 18,
+   "shortfall": 2
+  },
+  "deep_concave": {
+   "pool_size": 64,
+   "requested": 20,
+   "sampled_final": 20,
+   "shortfall": 0
+  },
+  "irregular": {
+   "pool_size": 20,
+   "requested": 20,
+   "sampled_final": 20,
+   "shortfall": 0
+  },
+  "compact": {
+   "pool_size": 502,
+   "requested": 20,
+   "sampled_final": 20,
+   "shortfall": 0
+  }
+ },
+ "near_dup_pairs_dropped": [
+  {
+   "align_distance": 0.04243,
+   "kept_candidate_id": "0aefe975-840c-3800-bc40-e2a9c38ba82e",
+   "dropped_candidate_id": "671074ad-e2ae-3937-92d0-214c4365de3c",
+   "dropped_family": "near_circular"
+  },
+  {
+   "align_distance": 0.04335,
+   "kept_candidate_id": "8774bc82-7530-3660-b38d-967dd8582600",
+   "dropped_candidate_id": "a75524d3-e4bb-3a2b-8702-91f97c665eb9",
+   "dropped_family": "near_circular"
+  },
+  {
+   "align_distance": 0.04,
+   "kept_candidate_id": "02cfefce-9772-3d6f-b70d-a40478bb0a0a",
+   "dropped_candidate_id": "e220aeb9-a2df-3ba2-8394-8c89f027750f",
+   "dropped_family": "near_circular"
+  },
+  {
+   "align_distance": 0.04366,
+   "kept_candidate_id": "8774bc82-7530-3660-b38d-967dd8582600",
+   "dropped_candidate_id": "e72376da-5252-3438-98a6-44efb3db7867",
+   "dropped_family": "near_circular"
+  },
+  {
+   "align_distance": 0.0484,
+   "kept_candidate_id": "471ae95e-4c63-3de4-b438-d730af1b4152",
+   "dropped_candidate_id": "8ee9166f-d5e8-3ff0-901a-020a6829b7a2",
+   "dropped_family": "near_circular"
+  },
+  {
+   "align_distance": 0.04987,
+   "kept_candidate_id": "038ae9a2-21d9-319e-b471-e34d9d542339",
+   "dropped_candidate_id": "8774bc82-7530-3660-b38d-967dd8582600",
+   "dropped_family": "near_circular"
+  }
+ ],
+ "effective_sample_size": {
+  "n_sources": 118,
+  "per_family": {
+   "near_circular": 20,
+   "elongated": 20,
+   "forked": 18,
+   "deep_concave": 20,
+   "irregular": 20,
+   "compact": 20
+  }
+ }
+}
