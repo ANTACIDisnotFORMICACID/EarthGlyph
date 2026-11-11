@@ -1140,35 +1140,33 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
   `scripts/inspect_data.py` / `scripts/preview_data.py` 有 10 个 mypy strict 报错（P0-1 遗留，配置范围为 `earthglyph/`，未阻塞）；
   跨区域 / 极区无效几何覆盖度未测（`make_valid` 路径仅由合成单测覆盖）。
 
-## 下一步：P0-5 合成扰动分级曲线 与 P0-6 真人手绘（未启动，等待授权）
+## 下一阶段执行结果：P0-5 已完成（B1–B4 + C1/C2 审计），P0-6 采集就绪未启动
 
-> **最近一步不是 P0-5，而是 P0-4.5 Checkpoint D**：C 已在同一冻结划分（18 查询 / 179 成员 /
-> `labels.json` sha256 `26e444ce…`、`gallery.jsonl` `15be97ae…`）上跑完 E0–E3 × T1/T2/T3
-> （216 次全库评分，**无粗筛窗口**），产出 24 张对比图与 `results.csv` / `metrics.json` /
-> `method_status.json` / `figures_manifest.json`，并把比较口径固定为三条（D49）。
-> 数字与图由 `report_checkpoint_c.py` / `visualize_perceptual.py` 打印，不经人手抄写；
-> 解读见 `experiments/p0_perceptual_probe/notes.md` §13。
-> D 做的是：T1/T2/T3 **分开解释**、不变性探针、≥3 人盲评（拿不到评分则交付盲评图与评分表并
-> 如实标注"未获评分"）、失败归因与结论，并解释 C 遗留的 **E2 self-rank 1 个查询 rank 4**。
-> D 仍**不得**把图库形状合并进正式索引（`data/index` 保持 `77b083c9`），也不得在拿到人工评分前
-> 把任何内部指标称作"人眼匹配准确率"。
-> 下列 P0-5 / P0-6 条目仍是**未启动、等待授权**。
+**P0-5（2026-11-11 执行）**：设计先冻结（7b60ac8）→ 118 源 × 31 变体 = 3658 条查询（b303f45）
+→ 生产检索器零改动跑完全集（317fbf6）。要点（详见 `experiments/p0_perturbation_sweep/notes.md`
+与 EXPERIMENTS.md §3.4）：
+- 总体 Top-1 **0.7887** [0.7698, 0.8078]、Top-10 0.8384、MRR 0.8035（源聚类 bootstrap）；
+  对齐重排比纯粗排配对 **+5.6pp** [+3.4, +7.9]。
+- G1 严格不变性全 1.000；mirror 0.1017（禁镜像政策；allowed 口径 1.000）；sparse-16 失败是
+  提取拒绝不是排序失败，sparse-32 恢复 0.898；G2 最难 aspect-1.4（0.288）与 gap-0.35（0.110）。
+- 归因：A 294 / D 296 / B **1** / C **0** —— 重排与去重从未弄丢真值。
+- B4（6d631a6）：row 294 在 N=128/256/512 下秩完全不变（24 miss 持续、IoU 0.81→0.94）→
+  **不是采样保真问题**，全局升点否决（D88）。
+- C1/C2（317fbf6）：汇总数字全部由 `recompute_p05_metrics.py` 从 CSV 逐位复算 PASS；
+  复算抓出并修复 `_cell` 的 top1_p0 分母口径错误（发表前，D91）；四类证据切分
+  （代码正确性 / 受控合成 / 真人相似 / UX）写入 notes.md，合成 0.79 不得说成产品准确率。
 
-P0-4 已给出明确的输入、判据与"本轮不能宣称"的清单（`experiments/p0_retrieval_baseline/notes.md` §12）：
+**P0-6（231d19c）**：协议、采集器、盲评单生成器、预检门禁、参与者须知与模板全部就绪并测试
+（15 条新测试守卫诚实数据边界）；**等待真人采集**——这是 P0 门禁唯一剩余入口。
 
-1. **复用输入**：`data/index/`（839 候选 / 128 点 / 20 维，commit `77b083c9`，sha256 见
-   `DATA_PIPELINE.md` §10.1）、`earthglyph/retrieval/search.py` 的 `search_by_contour`、
-   `scripts/make_retrieval_queries.py`（`--seed`）与 `scripts/evaluate_retrieval.py`
-   （三层评估 + 四类归因 + `--sweep` 已就绪）。
-2. **P0-5 范围**：把 G1/G2 从 6 个候选扩到 **100–200 个真实轮廓**，报告扰动强度**曲线**
-   （Top-1 / Top-10 / mAP / rank 分布随强度变化），三 baseline 同集对照。
-   目标是定量回答：`row 294` 类枝状候选失败是 N=128 保真问题还是覆盖问题（**不提前全局升 256 点**）。
-3. **P0-6 范围**：**预先固定 ≥10 个真人**手绘查询（不得事后改测试集，不得用算法构造的"草图"冒充），
-   逐查询做人工肉眼判读 + 失败类型标注 → 这是 §6 Go/No-Go 的唯一入口。
-4. **必须与 P0-4 对照**：P0-4 的 G2 各族 Top-1 / 距离 / 归因分布是 P0-6 的基线；
-   若真人失败集中在 A 提取，先评估拒绝阈值而非改特征。
-5. **仍未验证**（不得当作已知）：真人手绘命中率、"惊喜感"、三 baseline 谁更符合肉眼（需人工标注）、
-   浏览器 Worker 内延迟、`river`/`water` 是否入场（`add_now: false` 的复核）。
-6. 之后 P0-7 Qoder Sites 发布路径 → P0-8 Go/No-Go（依 `EXPERIMENTS.md` §6）。
+**下一步（按优先级）**：
+1. **真人采集执行**：按 `experiments/p0_6_human_queries/PROTOCOL.md` 收 ≥10 人 × ≥6 幅最终版，
+   `collect_p06_queries.py` 登记 → `validate_p06_dataset.py` 过预检 → `make_p06_judgement_sheets.py`
+   生成盲评单 → 拿到真人判定后按 §6 Go/No-Go 出决。**在拿到真实手绘与人工判定前，任何数字不得
+   替代这一步。**
+2. **枝状覆盖的算法级方案立项**（仅当授权）：B4 已排除采样密度；候选方向是多假设对齐 /
+   分段弹性度量，须独立设计冻结 + 消融，不得与 P0-6 采集并行抢同一份人眼预算。
+3. **P0-7 Qoder Sites 发布路径**：仅在 P0-6 Go 之后；若 No-Go 按 EXPERIMENTS.md §6 处置
+   （改数据/算法或调整定位），不启动大规模 Web 开发。
 
-**P0 门禁仍未通过**：在完成 P0-4～P0-6 并拿到真实手绘查询的 Top-10 证据前，不启动大规模 Web 开发。
+**P0 门禁仍未通过**：在完成 P0-6 并拿到真实手绘查询的 Top-10 人工判定证据前，不启动大规模 Web 开发。

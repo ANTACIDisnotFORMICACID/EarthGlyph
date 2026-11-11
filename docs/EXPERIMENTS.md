@@ -245,6 +245,38 @@ Hausdorff 上界对称，Chamfer 均值与带符号面积误差不对称。
 不重写生产检索器、不引入真实水体库、不用 REL 或类别标签冒充人类感知评分、未用 H1 调参后宣称独立、
 未覆盖历史 CSV、未静默缩小失败样本、未进 P1 Web 开发（用户要求 CP8-D 后停止）。
 
+### 3.4 P0-5 分强度扰动扫描协议与结果要点（地理库，产物在 `experiments/p0_perturbation_sweep/`）
+
+协议与样本**先于任何检索运行冻结**（commit 7b60ac8；唯一修订 P2 范围记录在 DESIGN.md 内、
+发生于首次运行前）。118 个真实源轮廓（forked 池 18 个全取，其余五族各 20；分层规则只用库元
+数据，不用检索结果；近重复对 align<0.05 去重）× 31 个变体 = **3658 条冻结查询**（b303f45）。
+生产检索器一行未改；全部指标可由 `scripts/recompute_p05_metrics.py` 从 CSV 独立复算（D91）。
+
+**总体**（源聚类 bootstrap，B=1000，seed 20261111）：Top-1 **0.7887** [0.7698, 0.8078]，
+Top-10 0.8384 [0.8245, 0.8532]，MRR 0.8035；配对 ΔTop-1（P1 对齐重排 − P0 纯粗排）
+**+0.0563** [+0.0344, +0.0793]。冷启动中位 9.51 ms/查询、热 3.71 ms、首条 33.5 ms。
+
+**G1 严格不变性全部满分**（rot-37°/scale-3.7×/shift/self/reverse Top-1 = 1.000）。
+例外两格：mirror 0.1017（政策禁镜像；mirror-allowed 1.000，D89）、sparse-16 0.0508
+（102/118 是提取拒绝——契约极限，D90；**sparse-32 起恢复 0.898**）。
+
+**G2 最难两族**：aspect 1.15/1.25/1.4 → Top-1 0.686/0.466/**0.288**；gap 0.06/0.2/0.35 →
+0.958/0.619/**0.110**（大缺口主要是拒绝）。轻中度形变（island/bay/jag/uneven 全梯度、
+gap≤0.18）Top-1 ≥ 0.79。分族：deep_concave 0.866 > irregular 0.834 > forked 0.832 >
+elongated 0.827 > compact 0.750 > **near_circular 0.627**（圆形候选互相相近，D 类 113/620）。
+
+**归因**（3658 条，NaN 秩 = 失败留在分母，拒绝同）：ok 3067 / A_extraction 294 /
+D_coverage 296 / **B_coarse_filter 1**（sparse-16-r221）/ **C_rerank_order 与
+C_dedup 0** —— 重排与去重从未弄丢真值；连同 B4（D88）回答了 TASKS.md 的问题：
+row 294 类失败**不是** N=128 保真问题、**不是**覆盖问题。
+
+**ShapeComp 独立臂**（每 20 条取 1，n=183，距离只在臂内可比）：Top-1 0.7049 / Top-10 0.765。
+
+**复现**：`python scripts/evaluate_p05.py --index data/index --queries
+experiments/p0_perturbation_sweep/queries --out-dir experiments/p0_perturbation_sweep/results`
+（约 40 min）；审计 `python scripts/recompute_p05_metrics.py`；汇总重出
+`evaluate_p05.py --aggregate-only`。完整解读与不能声称清单：`experiments/p0_perturbation_sweep/notes.md`。
+
 
 ## 4. 诚实评价约束
 

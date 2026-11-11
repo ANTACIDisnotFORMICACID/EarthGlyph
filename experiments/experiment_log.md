@@ -1328,3 +1328,46 @@ D2 的循环逐条件更换子集（T0/T1/T2/T3），每个新子集都触发一
 Git 检查点：`75c98b57e2fb63d2caddea2299badce582f81d8e`（9 files / +694 / −6），
 推送 `a892a4e..75c98b5 main -> main`，`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` 已核验。
 文档提交写不出自己的 sha，因此本行的"记录 sha"由紧随其后的 `docs:` 提交补写（CP8-B/CP7 先例）。
+
+## p0_retrieval_baseline / p0_perturbation_sweep · P0-5 全执行轮：冻结设计→3658 查询→生产评测→独立审计，B4 枝状裁决与 P0-6 采集就绪（P0-4.6，2026-11-11）
+
+**本轮做完了 P0-5 全部四个子任务（B1–B4）与 C1–C3 审计**，生产检索器、算法数学、参数、
+`data/index`（shapes sha256 `fbaf4933…`，构建于 77b083c9）一行未改。
+
+**B1/B2（冻结在前，commit 7b60ac8 / b303f45）**：分层抽样只用库元数据（六族阈值规则），
+118 源 × 31 变体 = 3658 条查询；forked 池 18 个全取；近重复 align<0.05 去重 6 对（全在
+near_circular）；逐查询 seed 固定；DESIGN.md 在任何检索运行前入库，唯一修订（P2 改为全部
+3658 条全库诊断）记录于文件内、发生在首跑前。
+
+**B3（317fbf6）**：生产口径 Top-1 0.7887 [0.7698, 0.8078]、Top-10 0.8384、MRR 0.8035
+（源聚类 bootstrap，B=1000，seed 20261111）；配对 ΔTop-1（P1−P0）+0.0563 [+0.0344, +0.0793]。
+G1 严格不变性（rot/scale/shift/self/reverse）全 1.000；mirror 0.1017（禁镜像政策，
+allowed 口径 1.000，D89）；sparse-16 Top-1 0.0508 但 102/118 是提取拒绝——契约极限而非
+排序失败（D90），sparse-32 恢复 0.898；G2 最难 aspect-1.4（0.288）与 gap-0.35（0.110）。
+归因 3658 条：ok 3067 / A 294 / D 296 / B 1 / **C 两子类 0**。冷 9.51 ms、热 3.71 ms/查询。
+ShapeComp 独立臂（n=183）Top-1 0.7049，距离只在臂内可比。
+
+**B4（6d631a6，D88）**：row-294 探针在 N=128/256/512 三个索引下秩完全不变（24 miss 持续，
+truth align 0.266→0.271，粗排覆盖 93.9%），候选 IoU 却 0.810→0.945 ⇒ **枝状失败不是采样
+保真问题、不是粗筛覆盖问题**，瓶颈在查询侧提取平滑 + align 饱和；全局升点否决。
+今日代码逐位复现 P0-4 历史 30 探针（无算法漂移）。
+
+**C1/C2（317fbf6，D91）**：`recompute_p05_metrics.py` 只读 CSV 重实现全部聚合与 bootstrap
+（同 seed 逐位复现）→ PASS，并**抓出发表前 bug**：`_cell` 的 top1_p0 分子漏掉 D 类行的合法
+粗排秩（mirror 0.3559 vs 0.9831 等）；逐行 CSV 一直正确，修复后 `--aggregate-only` 从 CSV
+重出汇总、未重跑检索。四类证据切分（代码正确性/受控合成/真人相似/UX）固定在 notes.md；
+检查图 `figures/strength_curves.png` + `figures/failure_overlays.png`（A/B/D/mirror/ok 各一格，
+C 为 0 条如实标注）。
+
+**C3（231d19c）**：P0-6 协议冻结（PROTOCOL.md，≥10 人 × ≥6 最终版，成功判据采集前定死）、
+登记器（结构校验 + sha256 去重 + 伪名→PXX 本地密钥不入库）、盲评单生成器（空 sessions 拒跑、
+A–J 随机化、option 密钥不入库）、预检门禁（人数/最终版数/重复内容/字节篡改/密钥入库五查）、
+参与者须知与三份模板。修复 dry-run 残留目录。**未采集任何真人数据——无替代路径。**
+
+**验证**（最终树全量）：`python -m pytest` → **1034 passed**（上轮 1008；+26：A1 inpolygon 回归、
+A2 收集审计、A3 金向量契约、本轮 P0-6 管线 15 条；0 failed 0 skipped，134.86 s）；
+`ruff check .` → All checks passed；`mypy` → 41 源文件无问题。
+**Git 检查点**：6d631a6（B4）→ 317fbf6（B3+C1/C2）→ 231d19c（C3）→ 本 docs 提交；
+推送与 `git ls-remote` 核验见下一条 docs 记录。
+**边界**：无生产默认改动、无阈值调整、无新权重、无真人数据、无 Web UI；
+`data/raw|processed|index` 与历史 CP8 产物零触碰；figures 仅由验证过的文件重画。
