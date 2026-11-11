@@ -83,3 +83,6 @@ experiments/shape_perception_benchmark/checkpoint8/_smoke/
 # B4 experiment-local rebuilds (reproducible from raw + script; not sources of truth)
 experiments/p0_sampling_fidelity_294/index_n*/
 experiments/p0_sampling_fidelity_294/processed_n*/
+
+# P0-6: pseudonym and option keys never enter the repository (protocol §2/§4)
+experiments/p0_6_human_queries/sessions/key_*.json

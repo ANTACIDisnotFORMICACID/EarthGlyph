@@ -1,0 +1,20 @@
+{
+  "_comment": "sessions/<PXX>/session.json 的结构模板（由 scripts/collect_p06_queries.py 自动生成并维护，此文件仅供阅读，不会被脚本读取）。每个参与者一个目录；files 数组按登记顺序追加。",
+  "participant": "P01",
+  "device": "mouse",
+  "files": [
+    {
+      "query_id": "P01-q01",
+      "original": "laoluo-final-hu.json",
+      "sha256": "64位内容哈希",
+      "status": "registered",
+      "final": true
+    },
+    {
+      "original": "laoluo-第一稿.json",
+      "sha256": "64位内容哈希",
+      "status": "invalid",
+      "reason": "points must be a list of >= 3 pairs"
+    }
+  ]
+}
