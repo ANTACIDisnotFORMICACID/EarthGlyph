@@ -77,7 +77,7 @@ smoothing="light"，shortlist=200，top_k=10，max_per_source=1）：
 |---|---|---|
 | P0 coarse-only | `method="fourier"` | 全部 3658 条 |
 | P1 production | `method="fourier_align"`（生产默认） | 全部 3658 条 |
-| P2 全库诊断 | `method="align", top_k=839, max_per_source=839` | **仅** P1 未把 truth 送进 top-10 的查询 + 按 manifest 顺序每 5 条取 1 的冻结子样本（给出无偏的全库 rank 分布）。这一范围规则在跑之前声明，属于归因规程，不属于挑样本 |
+| P2 全库诊断 | `method="align", top_k=839, max_per_source=839` | **全部 3658 条**（修订于任何检索运行之前：单条实测 0.236s，全库 839-align 重排完全负担得起，逐条给无偏 rank_full；原冻结范围"仅失败+1/5 子样本"被此超集取代，统计上严格更强） |
 | P3 Chamfer 复核 | `sort_by="chamfer", chamfer_top=10` | 仅 P1 归因为 D 类的查询 |
 | ShapeComp 臂 | KerNet2 嵌入对 839 库嵌入排序 | 仅每 20 条取 1 的冻结子样本（≈183 条），单独成表，绝不并入 P0–P3 的指标 |
 
