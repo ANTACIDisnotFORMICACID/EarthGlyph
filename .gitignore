@@ -79,3 +79,7 @@ shapeComp_*.zip
 # A `--limit-queries` CP8 run writes its plumbing table here and nowhere else. Keeping it out of
 # Git means a 1-query smoke can never be committed, read or plotted as the frozen 24-query result.
 experiments/shape_perception_benchmark/checkpoint8/_smoke/
+
+# B4 experiment-local rebuilds (reproducible from raw + script; not sources of truth)
+experiments/p0_sampling_fidelity_294/index_n*/
+experiments/p0_sampling_fidelity_294/processed_n*/
