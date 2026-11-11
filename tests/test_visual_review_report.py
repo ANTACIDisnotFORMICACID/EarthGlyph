@@ -20,6 +20,8 @@ from typing import Any
 
 import pytest
 
+pytest.importorskip("matplotlib")  # every test here renders figures
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "visual_review_report.py"
 CHECKPOINT_D = ROOT / "experiments" / "p0_perceptual_probe" / "checkpoint_d"

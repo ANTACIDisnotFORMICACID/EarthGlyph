@@ -12,11 +12,14 @@ import json
 import sys
 from pathlib import Path
 
-import pyarrow as pa
-import pyarrow.parquet as pq
 import pytest
 
-from earthglyph.data.download import (
+pytest.importorskip('pyarrow')  # before the optional imports
+
+import pyarrow as pa  # noqa: E402
+import pyarrow.parquet as pq  # noqa: E402
+
+from earthglyph.data.download import (  # noqa: E402
     FETCH_LABELS,
     FETCHERS,
     DownloadError,

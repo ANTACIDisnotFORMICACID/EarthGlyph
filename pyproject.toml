@@ -12,8 +12,12 @@ license = { text = "MIT" }
 authors = [{ name = "EarthGlyph" }]
 
 # Core runtime: enough for geometry processing, features, retrieval and tests.
+# pandas is module-level in retrieval.search / data.index / data.prepare, and
+# pd.read_parquet (the index metadata store) needs pyarrow, so both are core.
 dependencies = [
     "numpy>=1.26",
+    "pandas>=2.0",
+    "pyarrow>=15",
     "scipy>=1.11",
     "shapely>=2.0",
     "pyproj>=3.6",
@@ -34,9 +38,11 @@ cv = [
 ]
 # Official ShapeComp neural-approximation port: read the authors' published Keras
 # .h5 weights and run a numpy forward pass. h5py only; no TensorFlow, no retraining.
+# Pillow belongs here because shape_benchmark.datasets opens MPEG7 GIFs lazily.
 shapecomp = [
     "h5py>=3.10",
     "matplotlib>=3.8",
+    "pillow>=10.0",
 ]
 dev = [
     "pytest>=8",

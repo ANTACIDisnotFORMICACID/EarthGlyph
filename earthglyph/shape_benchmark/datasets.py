@@ -22,7 +22,6 @@ from typing import Any
 
 import numpy as np
 import scipy.io as sio
-from PIL import Image
 from scipy.spatial.distance import pdist
 
 from earthglyph.geometry.sketch import contour_from_points
@@ -264,6 +263,8 @@ def load_mpeg7(cache_dir: Path) -> tuple[list[BenchmarkShape], list[ExcludedImag
     GIFs need no manual inversion. Images that genuinely contain two disconnected blobs
     are excluded and reported rather than silently repaired.
     """
+    from PIL import Image  # lazy: only the GIF rasteriser needs Pillow
+
     from earthglyph.geometry.sketch import SketchError, contour_from_image
 
     shapes: list[BenchmarkShape] = []

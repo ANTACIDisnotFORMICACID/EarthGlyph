@@ -34,6 +34,12 @@ from earthglyph.shape_benchmark.retrieval import (
 )
 
 HAS_TOOLBOX = (port.DEFAULT_TOOLBOX / "net" / "keras" / "shape2sc22a.h5").exists()
+try:
+    import h5py  # noqa: F401
+
+    HAS_H5PY = True
+except ImportError:
+    HAS_H5PY = False
 
 
 # ---------------------------------------------------------------- synthetic contours
@@ -226,7 +232,9 @@ def test_a_collapsed_contour_is_rejected_instead_of_giving_a_zero_vector() -> No
         rm.pose_embedding(RecordingScorer(), collapsed, "R2")
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("strategy", ["naive", "R0", "R1_72", "R2", "R3"])
 def test_the_official_chain_rejects_a_degenerate_contour_on_every_strategy(
     strategy: str,
@@ -552,7 +560,9 @@ def test_orientation_is_refused_for_arms_that_do_not_own_a_policy() -> None:
 
 
 # ---------------------------------------------------------------- real networks
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("network", ["kernet1", "kernet2"])
 def test_r0_wrapper_reproduces_the_cp6_rotation_search_exactly(network: str) -> None:
     """R0 through the new door must be the CP6 arithmetic, not a near-miss of it."""
@@ -567,7 +577,9 @@ def test_r0_wrapper_reproduces_the_cp6_rotation_search_exactly(network: str) -> 
     assert np.allclose(single, frames[:1], rtol=0.0, atol=1e-12)
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_pair_distance_r0_equals_rotation_search(method: str) -> None:
     contours = _shapes()
@@ -584,7 +596,9 @@ def test_pair_distance_r0_equals_rotation_search(method: str) -> None:
     assert finer <= wrapper + 1e-12
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_search_wrapper_costs_match_rows_for_and_report_the_contract(method: str) -> None:
     gallery = _gallery("cost")
@@ -609,7 +623,9 @@ def test_search_wrapper_costs_match_rows_for_and_report_the_contract(method: str
         assert len(np.unique(result.order)) == len(gallery)
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_pose_choice_never_consults_the_gallery(method: str) -> None:
     """No-oracle-leakage test: a shared candidate keeps the same distance in any gallery.
@@ -632,7 +648,9 @@ def test_pose_choice_never_consults_the_gallery(method: str) -> None:
             ), f"{name}/{shape.shape_id}"
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_wrapper_is_deterministic_across_repeats(method: str) -> None:
     gallery = _gallery("repeat")
@@ -647,7 +665,9 @@ def test_wrapper_is_deterministic_across_repeats(method: str) -> None:
         assert np.array_equal(first.order, second.order), name
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 def test_gallery_pose_embeddings_are_cached_per_strategy() -> None:
     gallery = Gallery(
         [

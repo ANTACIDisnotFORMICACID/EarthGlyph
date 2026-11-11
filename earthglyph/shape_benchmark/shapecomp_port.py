@@ -26,9 +26,12 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import h5py
 import numpy as np
+
+if TYPE_CHECKING:
+    import h5py
 
 DEFAULT_TOOLBOX = Path(__file__).resolve().parents[2] / "shapeComp_17_12_2024"
 _KERNET1_H5 = "net/keras/shape2sc22a.h5"
@@ -340,6 +343,8 @@ class ShapeCompNets:
     """
 
     def __init__(self, toolbox: Path = DEFAULT_TOOLBOX) -> None:
+        import h5py  # lazy: the preprocessing contract above runs without the shapecomp extra
+
         self.toolbox = Path(toolbox)
         with h5py.File(self.toolbox / _KERNET1_H5, "r") as handle:
             self._k1_dense = _read_dense_layers(

@@ -28,8 +28,9 @@ from earthglyph.shape_benchmark import shapecomp_port as port  # noqa: E402
 
 _CACHE = REPO / "experiments" / "shape_perception_benchmark" / "cache"
 _ZENODO = _CACHE / "zenodo4730985"
-H2_SC_MAT = _ZENODO / "shapecomp datashare/Figure 9/data/lietal_ShapeCompSolution_keras_mds_image.mat"
-H2_HUMAN_MAT = _ZENODO / "shapecomp datashare/Figure 9/data/fig7D_lietal_points_2.mat"
+_H2_DIR = "shapecomp datashare/Figure 9/data"
+H2_SC_MAT = _ZENODO / _H2_DIR / "lietal_ShapeCompSolution_keras_mds_image.mat"
+H2_HUMAN_MAT = _ZENODO / _H2_DIR / "fig7D_lietal_points_2.mat"
 FIGURE8_MAT = _ZENODO / "shapecomp datashare/Figure 8/data/Figure8NetComparison.mat"
 QUERIES_CSV = REPO / "experiments" / "shape_perception_benchmark" / "queries" / "query_contours.csv"
 SHAPES_NPY = REPO / "data" / "index" / "shapes.npy"
@@ -66,7 +67,10 @@ def _inpolygon_pre_fix(points: np.ndarray) -> np.ndarray:
             & (grid_y >= min(y0, y1))
             & (grid_y <= max(y0, y1))
         )
-    return np.flipud(np.reshape(inside | on_boundary, (port._IMAGE_SIZE, port._IMAGE_SIZE), order="F"))
+    flat = inside | on_boundary
+    return np.flipud(
+        np.reshape(flat, (port._IMAGE_SIZE, port._IMAGE_SIZE), order="F")
+    )
 
 
 def _load_official() -> dict[str, list[np.ndarray]]:
@@ -92,7 +96,7 @@ def _load_queries() -> dict[str, list[np.ndarray]]:
         return {}
     df = pd.read_csv(QUERIES_CSV)
     out: dict[str, list[np.ndarray]] = {}
-    for query_id, group in df.groupby("query_id", sort=True):
+    for _, group in df.groupby("query_id", sort=True):
         pts = group.sort_values("point_index")[["x", "y"]].to_numpy(dtype=float)
         out.setdefault(f"queries_{group['source'].iloc[0]}", []).append(pts)
     return out
@@ -105,7 +109,7 @@ def _load_gallery() -> dict[str, list[np.ndarray]]:
     return {"gallery_candidates": [shapes[i].astype(float) for i in range(len(shapes))]}
 
 
-def _compare_one(name: str, contour: np.ndarray, nets: "port.ShapeCompNets | None") -> dict:
+def _compare_one(name: str, contour: np.ndarray, nets: port.ShapeCompNets | None) -> dict:
     ring = port.kernet2_points(contour)
     mask_old = _inpolygon_pre_fix(ring)
     mask_new = port.inpolygon(ring)

@@ -126,6 +126,7 @@ def committed_design() -> dict[str, Any]:
 def mpeg7_shapes() -> list[Any]:
     if not (CACHE / "MPEG7dataset.zip").exists():
         pytest.skip("source cache not fetched")
+    pytest.importorskip("PIL")  # load_mpeg7 decodes the GIFs with Pillow
     shapes, _ = load_mpeg7(CACHE)
     return shapes
 

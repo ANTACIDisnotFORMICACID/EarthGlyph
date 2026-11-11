@@ -24,7 +24,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import matplotlib
+import pytest
+
+pytest.importorskip('matplotlib')  # before the optional imports
+
+import matplotlib  # noqa: E402
 
 matplotlib.use("Agg")
 

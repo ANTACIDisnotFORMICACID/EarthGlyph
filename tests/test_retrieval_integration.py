@@ -286,6 +286,7 @@ def test_sorting_by_chamfer_reorders_the_window_it_scored(index: Any) -> None:
 
 
 def test_hu_method_has_no_alignment_stage_and_reports_its_cost(index: Any) -> None:
+    pytest.importorskip("cv2")  # the hu arm rasterises and calls cv2.matchShapes
     result = search_by_contour(index.shapes[7], index, top_k=5, method="hu", smoothing="none")
     assert result.shortlist is None
     assert result.hu is not None
@@ -305,6 +306,8 @@ def test_hu_method_has_no_alignment_stage_and_reports_its_cost(index: Any) -> No
 
 @pytest.mark.parametrize("method", METHODS)
 def test_documented_methods_return_ranked_real_hits(index: Any, method: str) -> None:
+    if method == "hu":
+        pytest.importorskip("cv2")  # the hu arm rasterises and calls cv2.matchShapes
     result = search_by_contour(index.shapes[100], index, top_k=4, method=method, smoothing="none")
     assert len(result.hits) == 4
     assert result.method == method

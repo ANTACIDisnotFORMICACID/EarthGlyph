@@ -10,12 +10,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import geopandas as gpd
-import numpy as np
 import pytest
-import shapely
 
-from earthglyph.data.inspect import (
+pytest.importorskip('geopandas')  # before the optional imports
+
+import geopandas as gpd  # noqa: E402
+import numpy as np  # noqa: E402
+import shapely  # noqa: E402
+
+from earthglyph.data.inspect import (  # noqa: E402
     _area_stats,
     _category_key,
     summarize_geoparquet,

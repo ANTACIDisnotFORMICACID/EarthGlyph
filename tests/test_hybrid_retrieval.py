@@ -28,6 +28,8 @@ from typing import Any
 import numpy as np
 import pytest
 
+pytest.importorskip("matplotlib")  # every test here renders figures
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "hybrid_e0_e3_retrieval.py"
 SAMPLES = 128

@@ -1,8 +1,9 @@
 """Tests for the official ShapeComp numpy port and its actually-run retrieval arms (P0-4.6).
 
-Preprocessing-contract tests are self-contained (no weights, no cache). Weight loading,
-faithfulness against the authors' published coordinates, and the S0K1/S0K2 retrieval arms
-need the gitignored official toolbox, so they skip when it (or h5py) is absent.
+Preprocessing-contract tests are self-contained (no weights, no h5py, no cache) and always
+run. Weight loading, faithfulness against the authors' published coordinates, and the
+S0K1/S0K2 retrieval arms need the gitignored official toolbox plus h5py, so they skip when
+either is absent; the Zenodo-derived faithfulness tests additionally skip without the cache.
 """
 
 from __future__ import annotations
@@ -12,7 +13,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-pytest.importorskip("h5py")
+try:
+    import h5py  # noqa: F401  (optional: only the official weights need it)
+
+    HAS_H5PY = True
+except ImportError:
+    HAS_H5PY = False
 
 import scipy.io as sio  # noqa: E402
 from scipy.stats import pearsonr  # noqa: E402
@@ -83,7 +89,9 @@ def test_kernet_inputs_reject_non_contour() -> None:
         port.kernet2_input(np.zeros((10, 3)))
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 def test_nets_load_official_weights_and_score_finite_22d() -> None:
     nets = port.ShapeCompNets()
     contour = polygon(lobes=4)
@@ -93,7 +101,10 @@ def test_nets_load_official_weights_and_score_finite_22d() -> None:
         assert np.isfinite(coords).all()
 
 
-@pytest.mark.skipif(not (HAS_TOOLBOX and HAS_H2), reason="toolbox or Zenodo cache absent")
+@pytest.mark.skipif(
+    not (HAS_TOOLBOX and HAS_H2) or not HAS_H5PY,
+    reason="toolbox, Zenodo cache or h5py absent",
+)
 def test_kernet2_reproduces_published_h2_coordinates() -> None:
     """The headline faithfulness check: H2's published coords are the KerNet2 route."""
     raw = sio.loadmat(
@@ -115,7 +126,9 @@ def _gallery() -> Gallery:
     return Gallery(shapes, name="port-test")
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_run_arms_find_exact_match_at_rank_one(method: str) -> None:
     gallery = _gallery()
@@ -125,7 +138,9 @@ def test_run_arms_find_exact_match_at_rank_one(method: str) -> None:
     assert result.details["kind"] == "official_network_actually_run"
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_run_arms_respect_exclusion(method: str) -> None:
     gallery = _gallery()
@@ -138,7 +153,9 @@ def test_run_arms_respect_exclusion(method: str) -> None:
 # ------------------------------------------------------------------ rotation search (d5)
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("network", ["kernet1", "kernet2"])
 def test_rotation_frames_row_zero_is_the_plain_score(network: str) -> None:
     """The grid's 0-degree row equals the un-rotated network output, so row 0 == naive score."""
@@ -151,7 +168,9 @@ def test_rotation_frames_row_zero_is_the_plain_score(network: str) -> None:
     assert np.isfinite(frames).all()
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method,network", [("S0K1", "kernet1"), ("S0K2", "kernet2")])
 def test_rotation_search_recovers_distance_to_a_rotated_copy(method: str, network: str) -> None:
     """A rotated copy of the same shape should be nearly equidistant once the grid is searched."""
@@ -169,7 +188,9 @@ def test_rotation_search_recovers_distance_to_a_rotated_copy(method: str, networ
     assert cached == pytest.approx(searched, abs=1e-12)
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 @pytest.mark.parametrize("method", ["S0K1", "S0K2"])
 def test_rotation_search_ranks_rotated_query_to_its_own_class(method: str) -> None:
     """Rotation-search makes an off-grid-rotated query recover its exact match at rank 1."""
@@ -310,7 +331,9 @@ def test_input_refusal_is_a_value_error_subclass() -> None:
     assert issubclass(port.ShapeCompInputError, ValueError)
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 def test_legal_contours_give_finite_nonzero_22d_on_both_nets() -> None:
     nets = port.ShapeCompNets()
     for name in LEGAL_CONTOURS:
@@ -322,7 +345,9 @@ def test_legal_contours_give_finite_nonzero_22d_on_both_nets() -> None:
             assert float(np.linalg.norm(coords)) > 0.0, name
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 def test_forward_pass_is_bit_identical_across_repeats() -> None:
     """No dropout at inference, no hidden state: the same input must give the same bits."""
     nets = port.ShapeCompNets()
@@ -334,7 +359,9 @@ def test_forward_pass_is_bit_identical_across_repeats() -> None:
             assert np.unique(runs, axis=0).shape[0] == 1, name
 
 
-@pytest.mark.skipif(not HAS_TOOLBOX, reason="official toolbox not downloaded")
+@pytest.mark.skipif(
+    not HAS_TOOLBOX or not HAS_H5PY, reason="official toolbox or h5py absent"
+)
 def test_one_raster_pixel_flips_move_kernet2_coordinates_substantially() -> None:
     """KerNet2's 40x40 input is near-discontinuous: locked in because every re-rasterisation
     (including rotating a contour before rasterising) inherits this error."""
@@ -367,7 +394,10 @@ def _h2_deposits() -> tuple[dict[str, list[np.ndarray]], np.ndarray]:
     )
 
 
-@pytest.mark.skipif(not (HAS_TOOLBOX and HAS_H2), reason="toolbox or Zenodo H2 cache absent")
+@pytest.mark.skipif(
+    not (HAS_TOOLBOX and HAS_H2) or not HAS_H5PY,
+    reason="toolbox, Zenodo H2 cache or h5py absent",
+)
 def test_aligned_h2_inputs_reproduce_published_coordinates_to_float_rounding() -> None:
     """The strongest faithfulness claim the deposit allows: same input bits -> same output bits.
 
@@ -387,7 +417,10 @@ def test_aligned_h2_inputs_reproduce_published_coordinates_to_float_rounding() -
     assert len(H2_EXACT_ALIGNMENTS) >= 8
 
 
-@pytest.mark.skipif(not (HAS_TOOLBOX and HAS_H2), reason="toolbox or Zenodo H2 cache absent")
+@pytest.mark.skipif(
+    not (HAS_TOOLBOX and HAS_H2) or not HAS_H5PY,
+    reason="toolbox, Zenodo H2 cache or h5py absent",
+)
 def test_unaligned_h2_residuals_are_reported_as_unattributed_not_explained() -> None:
     """The other seven shapes stay far above float rounding under a bounded phase search, so
     their residual is *not* claimed as a preprocessing match: it is an input-provenance gap."""

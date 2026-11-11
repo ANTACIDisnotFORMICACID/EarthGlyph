@@ -20,6 +20,8 @@ from typing import Any
 import numpy as np
 import pytest
 
+pytest.importorskip("matplotlib")  # figure test
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "diagnose_perceptual_arms.py"
 GALLERY_DIR = ROOT / "experiments" / "p0_perceptual_probe"

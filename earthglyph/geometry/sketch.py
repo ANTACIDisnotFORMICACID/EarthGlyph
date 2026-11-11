@@ -505,7 +505,7 @@ def _read_image_bytes(path: Path | str) -> np.ndarray:
     buffer = np.fromfile(str(path), dtype=np.uint8)
     if buffer.size == 0:
         raise SketchError(f"{path}: empty file")
-    image = cv2.imdecode(buffer, cv2.IMREAD_UNCHANGED)
+    image: np.ndarray | None = cv2.imdecode(buffer, cv2.IMREAD_UNCHANGED)
     if image is None:
         raise SketchError(f"{path}: not a readable image")
     return image

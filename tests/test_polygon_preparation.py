@@ -12,14 +12,17 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-import geopandas as gpd
-import numpy as np
-import pandas as pd
 import pytest
-import shapely
 
-from earthglyph.data.download import sha256_of
-from earthglyph.data.prepare import (
+pytest.importorskip('geopandas')  # before the optional imports
+
+import geopandas as gpd  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+import shapely  # noqa: E402
+
+from earthglyph.data.download import sha256_of  # noqa: E402
+from earthglyph.data.prepare import (  # noqa: E402
     CONTOURS_FILENAME,
     MANIFEST_FILENAME,
     PENDING_FILENAME,
@@ -29,7 +32,7 @@ from earthglyph.data.prepare import (
     prepare_contours,
     stack_contours,
 )
-from earthglyph.geometry import (
+from earthglyph.geometry import (  # noqa: E402
     AeqdProjection,
     FilterConfig,
     build_contour,

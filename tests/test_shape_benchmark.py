@@ -306,6 +306,7 @@ def test_refitting_normalizer_on_an_extended_gallery_does_move_it() -> None:
 
 @pytest.mark.skipif(not (CACHE / "MPEG7dataset.zip").exists(), reason="source cache not fetched")
 def test_mpeg7_gallery_loads_with_exclusion_ledger() -> None:
+    pytest.importorskip("PIL")  # load_mpeg7 decodes the GIFs with Pillow
     shapes, excluded = load_mpeg7(CACHE)
     assert len(shapes) == 1398
     assert {Path(item.name).name for item in excluded} == {"pocket-11.gif", "pocket-12.gif"}

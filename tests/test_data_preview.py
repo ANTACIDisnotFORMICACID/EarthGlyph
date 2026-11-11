@@ -10,9 +10,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import geopandas as gpd
-import numpy as np
-import shapely
+import pytest
+
+pytest.importorskip('geopandas')  # before the optional imports
+
+import geopandas as gpd  # noqa: E402
+import numpy as np  # noqa: E402
+import shapely  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 

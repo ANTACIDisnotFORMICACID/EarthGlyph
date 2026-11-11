@@ -17,6 +17,8 @@ from typing import Any
 
 import numpy as np
 import pytest
+
+pytest.importorskip("geopandas")  # the real-data path runs the prepare pipeline
 import shapely
 
 from earthglyph.geometry import arc_length_resample, build_contour, exterior_ring, open_ring
