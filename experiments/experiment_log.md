@@ -1367,7 +1367,9 @@ A–J 随机化、option 密钥不入库）、预检门禁（人数/最终版数
 **验证**（最终树全量）：`python -m pytest` → **1034 passed**（上轮 1008；+26：A1 inpolygon 回归、
 A2 收集审计、A3 金向量契约、本轮 P0-6 管线 15 条；0 failed 0 skipped，134.86 s）；
 `ruff check .` → All checks passed；`mypy` → 41 源文件无问题。
-**Git 检查点**：6d631a6（B4）→ 317fbf6（B3+C1/C2）→ 231d19c（C3）→ 本 docs 提交；
-推送与 `git ls-remote` 核验见下一条 docs 记录。
+**Git 检查点**：6d631a6（B4）→ 317fbf6（B3+C1/C2）→ 231d19c（C3）→ 7865f74（docs），
+推送 `9349cbe..7865f74 main -> main`，
+`git ls-remote origin refs/heads/main` == `git rev-parse HEAD` == `7865f74aa02545eb16568ab6db4969fbe02d99d3`
+已核验；作者 `ANTACIDisnotFORMICACID <ANTACIDisnotFORMICACID@users.noreply.github.com>`（逐命令 `-c` 注入，未动机器配置）。
 **边界**：无生产默认改动、无阈值调整、无新权重、无真人数据、无 Web UI；
 `data/raw|processed|index` 与历史 CP8 产物零触碰；figures 仅由验证过的文件重画。
