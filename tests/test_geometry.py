@@ -14,6 +14,8 @@ identical one.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 import shapely
@@ -493,3 +495,20 @@ def test_build_contour_is_deterministic() -> None:
     assert np.array_equal(first.points, second.points)
     assert first.perimeter_m == second.perimeter_m
     assert first.rms_radius_m == second.rms_radius_m
+
+
+# --- cross-language golden vector (web/src/search/preprocess.ts) --------------
+
+
+def test_normalize_contour_matches_the_web_golden_vector() -> None:
+    """The TS ``normalizeContour`` must reproduce the Python contract bit-for-bit on
+    the committed golden input; this side recomputes it from the same JSON."""
+    import json
+
+    golden_path = (
+        Path(__file__).resolve().parents[1] / "web" / "src" / "search" / "golden_contour.json"
+    )
+    golden = json.loads(golden_path.read_text(encoding="utf-8"))
+    raw = np.asarray(golden["input_points"], dtype=float)
+    expected = np.asarray(golden["expected_output_points"], dtype=float)
+    assert np.array_equal(normalize_contour(raw), expected)

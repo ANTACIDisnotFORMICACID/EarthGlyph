@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import goldenInput from "./golden_contour.json";
 import { normalizeContour, type Point } from "./preprocess";
 
 const square = (scale = 1, ox = 0, oy = 0): Point[] =>
@@ -56,5 +57,30 @@ describe("normalizeContour", () => {
         [1, 1],
       ]),
     ).toThrow();
+  });
+});
+
+describe("normalizeContour vs the Python golden vector", () => {
+  it("reproduces earthglyph.geometry.normalize_contour on the committed input", () => {
+    const golden = goldenInput as unknown as {
+      input_points: Point[];
+      input_centroid: [number, number];
+      input_rms_radius: number;
+      expected_output_points: Point[];
+    };
+    const out = normalizeContour(golden.input_points);
+    // JSON round-trips doubles exactly, so the expected values are the Python
+    // float64 outputs verbatim; the TS arithmetic may differ at summation order.
+    const rel = (a: number, b: number): number =>
+      Math.abs(a - b) / Math.max(1e-300, Math.abs(b));
+    for (let i = 0; i < out.length; i++) {
+      expect(rel(out[i][0], golden.expected_output_points[i][0])).toBeLessThan(1e-9);
+      expect(rel(out[i][1], golden.expected_output_points[i][1])).toBeLessThan(1e-9);
+    }
+    expect(golden.input_centroid[0]).toBeCloseTo(
+      golden.input_points.reduce((s, [x]) => s + x, 0) / golden.input_points.length,
+      9,
+    );
+    expect(golden.input_rms_radius).toBeGreaterThan(0);
   });
 });
