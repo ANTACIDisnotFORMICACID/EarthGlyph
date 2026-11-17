@@ -1206,3 +1206,6 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 全量 `pytest -q` **1042 passed**（上轮 1034，0 failed 0 skipped）、`ruff check .` 全过、
 `mypy` 41 源文件无问题。检索算法、P0-5 产物、真实数据一律未动。
 **仍无任何真人数据；P0 门禁依旧未通过。**下一步即按协议采集真人数据（审查优先级 2）。
+
+检查点：commit `d0adc97`（fix: repair P0-6 pipeline defects found in external review (D92)），
+已推送并核验远程 `refs/heads/main` 与本地 HEAD sha 一致。
