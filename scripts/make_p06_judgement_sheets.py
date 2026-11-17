@@ -11,13 +11,19 @@ A-J, and writes:
 
 ``judgement/sheets/<query_id>.png``   the blind sheet image (no ids, no ranks,
                                       no distances printed anywhere)
-``judgement/sheet_<judge_slot>.csv``  one row per (query, option) with empty
-                                      verdict columns for the judge to fill
+``judgement/sheet_judge_<NN>.csv``   one CSV per judge: every (query, option)
+                                      pair with empty verdict columns, row
+                                      order shuffled with that judge's own
+                                      fixed seed (protocol §5)
 ``judgement/refusals.csv``            extraction refusals, verbatim reasons
 ``judgement/manifest.json``           run provenance (index commit, command)
 
 The A-J -> candidate mapping goes to the gitignored local key file
 ``sessions/key_options.json``; it MUST NOT be committed or shown to judges.
+
+The protocol §7 pre-flight gate (``scripts/validate_p06_dataset.py``) must
+pass before any sheet is generated; ``--min-participants`` / ``--min-finals``
+only lower the gate's thresholds for rehearsal runs, never its other checks.
 
 Judge slots: ``--judges N`` produces one shuffled CSV per judge
 (judge_01 ... judge_N, each with its own fixed seed), so independent judges
@@ -42,6 +48,9 @@ from typing import Any
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import validate_p06_dataset  # noqa: E402
 
 from earthglyph.geometry.sketch import SketchError  # noqa: E402
 from earthglyph.retrieval.search import (  # noqa: E402
@@ -96,7 +105,24 @@ def main(argv: list[str] | None = None) -> int:
                         default=Path("experiments/p0_6_human_queries/judgement"))
     parser.add_argument("--judges", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20261111)
+    parser.add_argument("--min-participants", type=int, default=None,
+                        help="lower the pre-flight gate's minimum participants "
+                        "(rehearsal runs only; frozen default is 10)")
+    parser.add_argument("--min-finals", type=int, default=None,
+                        help="lower the pre-flight gate's minimum finals per "
+                        "participant (rehearsal runs only; frozen default is 6)")
     args = parser.parse_args(argv)
+
+    gate_argv = ["--sessions-root", str(args.sessions_root)]
+    if args.min_participants is not None:
+        gate_argv += ["--min-participants", str(args.min_participants)]
+    if args.min_finals is not None:
+        gate_argv += ["--min-finals", str(args.min_finals)]
+    if validate_p06_dataset.main(gate_argv) != 0:
+        raise SystemExit(
+            "P0-6 pre-flight gate did not pass — judgement materials require a "
+            "READY dataset (protocol §7); see the gate output above"
+        )
 
     index = load_index_handle(args.index)
     sessions = sorted(args.sessions_root.glob("P*"))
@@ -119,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
         if key_path.is_file() else {}
 
     refusal_rows: list[list[str]] = []
-    sheet_rows: list[list[str]] = []
+    pairs: list[tuple[str, str]] = []
     manifest = {
         "generated_by": "scripts/make_p06_judgement_sheets.py",
         "index": index.provenance(),
@@ -128,6 +154,8 @@ def main(argv: list[str] | None = None) -> int:
         "n_final_queries": len(finals),
         "judges": args.judges,
         "seed": args.seed,
+        "gate": {"min_participants": args.min_participants,
+                 "min_finals": args.min_finals},
         "queries": {},
     }
     for entry in finals:
@@ -140,39 +168,46 @@ def main(argv: list[str] | None = None) -> int:
             manifest["queries"][query_id] = {"refusal": str(error)}
             continue
 
-        rng = np.random.default_rng(args.seed * 10000 + int(query_id[1:4]) * 100
-                                    + int(query_id[-2:]))
+        # seed = global seed * 10000 + participant number * 100 + query number;
+        # query_id is "PXX-qNN", so the numbers live at [1:3] and [-2:]
+        order_seed = args.seed * 10000 + int(query_id[1:3]) * 100 + int(query_id[-2:])
+        rng = np.random.default_rng(order_seed)
         order = rng.permutation(len(result.hits))
         candidates = [np.asarray(result.hits[int(slot)].contour, dtype=float)
                       for slot in order]
-        rows_map = [int(result.hits[int(slot)].row) for slot in order]
-        key_path_by_query = f"{query_id}"
-        option_key[key_path_by_query] = {
-            OPTIONS[slot]: {"row": rows_map[slot],
-                            "candidate_id": str(result.hits[int(slot)].candidate_id)}
+        # option X must describe ONE candidate: row and candidate_id both come
+        # from the same permuted hit, or judge verdicts cannot be traced back
+        option_key[query_id] = {
+            OPTIONS[slot]: {"row": int(result.hits[int(order[slot])].row),
+                            "candidate_id": str(result.hits[int(order[slot])].candidate_id)}
             for slot in range(len(candidates))
         }
         contour = np.asarray(result.query["query_contour"]["points"], dtype=float)
         sheet_figure(sheets_dir / f"{query_id}.png", contour, candidates, query_id)
         manifest["queries"][query_id] = {
-            "order_seed": int(args.seed * 10000 + int(query_id[1:4]) * 100
-                              + int(query_id[-2:])),
+            "order_seed": int(order_seed),
             "top1_row": int(result.hits[0].row),
         }
-        for judge in range(1, args.judges + 1):
-            for slot in range(len(candidates)):
-                sheet_rows.append([f"judge_{judge:02d}", query_id, OPTIONS[slot],
-                                   "", "", ""])
+        for slot in range(len(candidates)):
+            pairs.append((query_id, OPTIONS[slot]))
+
+    judge_seeds: dict[str, int] = {}
+    for judge in range(1, args.judges + 1):
+        label = f"judge_{judge:02d}"
+        judge_seeds[label] = args.seed * 1000 + judge
+        rows = list(pairs)
+        np.random.default_rng(judge_seeds[label]).shuffle(rows)
+        with (args.out_dir / f"sheet_{label}.csv").open(
+            "w", newline="", encoding="utf-8"
+        ) as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["judge_id", "query_id", "option", "verdict",
+                             "most_similar", "notes"])
+            for row_query_id, option in rows:
+                writer.writerow([label, row_query_id, option, "", "", ""])
+    manifest["judge_seeds"] = judge_seeds
 
     key_path.write_text(json.dumps(option_key, indent=1, ensure_ascii=False), "utf-8")
-    args.out_dir.mkdir(parents=True, exist_ok=True)
-    with (args.out_dir / "judgement_sheet_blank.csv").open(
-        "w", newline="", encoding="utf-8"
-    ) as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["judge_id", "query_id", "option", "verdict",
-                         "most_similar", "notes"])
-        writer.writerows(sheet_rows)
     with (args.out_dir / "refusals.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["query_id", "refusal"])
@@ -181,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(manifest, indent=1, ensure_ascii=False), "utf-8"
     )
     print(f"wrote {len(manifest['queries'])} sheets / refusals, "
-          f"{len(sheet_rows)} empty judgement rows to {args.out_dir}")
+          f"{args.judges} shuffled judge sheet(s) x {len(pairs)} rows to {args.out_dir}")
     return 0
 
 

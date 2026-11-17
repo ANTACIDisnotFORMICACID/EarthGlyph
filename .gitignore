@@ -84,5 +84,10 @@ experiments/shape_perception_benchmark/checkpoint8/_smoke/
 experiments/p0_sampling_fidelity_294/index_n*/
 experiments/p0_sampling_fidelity_294/processed_n*/
 
-# P0-6: pseudonym and option keys never enter the repository (protocol §2/§4)
-experiments/p0_6_human_queries/sessions/key_*.json
+# P0-6: the whole sessions tree is local-only (protocol §1/§2/§4). It holds the
+# participants' sketch files, the pseudonym key, the option key and the
+# per-session manifests — and inbox filenames carry the participants' own
+# pseudonyms, so no part of this tree may be committed. Publishable P0-6
+# artefacts are the anonymized query set, aggregates and the judgement
+# materials, never this directory.
+experiments/p0_6_human_queries/sessions/

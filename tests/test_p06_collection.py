@@ -113,15 +113,66 @@ class TestRegistration:
                     points=[[4.0, 4.0], [5.0, 4.5], [4.5, 5.0]])
         run_collect(["--inbox", str(inbox), "--sessions-root", str(tmp_path / "s")])
         finals = {
-            f["original"]: f.get("final")
+            f["query_id"]: f.get("final")
             for f in session_files(tmp_path / "s")["P01"]["files"]
             if f["status"] == "registered"
         }
         assert finals == {
-            "alpha-final-lake.json": True,
-            "alpha-pond.json": True,
-            "alpha-river.json": False,
+            "P01-q01": True,
+            "P01-q02": True,
+            "P01-q03": False,
         }
+
+    def test_rerun_after_invalid_file_is_a_no_op_not_a_crash(self, inbox, tmp_path):
+        path = inbox / "alpha-bad.json"
+        path.write_text(json.dumps({"points": [[0.0, 0.0]]}), encoding="utf-8")
+        root = tmp_path / "s"
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        records = session_files(root)["P01"]["files"]
+        assert len(records) == 1  # the rerun must not append a second record
+        assert records[0]["status"] == "invalid"
+
+    def test_invalid_file_later_fixed_registers_normally(self, inbox, tmp_path):
+        path = inbox / "alpha-draft.json"
+        path.write_text(json.dumps({"points": [[0.0, 0.0]]}), encoding="utf-8")
+        root = tmp_path / "s"
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        path.write_text(json.dumps(payload()), encoding="utf-8")
+        assert run_collect(["--inbox", str(inbox), "--sessions-root", str(root)]) == 0
+        records = session_files(root)["P01"]["files"]
+        assert [r["status"] for r in records] == ["invalid", "registered"]
+        assert records[1]["query_id"] == "P01-q02"
+
+    def test_rerun_of_registered_file_stays_a_duplicate(self, inbox, tmp_path):
+        write_inbox(inbox, "alpha-lake.json")
+        root = tmp_path / "s"
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        assert len(session_files(root)["P01"]["files"]) == 1
+
+    def test_identical_invalid_files_collapse_within_one_run(self, inbox, tmp_path):
+        body = json.dumps({"points": [[0.0, 0.0]]})
+        (inbox / "alpha-bad.json").write_text(body, encoding="utf-8")
+        (inbox / "beta-bad.json").write_text(body, encoding="utf-8")
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(tmp_path / "s")])
+        files = session_files(tmp_path / "s")
+        assert set(files) == {"P01"}  # a repeated invalid file registers no pseudonym
+        assert [r["status"] for r in files["P01"]["files"]] == ["invalid"]
+
+    def test_session_manifest_never_records_participant_filenames(self, inbox, tmp_path):
+        write_inbox(inbox, "alice-final-lake.json")
+        (inbox / "alice-bad.json").write_text(
+            json.dumps({"points": [[0.0, 0.0]]}), encoding="utf-8")
+        root = tmp_path / "s"
+        run_collect(["--inbox", str(inbox), "--sessions-root", str(root)])
+        manifest_text = (root / "P01" / "session.json").read_text(encoding="utf-8")
+        assert "alice" not in manifest_text  # the pseudonym must stay out of Git
+        assert "original" not in manifest_text
+        key = json.loads((root / collect.KEY_FILENAME).read_text(encoding="utf-8"))
+        assert key == {"alice": "P01"}  # the mapping lives only in the local key
+        gitignore = (tmp_path / ".gitignore").read_text(encoding="utf-8")
+        assert collect.GITIGNORE_ENTRY in gitignore
 
     def test_dry_run_writes_nothing(self, inbox, tmp_path):
         write_inbox(inbox, "alpha-lake.json")
@@ -156,7 +207,6 @@ def build_session(root: Path, participant: str, finals: int, practice: int = 0,
         (directory / f"{query_id}.json").write_text(content, encoding="utf-8")
         files.append({
             "query_id": query_id,
-            "original": f"{participant.lower()}-{index}.json",
             "sha256": hashlib.sha256(
                 content.encode(encoding="utf-8")).hexdigest(),
             "status": "registered",

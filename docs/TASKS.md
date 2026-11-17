@@ -1,7 +1,7 @@
 # TASKS — 当前任务、状态、阻塞与下一步
 
 > 规则见 [`AGENTS.md`](../AGENTS.md)；阶段门禁见 [`ROADMAP.md`](ROADMAP.md)。
-> 最后更新：2026-11-05（**P0-4 完成**，P0-5 / P0-6 未启动；P0 门禁仍未通过 —— 缺 ≥10 个真人手绘查询）。
+> 最后更新：2026-11-17（**P0-6 管线修复轮完成**：外部审查三项发现全部证实并修复 + 1 项新发现；仍无真人数据，P0 门禁未通过）。
 
 ## 已完成：项目初始化 ✅
 
@@ -1170,3 +1170,39 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
    （改数据/算法或调整定位），不启动大规模 Web 开发。
 
 **P0 门禁仍未通过**：在完成 P0-6 并拿到真实手绘查询的 Top-10 人工判定证据前，不启动大规模 Web 开发。
+
+## P0-6 管线修复轮：外部审查三项发现全部证实并修复（2026-11-17，采集前）
+
+外部审查（对照 8622c2e）指出 P0-6 管线三处缺陷；本轮逐条对照源码核实，**全部属实**，
+端到端测试中另发现第四处（审查未报）。修复见 `scripts/collect_p06_queries.py`、
+`scripts/make_p06_judgement_sheets.py`、`.gitignore`，决策记录见 D92：
+
+1. **盲评身份映射错位（高）**：option 的 `row` 取自打乱后的 `hits[order[slot]]`，
+   `candidate_id` 却取自打乱前的 `hits[slot]`——同一选项的两个身份指向不同水体，
+   人工判定将无法可靠回溯。已统一取自同一 permuted hit。
+2. **无效文件二次采集崩溃（中高）**：invalid 记录无 `query_id`，重跑采集器在
+   `seen_sha[record["sha256"]] = record["query_id"]` 处 KeyError。已改为 invalid 走独立
+   `seen_invalid` 集合；重跑已见文件（无论有效/无效）一律 no-op（`duplicate_invalid`），
+   不再重复追加 manifest 记录。
+3. **匿名化不完整（高）**：`.gitignore` 只挡 `sessions/key_*.json`，且 `session.json`
+   记录参与者原始文件名（含自选代号，如 `alice-final-lake.json`）。已改为**整个
+   `sessions/` 目录不入库**，manifest 不再写 `original` 字段；代号只存在于收件文件名与
+   本地密钥表。参与者须知补知情同意条款（匿名聚合与去标识查询集形式发布）。
+4. **（新发现）生成器在真实 query_id 上必然崩溃**：排序种子公式 `int(query_id[1:4])` 对
+   `PXX-qNN` 切出 `"01-"` → ValueError——该生成器此前从未被端到端执行过。已修正为
+   `query_id[1:3]`（参与者号 ×100 + 查询号），并由端到端测试钉住。
+
+同时按协议补齐两处缺口：盲评生成器现在**强制先过 §7 预检门禁**（`--min-participants/
+--min-finals` 仅供演练降阈值，其余检查不放宽，门禁阈值写入 manifest）；评委材料从单一
+未打乱 CSV 改为**每位评委一份独立固定种子打乱的 `sheet_judge_NN.csv`**（协议 §5"标注
+顺序由每评委固定种子打乱"，种子写入 manifest `judge_seeds`）。
+
+验证：新增 8 条测试。采集器 5 条：重跑 no-op 不崩溃、修复后正常登记（P01-q02）、
+重跑去重、同轮重复 invalid 不新增伪匿名号、manifest 无参与者文件名且 .gitignore 条目存在。
+生成器 3 条：collect→gate→sheets 全链路（4 候选合成索引，经生产 build_index 落盘构建），
+身份配对断言为**独立重放检索 + 同种子重建排列后逐项比对 `key == expected`**，并断言
+`metadata.iloc[row].candidate_id == key.candidate_id`（该测试用排列 [3,1,2,0] 非恒等，
+对修复前代码必然失败）；低于冻结阈值（10×6）拒绝且零写入；空 sessions 拒绝。
+全量 `pytest -q` **1042 passed**（上轮 1034，0 failed 0 skipped）、`ruff check .` 全过、
+`mypy` 41 源文件无问题。检索算法、P0-5 产物、真实数据一律未动。
+**仍无任何真人数据；P0 门禁依旧未通过。**下一步即按协议采集真人数据（审查优先级 2）。

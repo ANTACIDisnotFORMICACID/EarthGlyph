@@ -1050,3 +1050,25 @@ CP7 收官的文档整合轮记录了三个"口径问题"并只写进文档。�
   `scripts/recompute_p05_metrics.py` 只读 CSV、不 import 检索代码、重实现全部
   聚合与源聚类 bootstrap（同 seed 逐位复现），PASS 才允许引用汇总数字。
   配对差 ΔTop-1、总体 Top-1/10/MRR、bootstrap CI、ShapeComp 臂不受该 bug 影响。
+
+## P0-6 采集管线加固（外部审查修复轮，2026-11-17 新增）
+
+- **D92：`sessions/` 整目录不入库 + session manifest 零参与者标识；盲评身份配对、
+  §7 预检门禁、每评委独立打乱是生成评审材料的硬前置** —
+  外部审查三项发现全部证实并在采集前修复：(1) 盲评单 option 的 `row` 与 `candidate_id`
+  取自不同候选（打乱前/后错位），人工判定无法回溯 → 统一取自同一 permuted hit，
+  回归测试以"独立重放检索 + 同种子重建排列逐项比对 + metadata 行交叉验证"钉住
+  （测试排列 [3,1,2,0] 非恒等，对修复前代码必然失败）；(2) invalid 记录无 `query_id`，
+  二次采集 KeyError → invalid 走独立 seen 集合，重跑已见文件一律 no-op（`duplicate_invalid`），
+  manifest 不再重复追加；(3) `.gitignore` 只挡密钥文件且 manifest 记录参与者自选代号
+  （原始文件名）→ **整个 `sessions/` 目录设为不入库**（协议 §1/§2/§4），manifest 不再写
+  `original` 字段，参与者须知补知情同意条款。端到端测试另暴露第四处：盲评生成器
+  此前从未真正运行过——排序种子公式 `int(query_id[1:4])` 对协议规定的 `PXX-qNN`
+  形如切出 `"01-"` 抛 ValueError → 修正为 `[1:3]`（参与者号 ×100 + 查询号）。
+  同时把协议 §7 门禁设为生成评审材料的**强制前置**（`--min-participants/--min-finals`
+  仅供演练降阈值，其余检查一律不放宽，阈值写入 manifest），评委 CSV 按 §5 改为每人
+  一份独立固定种子打乱的 `sheet_judge_NN.csv`（`judge_seeds` 入 manifest）。
+  规定：P0-6 的可发布件只允许匿名化查询集（PXX + query_id）、聚合统计与盲评材料；
+  参与者原始文件名、代号→PXX 映射、A–J→候选映射永不入库；真人数据仅在参与者
+  同意（匿名聚合形式）下用于对外发布。验证：全量 `pytest -q` **1042 passed**
+  （新增 8 条）、`ruff check .` 全过、`mypy` 41 源文件无问题；检索算法与 P0-5 产物未动。

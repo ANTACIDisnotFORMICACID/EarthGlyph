@@ -22,6 +22,11 @@ What it does
    ``sessions/<PXX>/session.json``. Structurally invalid files are registered
    as ``invalid`` and kept verbatim.
 
+Anonymization contract: the session manifest never records the participant's
+inbox filename (the pseudonym lives in the filename and the gitignored key
+file only); re-running the collector over an already-seen file — valid or
+invalid — is a no-op, never a crash and never a duplicate manifest record.
+
 Example
 -------
 python scripts/collect_p06_queries.py --inbox exports/incoming \
@@ -37,7 +42,7 @@ from pathlib import Path
 from typing import Any
 
 KEY_FILENAME = "key_participants.json"
-GITIGNORE_ENTRY = "experiments/p0_6_human_queries/sessions/key_*.json"
+GITIGNORE_ENTRY = "experiments/p0_6_human_queries/sessions/"
 
 
 def load_key(path: Path) -> dict[str, str]:
@@ -93,11 +98,15 @@ def main(argv: list[str] | None = None) -> int:
     key = load_key(key_path)
     counter = sum(1 for value in key.values() if value.startswith("P")) + 1
     seen_sha: dict[str, str] = {}
+    seen_invalid: set[str] = set()
     for session_dir in args.sessions_root.glob("P*"):
         manifest_path = session_dir / "session.json"
         if manifest_path.is_file():
             for record in json.loads(manifest_path.read_text(encoding="utf-8"))["files"]:
-                seen_sha[record["sha256"]] = record["query_id"]
+                if record["status"] == "invalid":
+                    seen_invalid.add(record["sha256"])
+                else:
+                    seen_sha[record["sha256"]] = record["query_id"]
 
     registrations: list[dict[str, Any]] = []
     for path in inbox:
@@ -108,6 +117,11 @@ def main(argv: list[str] | None = None) -> int:
         if sha in seen_sha:
             registrations.append({"file": path.name, "status": "duplicate_of",
                                   "of": seen_sha[sha]})
+            continue
+        if sha in seen_invalid:
+            # already registered as invalid in an earlier run: writing it again
+            # would grow the manifest on every rerun instead of being a no-op
+            registrations.append({"file": path.name, "status": "duplicate_invalid"})
             continue
         if pseudonym not in key:
             key[pseudonym] = f"P{counter:02d}"
@@ -124,8 +138,8 @@ def main(argv: list[str] | None = None) -> int:
         if error is not None:
             registrations.append({"file": path.name, "status": "invalid", "reason": error,
                                   "participant": anon})
-            session["files"].append({"original": path.name, "sha256": sha,
-                                     "status": "invalid", "reason": error})
+            session["files"].append({"sha256": sha, "status": "invalid", "reason": error})
+            seen_invalid.add(sha)
         else:
             query_id = f"{anon}-q{len(session['files']) + 1:02d}"
             target = session_dir / f"{query_id}.json"
@@ -134,17 +148,16 @@ def main(argv: list[str] | None = None) -> int:
             # retake policy: a file is the declared final only when the participant
             # names it so ("<pseudonym>-final-...") or the export says final=true
             final = "-final-" in path.name or bool(payload.get("final", False))
-            session["files"].append({"query_id": query_id, "original": path.name,
-                                     "sha256": sha, "status": "registered",
-                                     "final": final})
+            session["files"].append({"query_id": query_id, "sha256": sha,
+                                     "status": "registered", "final": final})
             registrations.append({"file": path.name, "status": "registered",
                                   "query_id": query_id, "final": final,
                                   "participant": anon})
+            seen_sha[sha] = query_id
         if not args.dry_run:
             session_manifest_path.write_text(
                 json.dumps(session, indent=1, ensure_ascii=False), "utf-8"
             )
-        seen_sha[sha] = registrations[-1].get("query_id", path.name)
 
     if not args.dry_run:
         save_key(key_path, key)
