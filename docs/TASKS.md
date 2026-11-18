@@ -1,7 +1,7 @@
 # TASKS — 当前任务、状态、阻塞与下一步
 
 > 规则见 [`AGENTS.md`](../AGENTS.md)；阶段门禁见 [`ROADMAP.md`](ROADMAP.md)。
-> 最后更新：2026-11-17（**P0-6 管线修复轮完成**：外部审查三项发现全部证实并修复 + 1 项新发现；仍无真人数据，P0 门禁未通过）。
+> 最后更新：2026-11-18（**现状汇总报告入库**：`docs/STATUS_REPORT.md`，基线 `729849c` 复验全绿；仍无真人数据，P0 门禁未通过）。
 
 ## 已完成：项目初始化 ✅
 
@@ -1030,6 +1030,7 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 | 2026-11-06 | `1b8461c` | Checkpoint B 第 2 步（`data:`）：用修复后的生成器离线重建图库 → `gallery.jsonl` `3a764664…`→**`15be97ae…`**、`control_gallery.png` `8c07d12a…`→**`585ffb28…`**（1 184 570→1 184 600 B）、`labels.json` **不变**，manifest `git_commit` = `5a9f1bcc…`（构建时 sha，早于本 data commit，符合"提交无法写入自身"） | ✅ 同上（`6535e98..1696873`）；重建命令 `python scripts/prepare_perceptual_dataset.py --offline --force --out-dir 'experiments\p0_perceptual_probe'` |
 | 2026-11-06 | `1696873` | **P0-4.5 Checkpoint B**：E1（`perceptual_features.py` 1520 行）+ E2（`salient_structure.py` 831 行）+ E3（`shape_context_baseline.py` 717 行）+ 四臂契约 `perceptual_methods.py`（137 行）+ E0 适配器 `perceptual_e0.py`（88 行，**产品代码 0 改动**）+ 4 个测试文件 105 项 → **604 passed** | ✅ `git ls-remote origin` = `1696873f4dbc5e5b7a7aedfc7bfa2818e891326f` = `git rev-parse HEAD`（`6535e98..1696873 main -> main`，9 文件全为新增）；提交前 `pytest -o addopts="" -q` 604 passed · `ruff check .` All checks passed · `mypy` no issues in 31 source files |
 | 2026-11-06 | `3ababaf` + `78915ba` | Checkpoint B 收尾两步：`exp:`（新增 `verify_policy_claims.py` + 三臂 POLICY `measurements` 键 + 契约测试钉住指针，5 文件 +362 行）与 `docs:`（TASKS / DECISIONS D48 / experiment_log / notes §12，4 文件 +203 −17）。同 `1696873` 一样是**完整小版本内部**的 commit，不单独核验远程 | ✅ 一并推送 `1696873..78915ba main -> main`，推送后 `git ls-remote origin` = `78915bafe632a3056e6186c021a4dc858a7babd2` = `git rev-parse HEAD`、`git status --short` 无输出；提交前 gate：`pytest -o addopts="" -q` **605 passed** · `ruff check .` All checks passed · `mypy` no issues in 31 source files · `mypy --strict` 对新脚本 clean · `python experiments/p0_perceptual_probe/verify_policy_claims.py` 退出码 0 |
+| 2026-11-18 | `d7283b0` | `docs:` 现状汇总报告 `STATUS_REPORT.md`（1 文件 +173 行）：生产管线 vs 研究资产、四层证据口径、实测结果与出处、P0 门禁状态与复现命令；纯文档，代码与实验产物零改动 | ✅ `git ls-remote origin refs/heads/main` = `d7283b019636e4073fcebc9503594adcd66a3f3f` = `git rev-parse HEAD`（`729849c..d7283b0 main -> main`）；提交前 gate：`pytest -q -o addopts=""` **1042 passed in 137.58s** · `ruff check .` All checks passed · `mypy` no issues in 41 source files |
 
 - 复现命令与证据（P0-3）：`pytest` → 281 passed · `ruff check .` → All checks passed ·
   `mypy` → no issues in 17 source files；
