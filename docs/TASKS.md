@@ -1213,6 +1213,11 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
 
 ## 调试工具扩展：画板一键直接检索（2026-11-18，非产品功能，不跨 P0 门禁）
 
+**检查点：`21acd9c`**（feat，含保真修复 1/2；已推送，`git ls-remote origin refs/heads/main`
+== `git rev-parse HEAD` == 21acd9c42868e6636cd6c82fe00d9b1cbc35605c）。
+门禁：`pytest -q -o addopts=""` 1058 passed / `ruff check .` 全过 / `mypy` 41 文件无问题。
+复现：`python scripts/serve_sketch_search.py --index data/index --port 8765`。
+
 用户选定的快捷检索测试入口：画板画完即出真实 Top-10。**生产代码（`earthglyph/`）零改动、
 真实索引零改动、检索默认参数零改动**；这是 P0-4 调试工具链的扩展，不是 Web 产品开发。
 
