@@ -43,6 +43,8 @@
   轮廓抽取、标准化、检索都在 Python 端。导出的点是画板坐标，但已在导出时把画板向下的
   y 轴翻成数学坐标系（y 向上）——否则交出去的就是一个垂直镜像的形状，而镜像默认不参与匹配。
   轨迹不做任何平滑、补点或模板化：工具的职责是保留你真正画出的形状。
+  画完点<b>“直接检索”</b>可经本地小服务（<code>scripts/serve_sketch_search.py</code>）
+  立即看到真实索引的 Top-10；导出 JSON 交采集脚本的路径不变。
 </p>
 
 <div class="wrap">
@@ -53,6 +55,7 @@
       <button id="clear">清板</button>
       <button id="download" class="primary">导出 JSON 文件</button>
       <button id="copy">复制 JSON</button>
+      <button id="search">直接检索（本地服务）</button>
     </div>
   </div>
 
@@ -81,6 +84,23 @@
     <div class="box">
       <label>命令行（在项目根目录、已激活虚拟环境）</label>
       <textarea id="cli" spellcheck="false" readonly></textarea>
+    </div>
+
+    <div class="box" id="search-panel" hidden>
+      <label>直接检索结果（真实索引 · 生产默认参数）</label>
+      <p id="search-status" class="note" style="margin:0 0 6px"></p>
+      <p id="search-warnings" class="note warn" style="margin:0 0 8px"></p>
+      <canvas id="overlay" width="300" height="300"
+              style="width:300px;height:300px;background:#fff;border:1px solid #e3e6ea;border-radius:4px;cursor:default"></canvas>
+      <table id="hits" style="margin-top:8px"></table>
+      <p class="note" style="margin:8px 0 0">
+        点击行切换叠加图：<span style="color:#a4262c">红虚线 = 你画出的原始笔迹</span>（仅平移 + 统一缩放，质心/RMS 按弧长均匀统计，与检索同帧；不重采样、不平滑），
+        <span style="color:#8a919a">灰细线 = 检索实际使用的标准化轮廓</span>（128 点弧长重采样 + 轻度平滑），
+        <span style="color:#1c6b4f">绿实线 = 候选在匹配器实际拟合姿态下的轮廓</span>。
+        红灰两线的差异就是标准化引入的全部改动；闭弦/平滑等假设会列在上方告警里。
+        D 是归一化边界偏移（形状半径的比例），<b>不是相似度百分比</b>；
+        弱命中告警原样显示。此面板是调试视图，不构成 P0-6 真人数据。
+      </p>
     </div>
   </div>
 </div>
@@ -202,7 +222,7 @@
       note: "raw pointer samples, nothing smoothed or snapped"
     };
     jsonBox.value = JSON.stringify(payload);
-    cliBox.value = "python scripts/search_sketch.py experiments/queries/" +
+    cliBox.value = "python scripts/query_sketch.py experiments/queries/" +
       name.value.replace(/\.json$/i, "") +
       ".json --index data/index --out-dir experiments/p0_retrieval_baseline";
   }
@@ -274,6 +294,167 @@
     URL.revokeObjectURL(url);
   });
   document.getElementById("name").addEventListener("input", summary);
+
+  // —— 直接检索：POST 给本地小服务 scripts/serve_sketch_search.py ——
+  // 服务端用冻结的生产默认参数检索真实索引；这里只渲染，不做任何几何处理。
+  const searchBtn = document.getElementById("search");
+  const panel = document.getElementById("search-panel");
+  const statusEl = document.getElementById("search-status");
+  const warningsEl = document.getElementById("search-warnings");
+  const hitsTable = document.getElementById("hits");
+  const overlay = document.getElementById("overlay");
+  const octx = overlay.getContext("2d");
+  let lastRawPoints = null;
+  let lastStdPoints = null;
+
+  // 仅平移 + 统一缩放，用于把原始笔迹放进与标准化轮廓相同的显示坐标系；
+  // 不重采样、不平滑、不改形状——画的仍是原始点。
+  // 质心/RMS 必须在弧长均匀重采样上统计（与生产 normalize_contour 同帧）：
+  // 指针采样密度不均（手慢处点密），直接对原始点求质心会把红线整体平移
+  // （实测非均匀笔迹可偏移 0.53 倍形状半径）。
+  function displayNormalize(pts) {
+    const closed = pts.concat([pts[0]]);
+    const seg = [];
+    let total = 0;
+    for (let i = 1; i < closed.length; i += 1) {
+      const d = Math.hypot(closed[i][0] - closed[i - 1][0], closed[i][1] - closed[i - 1][1]);
+      seg.push(d); total += d;
+    }
+    const n = 128;
+    const samples = [];
+    let k = 0, acc = 0, mx = 0, my = 0;
+    for (let j = 0; j < n; j += 1) {
+      const target = (j / n) * total;
+      while (k < seg.length - 1 && acc + seg[k] < target) { acc += seg[k]; k += 1; }
+      const t = seg[k] > 0 ? (target - acc) / seg[k] : 0;
+      const x = closed[k][0] + (closed[k + 1][0] - closed[k][0]) * t;
+      const y = closed[k][1] + (closed[k + 1][1] - closed[k][1]) * t;
+      samples.push([x, y]); mx += x; my += y;
+    }
+    mx /= n; my /= n;
+    let acc2 = 0;
+    for (const [x, y] of samples) acc2 += (x - mx) ** 2 + (y - my) ** 2;
+    const r = Math.sqrt(acc2 / n) || 1;
+    return pts.map(([x, y]) => [(x - mx) / r, (y - my) / r]);
+  }
+
+  function drawOverlay(rawPts, stdPts, candidatePts) {
+    let all = rawPts.concat(stdPts);
+    if (candidatePts) all = all.concat(candidatePts);
+    // 三条线都以质心为原点（生产归一化约定），所以画布中心 = 查询质心；
+    // 缩放只由最大绝对范围决定，不用联合包围盒中点（那会把整组推离中心）。
+    let maxAbs = 0;
+    for (const [x, y] of all) maxAbs = Math.max(maxAbs, Math.abs(x), Math.abs(y));
+    const scale = (overlay.width / 2 - 12) / (maxAbs || 1);
+    // 三条线都是 y 向上的坐标，画到画布时翻回 y 向下
+    const map = ([x, y]) => [overlay.width / 2 + x * scale,
+                             overlay.height / 2 - y * scale];
+    octx.clearRect(0, 0, overlay.width, overlay.height);
+    const trace = (pts, color, dash, width) => {
+      octx.beginPath();
+      const [x0, y0] = map(pts[0]);
+      octx.moveTo(x0, y0);
+      for (let i = 1; i < pts.length; i += 1) {
+        const [x, y] = map(pts[i]);
+        octx.lineTo(x, y);
+      }
+      octx.closePath();
+      octx.setLineDash(dash);
+      octx.strokeStyle = color;
+      octx.lineWidth = width;
+      octx.stroke();
+      octx.setLineDash([]);
+    };
+    if (candidatePts) trace(candidatePts, "#1c6b4f", [], 2);
+    trace(stdPts, "#8a919a", [], 1);
+    trace(rawPts, "#a4262c", [5, 4], 2);
+  }
+
+  function renderResults(data, payload) {
+    const hits = data.results || [];
+    lastRawPoints = displayNormalize(payload.points);
+    lastStdPoints = data.query.query_contour.points;
+    const prov = data.provenance || {};
+    statusEl.textContent = "Top-" + hits.length + " · " + data.method +
+      " · 库 " + prov.n_candidates + " 候选 · 检索 " + data.timings.total + " s";
+    const notes = (data.warnings || [])
+      .concat((data.query.query_contour && data.query.query_contour.warnings) || []);
+    warningsEl.textContent = notes.join("；");
+    hitsTable.textContent = "";
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    ["#", "类型", "D", "经纬度"].forEach((text) => {
+      const th = document.createElement("th");
+      th.textContent = text;
+      th.style.textAlign = "left";
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    hitsTable.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    hits.forEach((hit) => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      const cells = [
+        String(hit.rank),
+        hit.subtype,
+        hit.align_distance == null ? "—" : hit.align_distance.toFixed(3),
+        hit.lon.toFixed(5) + ", " + hit.lat.toFixed(5)
+      ];
+      cells.forEach((text, i) => {
+        const td = document.createElement("td");
+        td.textContent = text;
+        if (i === 0) td.className = "k";
+        tr.appendChild(td);
+      });
+      tr.addEventListener("click", () => {
+        for (const row of tbody.rows) row.style.background = "";
+        tr.style.background = "#eef2f7";
+        drawOverlay(lastRawPoints, lastStdPoints, hit.aligned_contour);
+      });
+      tbody.appendChild(tr);
+    });
+    hitsTable.appendChild(tbody);
+    if (hits.length > 0) {
+      tbody.rows[0].style.background = "#eef2f7";
+      drawOverlay(lastRawPoints, lastStdPoints, hits[0].aligned_contour);
+    } else {
+      drawOverlay(lastRawPoints, lastStdPoints, null);
+    }
+  }
+
+  searchBtn.addEventListener("click", async () => {
+    const payload = exportPayload();
+    if (!payload) return;
+    panel.hidden = false;
+    hitsTable.textContent = "";
+    warningsEl.textContent = "";
+    if (location.protocol === "file:") {
+      statusEl.textContent = "file:// 打开无法调用检索：请先运行 python scripts/serve_sketch_search.py，" +
+        "再访问 http://127.0.0.1:8765/";
+      return;
+    }
+    statusEl.textContent = "检索中…";
+    searchBtn.disabled = true;
+    try {
+      const resp = await fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        statusEl.textContent = "提取/检索拒绝：" + data.error + "（按规则重画，程序不替你封口）";
+        return;
+      }
+      renderResults(data, payload);
+    } catch (err) {
+      statusEl.textContent = "无法连接本地检索服务：" + err +
+        "（确认 scripts/serve_sketch_search.py 正在运行）";
+    } finally {
+      searchBtn.disabled = false;
+    }
+  });
 
   redraw();
   summary();
