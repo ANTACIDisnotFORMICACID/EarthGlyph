@@ -1373,3 +1373,22 @@ A2 收集审计、A3 金向量契约、本轮 P0-6 管线 15 条；0 failed 0 sk
 已核验；作者 `ANTACIDisnotFORMICACID <ANTACIDisnotFORMICACID@users.noreply.github.com>`（逐命令 `-c` 注入，未动机器配置）。
 **边界**：无生产默认改动、无阈值调整、无新权重、无真人数据、无 Web UI；
 `data/raw|processed|index` 与历史 CP8 产物零触碰；figures 仅由验证过的文件重画。
+
+**M1 多笔画拼接等价冒烟（2026-11-20，D93）**：新增独立预处理模块
+`earthglyph/geometry/contour_assembly.py`（协议 v2、0.03×RMS 端点容差 + 150° 折角上限、
+受限回溯全局拼接、生产判据复检、歧义不挑选），生产检索数学零改动。等价性判据（D93）：
+同一闭合单笔画按路径顺序拆 2/4 段再拼接，Top-K ID/秩/距离须浮点容差内一致。
+**等价冒烟（真实索引）**：`.venv/Scripts/python.exe scripts/serve_sketch_search.py
+--index data/index --port 8765` + `.venv/Scripts/python.exe
+experiments/m1_equivalence_smoke.py` —— `data/index`（839 候选，Overture release
+2026-10-21.0，bbox -90,44,-89,45），3 条真实闭合轨迹（`ph-lightning/moon/star-fill`，
+n=440/121/71，各自源与许可见其 JSON）单笔 vs 2/4 笔拆分 v2 → **Top-10 候选 ID 全部
+一致，align_distance 差 0.0000**（拆分共享边界点、接头间隙 0，环逐位相同）。
+QuickDraw 开放轨迹（rel gap 0.064–0.237）拆分 → 400 `open_gap`（不桥接明显缺口，如实
+拒绝而非静默闭合）。无随机种子参与（确定性几何）；同 commit 下全量
+`pytest -q -o addopts=""` → **1114 passed**（含 56 条 M1 新测试：拆分保真、乱序/反向/
+非均匀、两环/T/领结/8 字/缺口/孤立/歧义、失败不调检索器 spy、HTTP 400 契约）。
+歧义构造的穷举验证：`experiments/_probe_ambiguity.py`（3 簇 6 笔 → 恰 1 解；凸位端点
+4 车道 → 恰 2 解 → `ambiguous`；非选中配对全部材料性自交，不是被容差藏掉的）。
+**边界**：容差/折角为初始实验值（标注假设/待验证）；v2 输入不进入 P0-6 数据集；
+本冒烟不构成 P0-6 真人评测证据。

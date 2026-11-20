@@ -10,8 +10,8 @@ itself, no path parameters, nothing writable.
 
 Usage:
     python scripts/serve_sketch_search.py [--index data/index] [--port 8765]
-Then open http://127.0.0.1:8765/ in a browser, draw one closed stroke and press
-"直接检索".
+Then open http://127.0.0.1:8765/ in a browser, draw one closed stroke (or up to
+8 strokes that assemble into one closed outline) and press "直接检索".
 """
 
 from __future__ import annotations
@@ -26,6 +26,10 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
+from earthglyph.geometry.contour_assembly import (  # noqa: E402
+    assemble_contour,
+    parse_strokes_payload,
+)
 from earthglyph.retrieval.search import (  # noqa: E402
     IndexHandle,
     load_index_handle,
@@ -39,7 +43,25 @@ LOOPBACK = "127.0.0.1"
 
 
 def run_search(payload: Any, index: IndexHandle) -> dict[str, Any]:
-    """One search with production defaults; raises ValueError on refusal."""
+    """One search with production defaults; raises ValueError on refusal.
+
+    Legacy ``points`` payloads go straight to the frozen production path.
+    Schema-v2 ``strokes`` payloads pass the assembly adapter first; refused or
+    ambiguous assemblies never reach the production searcher.
+    """
+    if isinstance(payload, dict) and "strokes" in payload:
+        strokes, unit = parse_strokes_payload(payload)
+        assembly = assemble_contour(strokes)
+        if assembly.status != "ok":
+            raise ValueError(f"multi-stroke assembly {assembly.status}: {assembly.reason}")
+        assert assembly.contour_points is not None
+        result = search_by_contour(
+            assembly.contour_points,
+            index,
+            closed=True if len(strokes) > 1 else None,
+            unit=unit,
+        )
+        return {"ok": True, **result.to_dict(with_contours=True), "assembly": assembly.to_dict()}
     if not isinstance(payload, dict) or "points" not in payload:
         raise ValueError("expected a sketch export object with a 'points' key")
     result = search_by_contour(

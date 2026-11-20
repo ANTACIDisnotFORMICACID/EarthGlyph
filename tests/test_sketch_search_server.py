@@ -264,3 +264,158 @@ def test_http_body_cap_is_enforced(server: ThreadingHTTPServer) -> None:
         assert data["ok"] is False
     finally:
         conn.close()
+
+# --- M1 multi-stroke adapter (schema v2) --------------------------------------
+
+
+def _box_strokes_payload() -> dict[str, Any]:
+    """The same rectangle as _box_payload, split into its four sides.
+
+    Adjacent strokes share their corner point exactly, so a correct assembly
+    must reproduce the single-stroke baseline bit-for-bit.
+    """
+    points = _box_payload()["points"]
+    strokes = []
+    for side in range(4):
+        chunk = points[side * 10:(side + 1) * 10]
+        chunk.append(points[(side + 1) * 10 % 40])
+        strokes.append({"points": chunk})
+    return {"schema_version": 2, "mode": "contour", "unit": "canvas", "strokes": strokes}
+
+
+def _two_loops_payload() -> dict[str, Any]:
+    def loop(cx: float) -> list[list[float]]:
+        pts = [[cx + 60.0 * np.cos(2 * np.pi * i / 48),
+                260.0 + 60.0 * np.sin(2 * np.pi * i / 48)] for i in range(49)]
+        pts[-1] = list(pts[0])
+        return pts
+
+    return {"schema_version": 2, "mode": "contour", "unit": "canvas",
+            "strokes": [{"points": loop(160.0)}, {"points": loop(360.0)}]}
+
+
+def _ambiguous_payload() -> dict[str, Any]:
+    """Same verified construction as tests/test_multistroke_assembly.py:
+    four nested lanes with fanned endpoints -> exactly 2 valid assemblies."""
+    px, py, qx, qy = 150.0, 260.0, 430.0, 260.0
+    off_p = [(0.0, 2.0), (2.0, 0.0), (0.0, -2.0), (-2.0, 0.0)]
+    off_q = [(0.0, 2.0), (-2.0, 0.0), (0.0, -2.0), (2.0, 0.0)]
+    strokes = []
+    for k, bulge in enumerate((128.0, 40.0, -40.0, -128.0)):
+        p0 = (px + off_p[k][0], py + off_p[k][1])
+        p1 = (qx + off_q[k][0], qy + off_q[k][1])
+        pts = [[p0[0] + (p1[0] - p0[0]) * (i / 32),
+                p0[1] + (p1[1] - p0[1]) * (i / 32)
+                + 4 * bulge * (i / 32) * (1 - i / 32)] for i in range(33)]
+        strokes.append({"points": pts})
+    return {"schema_version": 2, "mode": "contour", "unit": "canvas",
+            "strokes": strokes}
+
+
+def test_multistroke_box_matches_single_stroke_baseline(handle: IndexHandle) -> None:
+    baseline = bridge.run_search(_box_payload(), handle)
+    multi = bridge.run_search(_box_strokes_payload(), handle)
+    assert multi["ok"] is True
+    assert multi["results"] == baseline["results"]
+    assert multi["query"]["query_contour"]["points"] == \
+        baseline["query"]["query_contour"]["points"]
+    assembly = multi["assembly"]
+    assert assembly["status"] == "ok"
+    assert len(assembly["junctions"]) == 4
+    assert all(j["correction"] <= 1e-9 for j in assembly["junctions"])
+    assert assembly["contour_points"] is not None
+
+
+def test_multistroke_keeps_frozen_production_defaults(handle: IndexHandle) -> None:
+    data = bridge.run_search(_box_strokes_payload(), handle)
+    params = data["params"]
+    assert params["method"] == "fourier_align"
+    assert params["top_k"] == 10
+    assert params["shortlist_size"] == 200
+    assert params["allow_mirror"] is False
+    assert params["smoothing"] == "light"
+
+
+def test_multistroke_failure_never_calls_search(
+    handle: IndexHandle, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def boom(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("production search must not run for refused assemblies")
+
+    monkeypatch.setattr(bridge, "search_by_contour", boom)
+    for payload in (_two_loops_payload(), _ambiguous_payload()):
+        with pytest.raises(ValueError):
+            bridge.run_search(payload, handle)
+
+
+def test_multistroke_ambiguous_is_refused_with_reason(handle: IndexHandle) -> None:
+    with pytest.raises(ValueError, match="ambiguous"):
+        bridge.run_search(_ambiguous_payload(), handle)
+
+
+def test_v2_single_stroke_matches_old_format(handle: IndexHandle) -> None:
+    old = bridge.run_search(_box_payload(), handle)
+    payload = {"schema_version": 2, "mode": "contour", "unit": "canvas",
+               "strokes": [{"points": _box_payload()["points"]}]}
+    new = bridge.run_search(payload, handle)
+    assert new["results"] == old["results"]
+
+
+def test_old_points_path_never_enters_assembly(
+    handle: IndexHandle, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def boom(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("legacy points path must not touch the assembly module")
+
+    monkeypatch.setattr(bridge, "assemble_contour", boom)
+    data = bridge.run_search(_box_payload(), handle)
+    assert data["ok"] is True
+    assert "assembly" not in data
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"schema_version": 1, "strokes": [{"points": [[0, 0], [1, 1]]}]},
+        {"schema_version": 2, "strokes": []},
+        {"schema_version": 2, "strokes": [{"points": [[0, 0]]}]},
+        {"schema_version": 2, "strokes": [{"points": [[0, 0], [1, 1]]}],
+         "points": [[0, 0], [1, 1]]},
+        {"schema_version": 2, "mode": "road",
+         "strokes": [{"points": [[0, 0], [1, 1]]}]},
+    ],
+)
+def test_malformed_v2_payloads_raise_value_error(
+    handle: IndexHandle, payload: Any
+) -> None:
+    with pytest.raises(ValueError):
+        bridge.run_search(payload, handle)
+
+
+def test_http_multistroke_round_trip(server: ThreadingHTTPServer) -> None:
+    body = json.dumps(_box_strokes_payload()).encode("utf-8")
+    status, data = _request(server, "POST", "/search", body,
+                            {"Content-Type": "application/json"})
+    assert status == 200
+    assert isinstance(data, dict) and data["ok"] is True
+    assert data["results"]
+    assert data["assembly"]["status"] == "ok"
+    assert len(data["assembly"]["junctions"]) == 4
+
+
+def test_http_multistroke_refusal_is_400_with_reason(server: ThreadingHTTPServer) -> None:
+    body = json.dumps(_two_loops_payload()).encode("utf-8")
+    status, data = _request(server, "POST", "/search", body,
+                            {"Content-Type": "application/json"})
+    assert status == 400
+    assert isinstance(data, dict) and data["ok"] is False
+    assert data["error"]
+
+
+def test_http_multistroke_ambiguous_is_400(server: ThreadingHTTPServer) -> None:
+    body = json.dumps(_ambiguous_payload()).encode("utf-8")
+    status, data = _request(server, "POST", "/search", body,
+                            {"Content-Type": "application/json"})
+    assert status == 400
+    assert isinstance(data, dict) and data["ok"] is False
+    assert "ambiguous" in data["error"]

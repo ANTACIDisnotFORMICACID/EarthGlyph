@@ -45,6 +45,9 @@
   轨迹不做任何平滑、补点或模板化：工具的职责是保留你真正画出的形状。
   画完点<b>“直接检索”</b>可经本地小服务（<code>scripts/serve_sketch_search.py</code>）
   立即看到真实索引的 Top-10；导出 JSON 交采集脚本的路径不变。
+  <b>M1 多笔画</b>：1 笔仍导出旧格式；2–8 笔导出 schema v2（<code>strokes</code>），
+  由 Python 端拼接成一条闭合轮廓——开口过大、自交或存在多种同样合理的拼法时会拒绝并要求重画，
+  程序不替你封口，也不在歧义时替你挑选。多笔输入不进入 P0-6 真人数据采集。
 </p>
 
 <div class="wrap">
@@ -64,15 +67,17 @@
       <label for="name">导出文件名</label>
       <input id="name" type="text" value="sketch-01.json">
       <table style="margin-top:8px">
-        <tr><td class="k">笔画数</td><td id="strokes">0（V1 只接受 1 条封闭轮廓）</td></tr>
+        <tr><td class="k">笔画数</td><td id="strokes">0（支持 1–8 笔，多笔自动拼接）</td></tr>
         <tr><td class="k">采样点数</td><td id="points">0</td></tr>
         <tr><td class="k">首尾间距</td><td id="gap">—</td></tr>
         <tr><td class="k">判定</td><td id="verdict">先画一条封闭轮廓</td></tr>
       </table>
       <p class="note" style="margin:8px 0 0">
-        “首尾间距”按形状的均方根半径归一。Python 端只有两个数量级会拒绝：
-        多于 8 笔会报歧义；间距超过 0.15 且不是采样接缝时报 <code>open stroke</code>，
-        要求重画——这里提前显示，是为了让你当场重画，而不是让程序替你封口。
+        单笔：“首尾间距”按形状的均方根半径归一；间距超过 0.15 且不是采样接缝时报
+        <code>open stroke</code>，要求重画——这里提前显示，是为了让你当场重画，而不是让程序替你封口。
+        多笔（2–8）：Python 端按端点距离（≤0.03×形状尺度）与转角（≤150°）找接头，
+        全局搜索把所有笔画恰好用一次拼成一条简单闭合环；明显缺口不桥接，
+        多种同样合理的拼法报 <code>ambiguous</code>，同样要求重画。
       </p>
     </div>
 
@@ -94,10 +99,11 @@
               style="width:300px;height:300px;background:#fff;border:1px solid #e3e6ea;border-radius:4px;cursor:default"></canvas>
       <table id="hits" style="margin-top:8px"></table>
       <p class="note" style="margin:8px 0 0">
-        点击行切换叠加图：<span style="color:#a4262c">红虚线 = 你画出的原始笔迹</span>（仅平移 + 统一缩放，质心/RMS 按弧长均匀统计，与检索同帧；不重采样、不平滑），
+        点击行切换叠加图：<span style="color:#a4262c">红虚线 = 你画出的原始笔迹</span>（仅平移 + 统一缩放，质心/RMS 按弧长均匀统计，与检索同帧；不重采样、不平滑；多笔模式逐笔开放绘制，不自动闭合），
+        <span style="color:#c77700">琥珀点/短线 = 系统生成的接头</span>（仅多笔：吸附点与两端点间的短连接段，是假设不是笔迹），
         <span style="color:#8a919a">灰细线 = 检索实际使用的标准化轮廓</span>（128 点弧长重采样 + 轻度平滑），
         <span style="color:#1c6b4f">绿实线 = 候选在匹配器实际拟合姿态下的轮廓</span>。
-        红灰两线的差异就是标准化引入的全部改动；闭弦/平滑等假设会列在上方告警里。
+        红灰两线的差异就是标准化（多笔时还含拼接吸附）引入的全部改动；闭弦/平滑/吸附等假设会列在上方告警里。
         D 是归一化边界偏移（形状半径的比例），<b>不是相似度百分比</b>；
         弱命中告警原样显示。此面板是调试视图，不构成 P0-6 真人数据。
       </p>
@@ -111,6 +117,7 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const MAX_STROKES = 8;
+  const MAX_TOTAL_POINTS = 4096;  // 与 contour_assembly.MAX_TOTAL_POINTS 一致
   const SAMPLE_MIN_PX = 1.5;
 
   // strokes[i] = {points: [{x, y}, ...]}，一条笔画 = 一次按下到抬起
@@ -168,6 +175,21 @@
     ctx.fill();
   }
 
+  // schema v2（D93 冻结）：逐笔原始点，拼接在 Python 端。y 翻转与单笔相同，
+  // 只在导出时发生一次；这里不做任何闭合、补点或排序。
+  function multiPayload() {
+    return {
+      schema_version: 2,
+      mode: "contour",
+      unit: "canvas",
+      y_axis: "up (flipped from the canvas' downward axis at export)",
+      canvas: { width: canvas.width, height: canvas.height },
+      tool: "tools/sketch_pad.html",
+      note: "raw pointer samples per stroke; assembly happens server-side",
+      strokes: strokes.map(s => ({ points: s.points.map(p => [p.x, canvas.height - p.y]) }))
+    };
+  }
+
   function summary() {
     const name = document.getElementById("name");
     const strokesCell = document.getElementById("strokes");
@@ -178,17 +200,30 @@
     const cliBox = document.getElementById("cli");
 
     strokesCell.textContent = String(strokes.length) +
-      (strokes.length === 1 ? "" : "（V1 只接受 1 条封闭轮廓）");
+      (strokes.length === 1 ? "" : "（支持 1–8 笔，多笔自动拼接）");
 
-    if (strokes.length === 0 || strokes.length > 1) {
-      pointsCell.textContent = String(strokes.reduce((n, s) => n + s.points.length, 0));
+    if (strokes.length === 0) {
+      pointsCell.textContent = "0";
       gapCell.textContent = "—";
-      verdictCell.className = strokes.length > 1 ? "bad" : "";
-      verdictCell.textContent = strokes.length > 1
-        ? "多笔：Python 端会以“一条轮廓”为由拒绝，不会替你挑一条"
-        : "先画一条封闭轮廓";
+      verdictCell.className = "";
+      verdictCell.textContent = "先画一条封闭轮廓（或 2–8 笔分段轮廓）";
       jsonBox.value = "";
       cliBox.value = "";
+      return;
+    }
+
+    if (strokes.length > 1) {
+      const total = strokes.reduce((n, s) => n + s.points.length, 0);
+      pointsCell.textContent = String(total) + "（" + strokes.length + " 笔合计）";
+      gapCell.textContent = "—（多笔看拼接判定）";
+      const tooMany = total > MAX_TOTAL_POINTS;
+      verdictCell.className = tooMany ? "bad" : "ok";
+      verdictCell.textContent = tooMany
+        ? "总点数超过 " + MAX_TOTAL_POINTS + "，Python 端会拒绝：请撤销部分笔画"
+        : "多笔轮廓：检索时由 Python 端拼接；开口/自交/歧义会拒绝并要求重画";
+      jsonBox.value = JSON.stringify(multiPayload());
+      cliBox.value = "多笔（schema v2）目前只走“直接检索”（本地服务）；" +
+        "采集脚本路径仍只接受单笔旧格式，多笔输入不进入 P0-6 数据集。";
       return;
     }
 
@@ -228,8 +263,17 @@
   }
 
   function exportPayload() {
-    if (strokes.length !== 1 || strokes[0].points.length < 8) {
-      alert("需要恰好一条、至少 8 个点的轮廓才能导出。");
+    if (strokes.length === 0) {
+      alert("先画一条封闭轮廓（或 2–8 笔分段轮廓）。");
+      return null;
+    }
+    if (strokes.length === 1 && strokes[0].points.length < 8) {
+      alert("单笔轮廓至少需要 8 个点才能导出。");
+      return null;
+    }
+    if (strokes.length > 1 &&
+        strokes.reduce((n, s) => n + s.points.length, 0) > MAX_TOTAL_POINTS) {
+      alert("总点数超过 " + MAX_TOTAL_POINTS + "，请撤销部分笔画。");
       return null;
     }
     return JSON.parse(document.getElementById("json").value);
@@ -306,13 +350,14 @@
   const octx = overlay.getContext("2d");
   let lastRawPoints = null;
   let lastStdPoints = null;
+  let lastMulti = null;  // {strokes, junctions, std}（已映射到显示帧）或 null
 
   // 仅平移 + 统一缩放，用于把原始笔迹放进与标准化轮廓相同的显示坐标系；
   // 不重采样、不平滑、不改形状——画的仍是原始点。
   // 质心/RMS 必须在弧长均匀重采样上统计（与生产 normalize_contour 同帧）：
   // 指针采样密度不均（手慢处点密），直接对原始点求质心会把红线整体平移
   // （实测非均匀笔迹可偏移 0.53 倍形状半径）。
-  function displayNormalize(pts) {
+  function frameStats(pts) {
     const closed = pts.concat([pts[0]]);
     const seg = [];
     let total = 0;
@@ -335,6 +380,11 @@
     let acc2 = 0;
     for (const [x, y] of samples) acc2 += (x - mx) ** 2 + (y - my) ** 2;
     const r = Math.sqrt(acc2 / n) || 1;
+    return { mx, my, r };
+  }
+
+  function displayNormalize(pts) {
+    const { mx, my, r } = frameStats(pts);
     return pts.map(([x, y]) => [(x - mx) / r, (y - my) / r]);
   }
 
@@ -370,16 +420,84 @@
     trace(rawPts, "#a4262c", [5, 4], 2);
   }
 
+  // 多笔叠加：每笔原始笔迹单独画成红虚线开放折线（不闭合——笔与笔之间的
+  // 连接是系统假设，用琥珀色标出，绝不冒充用户笔迹）。显示帧与检索同帧：
+  // 质心/RMS 取自拼接环的弧长均匀 128 采样（frameStats），画布中心 = 查询质心。
+  function drawOverlayMulti(candidatePts) {
+    const m = lastMulti;
+    let all = m.std.slice();
+    if (candidatePts) all = all.concat(candidatePts);
+    for (const s of m.strokes) all = all.concat(s);
+    for (const j of m.junctions) all.push(j.from, j.to, j.snap);
+    let maxAbs = 0;
+    for (const [x, y] of all) maxAbs = Math.max(maxAbs, Math.abs(x), Math.abs(y));
+    const scale = (overlay.width / 2 - 12) / (maxAbs || 1);
+    const map = ([x, y]) => [overlay.width / 2 + x * scale,
+                             overlay.height / 2 - y * scale];
+    octx.clearRect(0, 0, overlay.width, overlay.height);
+    const trace = (pts, color, dash, width, close) => {
+      octx.beginPath();
+      const [x0, y0] = map(pts[0]);
+      octx.moveTo(x0, y0);
+      for (let i = 1; i < pts.length; i += 1) {
+        const [x, y] = map(pts[i]);
+        octx.lineTo(x, y);
+      }
+      if (close) octx.closePath();
+      octx.setLineDash(dash);
+      octx.strokeStyle = color;
+      octx.lineWidth = width;
+      octx.stroke();
+      octx.setLineDash([]);
+    };
+    if (candidatePts) trace(candidatePts, "#1c6b4f", [], 2, true);
+    trace(m.std, "#8a919a", [], 1, true);
+    for (const j of m.junctions) trace([j.from, j.to], "#c77700", [2, 3], 1.5, false);
+    for (const s of m.strokes) trace(s, "#a4262c", [5, 4], 2, false);
+    octx.fillStyle = "#c77700";
+    for (const j of m.junctions) {
+      const [x, y] = map(j.snap);
+      octx.beginPath();
+      octx.arc(x, y, 3.5, 0, Math.PI * 2);
+      octx.fill();
+    }
+  }
+
   function renderResults(data, payload) {
     const hits = data.results || [];
-    lastRawPoints = displayNormalize(payload.points);
     lastStdPoints = data.query.query_contour.points;
     const prov = data.provenance || {};
-    statusEl.textContent = "Top-" + hits.length + " · " + data.method +
+    let status = "Top-" + hits.length + " · " + data.method +
       " · 库 " + prov.n_candidates + " 候选 · 检索 " + data.timings.total + " s";
+    if (payload.strokes && data.assembly && data.assembly.contour_points) {
+      // 多笔：显示帧取自服务端拼接环（与检索输入同一几何），逐笔映射原始点
+      const asm = data.assembly;
+      const { mx, my, r } = frameStats(asm.contour_points);
+      const mapPts = pts => pts.map(([x, y]) => [(x - mx) / r, (y - my) / r]);
+      lastMulti = {
+        strokes: payload.strokes.map(s => mapPts(s.points)),
+        junctions: asm.junctions.map(j => ({
+          from: mapPts([j.from_point])[0],
+          to: mapPts([j.to_point])[0],
+          snap: mapPts([j.snap_point])[0]
+        })),
+        std: lastStdPoints
+      };
+      lastRawPoints = null;
+      status += " · " + asm.n_strokes + " 笔拼接（" + asm.junctions.length + " 个接头）";
+    } else {
+      lastMulti = null;
+      lastRawPoints = displayNormalize(payload.points);
+    }
+    statusEl.textContent = status;
     const notes = (data.warnings || [])
-      .concat((data.query.query_contour && data.query.query_contour.warnings) || []);
+      .concat((data.query.query_contour && data.query.query_contour.warnings) || [])
+      .concat((data.assembly && data.assembly.warnings) || []);
     warningsEl.textContent = notes.join("；");
+    const drawHit = (candidate) => {
+      if (lastMulti) drawOverlayMulti(candidate);
+      else drawOverlay(lastRawPoints, lastStdPoints, candidate);
+    };
     hitsTable.textContent = "";
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
@@ -410,16 +528,16 @@
       tr.addEventListener("click", () => {
         for (const row of tbody.rows) row.style.background = "";
         tr.style.background = "#eef2f7";
-        drawOverlay(lastRawPoints, lastStdPoints, hit.aligned_contour);
+        drawHit(hit.aligned_contour);
       });
       tbody.appendChild(tr);
     });
     hitsTable.appendChild(tbody);
     if (hits.length > 0) {
       tbody.rows[0].style.background = "#eef2f7";
-      drawOverlay(lastRawPoints, lastStdPoints, hits[0].aligned_contour);
+      drawHit(hits[0].aligned_contour);
     } else {
-      drawOverlay(lastRawPoints, lastStdPoints, null);
+      drawHit(null);
     }
   }
 
@@ -444,7 +562,8 @@
       });
       const data = await resp.json();
       if (!data.ok) {
-        statusEl.textContent = "提取/检索拒绝：" + data.error + "（按规则重画，程序不替你封口）";
+        statusEl.textContent = "提取/拼接/检索拒绝：" + data.error +
+          "（按规则重画：可撤销最后一笔或清板；程序不替你封口，歧义时也不替你挑选）";
         return;
       }
       renderResults(data, payload);

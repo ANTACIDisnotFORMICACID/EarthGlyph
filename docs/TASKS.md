@@ -1282,3 +1282,53 @@ Git 检查点：修复提交 `44d8c08`（15 files / +3 424 / −367），已推�
   (156.1,148.7)/(158.2,149.9)/(163.4,147.1)，聚于画布中心 (150,150) ±7 px
   （修复前红线应偏约 58 px）；Top-1 D=0.036 强命中；桥接测试 16/16 复跑通过。
   本轮零 Python 改动，全量门禁沿用当轮 1058 passed 结果。
+
+## M1 多笔画闭合轮廓输入（2026-11-20，调试画板能力扩展，不跨 P0 门禁）
+
+**范围**：在不修改生产检索算法/默认参数的前提下，为调试画板与本地检索桥增加 2–8 笔
+闭合轮廓输入与自动拼接。生产链路（`fourier_align / top_k=10 / shortlist=200 /
+smoothing=light / allow_mirror=False`、128 点契约、旧 `points` JSON、P0-5 产物、
+P0-6 冻结协议）一律未动；v2 输入不进入 P0-6 真人数据集。
+
+**交付**：
+- `earthglyph/geometry/contour_assembly.py`（新模块，D93 冻结）：协议 v2 解析、
+  ≤8 笔/≤4096 点、全局尺度=全部点 RMS；端点连接容差 0.03×尺度 + 折角 ≤150°
+  （初始实验值，标注假设/待验证）；受限回溯找用全部笔画恰好一次的简单闭合环，
+  0 解→拒绝（附原因码）、1 解→ok、≥2 解→ambiguous 不挑选；候选用生产
+  `_self_intersection_info` + `contour_from_points` 复检；输出闭合点列首尾严格重复
+  （防 `close_trace` 吞末点）。拒绝码：`invalid_input / too_many_strokes /
+  too_many_points / degenerate_stroke / closed_loop_with_extras / open_gap /
+  no_legal_assembly / self_intersection / degenerate_shape / ambiguous /
+  search_complexity`。
+- `scripts/serve_sketch_search.py`：`strokes` 分支 → 拼接 → 拒绝/歧义不调生产检索器
+  （spy 测试钉住）→ `search_by_contour`；响应含 `assembly` 审计字段（原始笔画、
+  遍历序、逐接头端点/吸附点/修正量/折角）。回环绑定与 1 MiB 上限未动。
+- `tools/sketch_pad.html`：1 笔仍导出旧格式；2–8 笔导出 v2；状态栏显示笔画数/拼接
+  状态/拒绝原因；叠加图红=每条原始笔迹（开放折线，不互连）、琥珀=系统接头标记与
+  补接线（非红）、灰=拼接+标准化、绿=候选；显示帧沿用 11-18 质心/RMS 修复。
+- 测试：`tests/test_multistroke_assembly.py`（42 条：2/3/4/8 笔拆分保真、乱序/反向/
+  非均匀密度、等价性、两环/T 分支/领结/8 字/明显缺口/孤立笔画/歧义/退化、确定性、
+  解析拒绝）+ `test_sketch_search_server.py` M1 节（等价逐位一致、失败不调检索器、
+  旧路径绕过新模块、HTTP 新旧成功/拒绝/歧义 400）。
+- `experiments/_probe_ambiguity.py`：歧义构造的穷举验证（3 簇 6 笔→恰 1 解；
+  凸位端点 4 车道→恰 2 解 ambiguous），测试用例由此构造冻结。
+- `experiments/m1_equivalence_smoke.py`：真实索引等价冒烟。
+
+**验证（全部实跑）**：
+- `pytest -q -o addopts=""` → **1114 passed**（上轮 1058；+56 M1，0 failed）。
+- `ruff check .` 全过；`mypy` 42 源文件无问题；`mypy --strict scripts/serve_sketch_search.py` 无问题。
+- 真实索引冒烟（839 候选，`data/index`）：3 条真实闭合轨迹（ph-lightning/moon/star，
+  各自源与许可见其 JSON）单笔 vs 2/4 笔拆分 v2，经 127.0.0.1:8765 桥 →
+  Top-10 候选 ID 全部一致、align_distance 差 **0.0000**（拆分共享边界点、间隙 0）。
+  QuickDraw 开放轨迹（rel gap 0.06–0.24）拆分被正确 400 拒绝（不桥接明显缺口）。
+- 浏览器实测（127.0.0.1:8765 + DOM/像素质心核验）：4 笔矩形 → v2 导出、
+  "4 笔拼接（4 个接头）"、Top-10、四色像素质心核验（红 1454/琥珀 176/灰 579/绿 2449）；
+  行切换重画；撤销 4→3、清板→0；1 笔仍导出旧格式且检索走旧路径（琥珀 0）；
+  两笔自闭环 → 400 `closed_loop_with_extras`；角点 6 px 缺口 → 400 `open_gap`
+  列出孤立端点；角点 2 px 缺口 → 拼接成功且告警"4 接头各修 1.41 px，连接线是假设
+  非笔迹"；往返自叠轨迹 → 生产退化拒绝如实透传。
+- 已知局限（如实记录，非缺陷）：容差与折角上限为初始实验值；歧义判定按"接头配对
+  集合"划分，几何上几乎相同但配对不同的两解也会判歧义；多笔画不处理自交拓扑输入
+  （材料性自交直接拒绝）；本工具改进不构成 P0-6 证据。
+
+**Git 检查点**：（见下方追加记录）
