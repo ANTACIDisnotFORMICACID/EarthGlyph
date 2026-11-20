@@ -28,7 +28,6 @@ Run (server must be up):
 from __future__ import annotations
 
 import json
-import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -81,7 +80,7 @@ def main() -> int:
             ds = [h["align_distance"] for h in data["results"]]
             asm = data["assembly"]
             same = ids == base_ids
-            maxdd = max((abs(a - b) for a, b in zip(ds, base_d)), default=0.0)
+            maxdd = max((abs(a - b) for a, b in zip(ds, base_d, strict=False)), default=0.0)
             close = len(ds) == len(base_d) and maxdd <= TOL
             print(f"{name} k={k}: status={asm['status']} "
                   f"junctions={len(asm['junctions'])} ids_match={same} max|dD|={maxdd:.4f}")

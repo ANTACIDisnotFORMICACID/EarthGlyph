@@ -92,7 +92,20 @@
 
 ## 6. Agent Skills
 
-见 [`SKILLS.md`](SKILLS.md)。三个 Skill（gdal / shapely / earthglyph-retrieval）均已导入 `.qoder/skills/` 并被 Qoder 动态发现加载。
+项目级 Skills 目录 `.qoder/skills/`（Qoder 动态发现加载，无需重启）。
+**Skill 是工作流说明，不是运行库本身**：装 `gdal` Skill ≠ 装 GDAL CLI，装 `shapely`
+Skill ≠ 装 Python `shapely` 包；运行时依赖分别由系统、`pyproject.toml`、`web/package.json`
+管理（本文件 §5、§3、§4）。
+
+| Skill | 来源 | 验证 | 用途 |
+|-------|------|------|------|
+| `gdal` | github.com/isaaccorley/geospatial-skills（tarball 手动导入，git clone 被网络阻断） | ✅ 出现在 Qoder 可用列表 | 数据检查 / GIS 格式转换 / CRS；运行时 GDAL CLI 见 §5（未安装，非阻塞） |
+| `shapely` | github.com/znlgis/opengis-skills（tarball 手动导入） | ✅ 出现在 Qoder 可用列表 | 几何有效性 / make_valid / 边界提取，服务 `earthglyph/geometry` |
+| `earthglyph-retrieval` | 本项目自定义（不发布外部市场） | ✅ 出现在 Qoder 可用列表 | 检索实验工作流：强制真实数据与可复现，禁止伪造结果 |
+
+限制与更新：Skill 内容为外部参考，不得覆盖 `AGENTS.md` 最高规则；第三方 Skill 更新用
+`https://codeload.github.com/<owner>/<repo>/tar.gz/refs/heads/main` 下载后覆盖
+`.qoder/skills/<name>/`；自定义 Skill 直接编辑其 `SKILL.md`；更新后确认仍出现在可用列表。
 
 ## 7. 复现环境的命令
 

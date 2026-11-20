@@ -111,6 +111,6 @@ git remote set-url origin https://github.com/ANTACIDisnotFORMICACID/EarthGlyph.g
 - 里程碑：`docs/ROADMAP.md`
 - 决策记录：`docs/DECISIONS.md`
 - 当前任务：`docs/TASKS.md`
-- 环境与版本：`docs/ENVIRONMENT.md`
-- Skills 记录：`docs/SKILLS.md`
+- 历史检查点与状态快照（归档）：`docs/TASKS_HISTORY.md`
+- 环境与版本（含 Agent Skills 记录）：`docs/ENVIRONMENT.md`
 - 完整原始设计方案：`docs/DESIGN_V1.md`
