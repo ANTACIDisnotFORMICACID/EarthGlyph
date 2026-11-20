@@ -1331,4 +1331,14 @@ P0-6 冻结协议）一律未动；v2 输入不进入 P0-6 真人数据集。
   集合"划分，几何上几乎相同但配对不同的两解也会判歧义；多笔画不处理自交拓扑输入
   （材料性自交直接拒绝）；本工具改进不构成 P0-6 证据。
 
-**Git 检查点**：（见下方追加记录）
+**Git 检查点**：`12b4c01`（feat: multi-stroke closed-contour input with audited assembly，
+2026-11-20 推送 `bd5a7b9..12b4c01 main -> main`；`git ls-remote origin refs/heads/main` ==
+`git rev-parse HEAD` == `12b4c0192de8bb1603c2f5e628e1f77920f53a57` 已核验；作者
+`ANTACIDisnotFORMICACID <ANTACIDisnotFORMICACID@users.noreply.github.com>`（逐命令 `-c` 注入））。
+复现命令：`.venv/Scripts/python.exe scripts/serve_sketch_search.py --index data/index
+--port 8765` + `.venv/Scripts/python.exe experiments/m1_equivalence_smoke.py`（真实索引
+等价）；`.venv/Scripts/python.exe experiments/_probe_ambiguity.py`（歧义构造穷举）；
+门禁：`.venv/Scripts/python.exe -m pytest -q -o addopts=""` → 1114 passed、
+`-m ruff check .` 全过、`-m mypy` 42 文件无问题、`-m mypy --strict
+scripts/serve_sketch_search.py` 无问题。索引数据未重建（`data/index` 沿用 Overture
+release 2026-10-21.0 构建产物，本轮零触碰）。
