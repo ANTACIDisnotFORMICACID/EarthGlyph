@@ -76,3 +76,49 @@ candidate_id 与 row 泄漏。
 协议 §2.3"题目记入 session manifest"collector 未实现：§6 归因判据需要目标
 登记；评分器缺 `--targets` 时明示 not_computed。采集前是否给 collector 加
 题目字段 = 协议工具设计决策（SCORING_GUIDE §6）。
+
+## 3. Phase D — 静态部署与浏览器检索可行性（2026-11-21）
+
+**结论：静态导出 + 跨语言检索链 VERIFIED（真实索引，粗筛级）；Vite 确定性构建
+VERIFIED；本地静态服务冒烟 NOT RUN（本轮未做浏览器端到端）；完整 align 精排
+移植判定为超出 P0 技术验证边界（复杂度报告见下）。**
+
+### 3.1 交付
+
+| 文件 | 内容 | 验证 |
+|---|---|---|
+| `scripts/export_static_index.py` | 真实索引 → 自包含 JSON（Float32 特征/128 点轮廓/ID/经纬度/血缘） | 839 候选导出实测，sha256 记录 |
+| `scripts/make_golden_retrieval_vectors.py` | 全链路 golden 向量生成器（生产函数直跑） | 与 export 同索引生成 |
+| `web/src/search/golden_retrieval.json` | golden 向量：270 点轨迹 → 重采样/平滑/归一/16 谐波/几何 4 统计/真实索引 Top-10 | Python 侧再生可复现 |
+| `web/src/search/retrieval.ts` | TS 端生产链移植（ensureCcw/arcLengthResample/smoothCyclic/normalize/harmonicAmplitudes/shapeMetrics（含单调链凸包+旋转卡壳）/coarseShortlist） | 17 vitest 全过 |
+| `web/src/search/retrieval.test.ts` | 契约测试（逐级 1e-9 容差 + 真实导出全库 Top-10 行与距离逐位一致） | 17 vitest 全过 |
+
+### 3.2 跨语言等价实测（核心数字）
+
+- 重采样/平滑/归一化：每点绝对/相对差 < 1e-9。
+- 16 个 Fourier 幅度 + 4 个几何统计（含凸包、最小旋转矩形）：相对差 < 1e-9。
+- **真实索引粗筛 Top-10**：TS `coarseShortlist`（839×16 Float32）与 Python
+  生产 `coarse.rank` 行序列完全一致（358, 144, 113, 82, 342, 234, 766, 252,
+  302, 84），距离相对差 < 1e-9。candidate_id 随行一致。
+- TS DFT 为 O(N²) 直排（N=128，~16k 复数运算/次），无需 FFT 库依赖。
+
+### 3.3 Vite 构建确定性
+
+两次相隔数小时的干净构建产物哈希相同（`index-D5IlZnSq.js` 142.79 kB，
+gzip 46.14 kB）→ 内容寻址未变，构建确定性 VERIFIED。
+
+### 3.4 范围与未做（如实）
+
+- **align 精排（循环移位+旋转对齐+Chamfer）未移植**：生产精排含
+  循环互相关 + 逐对 Chamfer 重排（`earthglyph/retrieval/alignment.py`
+  + `chamfer.py`），是查询时 CPU 大头；完整移植+数值等价验证估计
+  1–2 天工程量。判定：**超出 P0 技术验证边界，保留给 P1**（简报 D3 允许）。
+  P1 风险记录：精排若在 Worker 中用 O(N²) 直排需 ~839×128×128 距离计算，
+  预估 < 1 s（Worker 中可接受），但**未实测**。
+- **本地静态服务冒烟（D4-3）NOT RUN**：未起 vite preview + 浏览器加载
+  static_index.json 走 fetch 路径（本轮 TS 侧直接从文件系统读）。留给
+  下一个检查点或 CI。
+- **Qoder Sites 实际发布 NOT RUN**：需账号授权，按简报不擅自发布。
+- static_index.json（7.4 MB）不入库（数据产物，可由脚本从 data/index 复现，
+  sha256=6e7c6baf063c7016d7f5704d5ae1d53b6d4f3d5c8448cfd9c761e70c54490a13；
+  导出命令写在脚本 docstring）。

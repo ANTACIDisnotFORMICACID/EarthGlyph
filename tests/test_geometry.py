@@ -512,3 +512,33 @@ def test_normalize_contour_matches_the_web_golden_vector() -> None:
     raw = np.asarray(golden["input_points"], dtype=float)
     expected = np.asarray(golden["expected_output_points"], dtype=float)
     assert np.array_equal(normalize_contour(raw), expected)
+
+
+def test_golden_retrieval_file_regenerates_byte_identical(tmp_path: None) -> None:
+    """scripts/make_golden_retrieval_vectors.py must reproduce the committed
+    golden_retrieval.json from data/index exactly — the cross-language contract
+    is only meaningful if regeneration is deterministic."""
+    import json
+    import subprocess
+    import sys
+
+    index_dir = Path("data/index")
+    if not (index_dir / "data_manifest.json").is_file():
+        pytest.skip("real index not built — golden regeneration needs data/index")
+    committed = (
+        Path(__file__).resolve().parents[1] / "web" / "src" / "search"
+        / "golden_retrieval.json"
+    )
+    if not committed.is_file():
+        pytest.skip("golden_retrieval.json not generated yet")
+    out = Path("experiments/p0_7_static_export/_regen_check.json")
+    subprocess.run(
+        [sys.executable, "scripts/make_golden_retrieval_vectors.py",
+         "--index", str(index_dir), "--out", str(out)],
+        check=True, capture_output=True,
+    )
+    try:
+        assert json.loads(committed.read_text(encoding="utf-8")) == json.loads(
+            out.read_text(encoding="utf-8"))
+    finally:
+        out.unlink(missing_ok=True)

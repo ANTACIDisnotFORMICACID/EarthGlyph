@@ -91,3 +91,7 @@ experiments/p0_sampling_fidelity_294/processed_n*/
 # artefacts are the anonymized query set, aggregates and the judgement
 # materials, never this directory.
 experiments/p0_6_human_queries/sessions/
+
+# P0-7 static-export experiment: the 7.4 MB JSON is a reproducible data
+# product (scripts/export_static_index.py from data/index), not source truth
+experiments/p0_7_static_export/static_index.json

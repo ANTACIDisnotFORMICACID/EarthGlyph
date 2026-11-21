@@ -22,3 +22,16 @@
   全量门禁通过后提交推送（见 RESULTS §2 的 git 记录）
 - 2026-11-21 / C / Phase C 完成：P0-6 全管线合成端到端 VERIFIED；真人数据仍 0 份。
   下一任务：Phase D 静态部署可行性验证（按推荐顺序 C→D）
+- 2026-11-21 / D / `export_static_index.py`：真实 839 候选索引 → 7.4 MB 自包含
+  JSON（sha256 6e7c6baf...，不入库，可由命令复现）/ 导出实测 PASS
+- 2026-11-21 / D / `make_golden_retrieval_vectors.py` + `golden_retrieval.json`：
+  全链路 golden（生产函数直跑：270 点轨迹→重采样→平滑→归一→16 谐波→几何 4
+  统计→真实索引 Top-10）
+- 2026-11-21 / D / `web/src/search/retrieval.ts` 移植 + `retrieval.test.ts` 契约：
+  逐级 1e-9 通过；**真实导出全库 Top-10 与 Python 生产 rank() 行序列与距离
+  逐位一致**（行 358,144,113,...；candidate_id 随行一致）。jsdom 重写
+  import.meta.url 的坑以 process.cwd() 规避
+- 2026-11-21 / D / Vite 构建确定性：两次构建产物哈希一致（D5IlZnSq）
+- 2026-11-21 / D / Phase D 收口：粗筛级跨语言 VERIFIED；align 精排移植判超界
+  留 P1；本地静态服务冒烟与 Qoder Sites 发布 NOT RUN。全 web 门禁 17 passed
+  + tsc + build 全绿后提交

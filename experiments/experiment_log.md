@@ -1428,3 +1428,34 @@ test_p06_judgement_sheets 的既有核验）。
 VERIFIED；**真人数据仍为 0 份**，一切数字为 SYNTHETIC TEST，不构成 P0 门禁
 证据。协议歧义处理与隐私红线见 D94 与 SCORING_GUIDE。复现：
 `.venv/Scripts/python.exe -m pytest tests/test_p06_scoring.py -q -o addopts=""`。
+
+## 2026-11-21 — P0-7 静态部署可行性：真实索引导出与跨语言检索契约（Phase D）
+
+**目标**：验证"Python 离线索引 → 静态资源 → 浏览器检索"链路的核心技术可行性
+（P0 技术验证，非产品开发，不发布）。
+
+**Baseline**：跨语言契约仅覆盖 `normalize_contour`（golden_contour.json，
+tests/test_geometry.py:503 ↔ web/src/search/preprocess.test.ts）；无静态导出；
+无 TS 检索实现。
+
+**方案**：(1) 原样重打包导出（不重算、不合成）；(2) golden 向量扩展到全链路，
+生产函数直跑；(3) TS 侧自含移植（凸包/旋转卡壳/直排 DFT），零新增 npm 依赖。
+
+**实验设计**：固定 270 点合成轨迹（明示非真实地理、非人绘）走生产链；契约
+测试逐级容差 1e-9；全库测试在真实导出（839×16）上比对 Top-10 行序列+距离；
+导出缺失时显式降级断言已提交短名单（CI/干净 clone 可跑）。
+
+**结果（核心）**：重采样/平滑/归一/16 谐波/4 几何统计全部 <1e-9；
+**TS 粗筛真实全库 Top-10（行 358,144,113,82,342,234,766,252,302,84）与
+Python 生产 rank() 逐位一致，距离相对差 <1e-9，candidate_id 随行一致**；
+Vite 两次干净构建产物哈希一致。
+
+**独立核验**：golden 由独立生成器脚本从 data/index 再生（命令在 docstring），
+与提交版 `cmp` 逐字节一致；TS 测试同时验证退化路径（宽度不匹配/空库/截断/稳定并列）。
+
+**结论与边界**：粗筛级跨语言 VERIFIED；align 精排移植（约 1–2 天）判定超界，
+复杂度/风险记录留 P1（禁止用粗筛近似冒充）；本地 fetch 冒烟与 Qoder Sites
+发布 NOT RUN。复现：`python scripts/export_static_index.py --index data/index
+--out experiments/p0_7_static_export/static_index.json`；
+`python scripts/make_golden_retrieval_vectors.py`；
+`cd web && npm run test`（17 passed）。

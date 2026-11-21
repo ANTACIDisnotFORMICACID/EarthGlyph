@@ -13,7 +13,7 @@
 | 合成扰动（P0-5） | ✅ Top-1 **0.7887** [0.7698, 0.8078]（3,658 查询，源聚类 bootstrap）；精排相对纯粗排 **+5.6pp**；归因 A 294 / **B 粗筛 1 / C 精排 0** / D 296 |
 | 研究对照（P0-4.5 / P0-4.6） | ✅ 收官：E1/E2/E3 三臂 + 官方 ShapeComp 端口 + 旋转对照；结论**不换生产默认**（D54 / D65 / D86） |
 | P0-6 真人采集 | 🟡 管线就绪（协议冻结、门禁对空数据实跑正确拒绝、**评分汇总闭环已建**）但 **0 份真人数据** |
-| P0-7 Qoder Sites 验证 / P0-8 Go-No-Go | ⬜ 未启动 |
+| P0-7 Qoder Sites 验证 / P0-8 Go-No-Go | 🟡 P0-7 技术核心已验证（真实索引导出 + 跨语言粗筛契约逐位一致 + Vite 确定性构建，2026-11-21）；浏览器 fetch 冒烟与实际发布 NOT RUN；P0-8 待 P0-6 数据 |
 | 调试工具 | ✅ 画板一键检索（`21acd9c`）+ M1 多笔画拼接（`12b4c01`）；均不跨 P0 门禁、不构成 P0-6 证据 |
 
 **门禁：P0 未通过。** 唯一剩余入口是 P0-6 真人采集（判据 `EXPERIMENTS.md` §6，
@@ -376,6 +376,36 @@ Web 四项门禁（npm ci / vitest 6 passed / tsc / vite build 142.79 kB）全�
 42 源文件无问题；`mypy --strict scripts/score_p06_judgements.py
 scripts/make_p06_judgement_sheets.py` 无问题。协议、冻结判据、P0-5 产物、
 索引产物零改动。
+
+### P0-7 静态部署可行性：真实索引导出 + 跨语言检索契约（2026-11-21，Phase D）
+
+P0-7 的技术核心（EXPERIMENTS.md §7 / ROADMAP）在不公开发布的前提下完成验证：
+
+- **`scripts/export_static_index.py`**：真实 `data/index`（839 候选，Overture
+  2026-10-21.0）→ 单文件自包含 JSON（Float32 特征矩阵 + 128 点轮廓 + ID/类型/
+  经纬度 + 完整血缘：源版本、bbox、feature_columns、索引产物 sha256、索引
+  git_commit）。7.4 MB，**不入库**（可由命令复现，sha256 `6e7c6baf…` 已记录）。
+  索引缺失时拒绝运行，不用合成数据顶替。
+- **`scripts/make_golden_retrieval_vectors.py` + `web/src/search/golden_retrieval.json`**：
+  把跨语言契约从单一 `normalize_contour`（既有 golden_contour.json）扩展到全链路
+  ——弧长重采样 → 循环高斯平滑(σ=0.8) → 质心/RMS 归一 → 16 谐波幅度 → 4 几何
+  统计 → 真实索引粗筛 Top-10，全部由生产函数直跑生成，容差逐级记录（1e-9）。
+- **`web/src/search/retrieval.ts`**：TS 端生产链移植（含单调链凸包、旋转卡壳
+  最小旋转矩形、O(N²) 直排 DFT——N=128 无需 FFT 库）。`retrieval.test.ts`
+  逐级 1e-9 验证；**核心结论：TS 粗筛在真实导出索引上返回的 Top-10 行序列与
+  距离与 Python 生产 `coarse.rank` 逐位一致**（行 358,144,113,82,342,234,766,
+  252,302,84；candidate_id 随行一致）。导出文件缺失时测试显式降级为"仅断言
+  已提交的 golden 短名单"（干净 clone/CI 可跑，不静默跳过契约）。
+- **Vite 构建确定性**：两次干净构建产物哈希一致（`index-D5IlZnSq.js`）。
+
+**边界（如实）**：align 精排（循环移位+旋转对齐+Chamfer）未移植——完整移植
+加数值等价验证约 1–2 天，判定超出 P0 技术验证边界，复杂度与风险已记录留 P1
+（Worker 内 O(短名单×128²) 距离预估 <1 s，未实测）；本地静态服务 + 浏览器
+fetch 加载冒烟 NOT RUN；Qoder Sites 实际发布 NOT RUN（需授权，不擅自发布）。
+
+**验证**：web 侧 `npm run test` → 17 passed（含真实全库契约）、`npm run
+typecheck`、`npm run build` 全绿；Python 侧 `mypy --strict`（两个新脚本）、
+`ruff` 全过。详见 `experiments/p0_next_autonomy/RESULTS.md` §3。
 
 ## 阻塞与已知问题（当前，2026-11-21）
 
