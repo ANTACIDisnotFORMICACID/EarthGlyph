@@ -194,6 +194,18 @@ def test_collection_to_sheets_pipeline(index_dir: Path, tmp_path: Path,
     assert bodies[0] != bodies[1], "judges must not share one annotation order"
     assert set(manifest["judge_seeds"]) == {"judge_01", "judge_02"}
 
+    # drawer self-rating sheet (protocol §5): only the participant's own
+    # queries, its own rater id and seed, same (query, option) coverage
+    self_rows = list(csv.reader(
+        (out_dir / "sheet_self_P01.csv").open(encoding="utf-8")))
+    assert self_rows[0] == columns
+    assert all(row[0] == "self_P01" for row in self_rows[1:])
+    assert sorted((row[1], row[2]) for row in self_rows[1:]) == [
+        ("P01-q01", letter) for letter in "ABCD"
+    ]
+    assert manifest["self_seeds"] == {"self_P01": TEST_SEED * 100_000 + 1001}
+    assert manifest["judge_seeds"]["judge_01"] != manifest["self_seeds"]["self_P01"]
+
     # regression (review finding 1): every option maps ONE candidate — row and
     # candidate_id from the same permuted hit, independently recomputed here
     key = json.loads((sessions / "key_options.json").read_text(encoding="utf-8"))
@@ -212,6 +224,9 @@ def test_collection_to_sheets_pipeline(index_dir: Path, tmp_path: Path,
         for slot in range(len(result.hits))
     }
     assert key == {"P01-q01": expected}
+    import hashlib as _hashlib
+    assert manifest["key_options_sha256"] == _hashlib.sha256(
+        (sessions / "key_options.json").read_bytes()).hexdigest()
     for entry in expected.values():
         assert metadata.iloc[entry["row"]]["candidate_id"] == entry["candidate_id"]
     assert manifest["queries"]["P01-q01"]["top1_row"] == result.hits[0].row

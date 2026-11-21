@@ -1392,3 +1392,39 @@ QuickDraw 开放轨迹（rel gap 0.064–0.237）拆分 → 400 `open_gap`（不
 4 车道 → 恰 2 解 → `ambiguous`；非选中配对全部材料性自交，不是被容差藏掉的）。
 **边界**：容差/折角为初始实验值（标注假设/待验证）；v2 输入不进入 P0-6 数据集；
 本冒烟不构成 P0-6 真人评测证据。
+
+## 2026-11-21 — P0-6 评分汇总闭环（采集前工程准备，P0 收官自主工程轮）
+
+**目标**：补齐 P0-6 评价闭环缺失的最后环节——盲评评分回收、校验与 Go/No-Go
+汇总，使真人数据一到即可出判定；全程不制造任何真人数据。
+
+**Baseline**：HEAD == origin/main == `0044482`；1114 passed / ruff 全过 /
+mypy 无问题 / vitest 6 passed / vite build 正常（Phase A 复核，见
+`experiments/p0_next_autonomy/RESULTS.md` §1）。采集（collector）、预检
+（gate）、盲评单生成（sheets）齐备；评分器不存在。
+
+**改动**：新增 `scripts/score_p06_judgements.py`（三口径主判据 + 硬错误校验 +
+双路交叉核验 + 隐私安全报告，见 D94）；`make_p06_judgement_sheets.py` 增
+抽屉自评表与密钥 sha256；新增 `SCORING_GUIDE.md` 操作手册；
+`tests/test_p06_scoring.py` 16 条 SYNTHETIC TEST。
+
+**实验设计（合成端到端，10 人 × 6 幅 = 60 查询走完整生成管线，逐测试分叉）**：
+完整合法（31/60 similar → GO）、恰 50%（30/60 → 必 NO-GO，退出码 1）、
+略高于 50%（GO）、评委漏评（主判据不受影响、一致率按共同对）、重复评分/
+错误映射/未知 query_id/非法枚举/身份错位/数据集漂移（全部 INVALID）、
+提取拒绝（登记口径 1/2=50% → NO-GO，出单口径 1/1，分歧并列展示）、
+参与者不足 / 幅数不足（NOT READY）、独立重算（CSV 直读重算 == 报告值）、
+归因（--targets 30 top1 / 30 not-in-top10）、报告无候选身份泄漏。
+
+**结果**：16 passed（模块夹具含 60 次真实检索 + 60 张盲评图生成）。
+关键行为验证：最严口径单调性使"恰 50%"与"拒绝计入"都直接 NO-GO，
+不可能借分母选择翻盘；自评表存在性、密钥 sha 防篡改、身份错位拒绝均按设计。
+
+**独立核验**：测试内用与评分器零共享代码的 CSV 直读路径重算主判据分子/分母
+与评委一致率，逐位相等；密钥-候选唯一性由生成器排列独立重放断言（沿用
+test_p06_judgement_sheets 的既有核验）。
+
+**结论与边界**：P0-6 全管线（采集→预检→材料→评分）在合成数据上端到端
+VERIFIED；**真人数据仍为 0 份**，一切数字为 SYNTHETIC TEST，不构成 P0 门禁
+证据。协议歧义处理与隐私红线见 D94 与 SCORING_GUIDE。复现：
+`.venv/Scripts/python.exe -m pytest tests/test_p06_scoring.py -q -o addopts=""`。

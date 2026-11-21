@@ -15,11 +15,18 @@ A-J, and writes:
                                       pair with empty verdict columns, row
                                       order shuffled with that judge's own
                                       fixed seed (protocol §5)
+``judgement/sheet_self_<PXX>.csv``   the drawer self-rating sheet (protocol §5):
+                                      participant PXX rates only their own
+                                      sheeted queries, shuffled with their own
+                                      fixed seed (``self_seeds`` in the manifest)
 ``judgement/refusals.csv``            extraction refusals, verbatim reasons
-``judgement/manifest.json``           run provenance (index commit, command)
+``judgement/manifest.json``           run provenance (index commit, command,
+                                      key_options sha256 for tamper evidence)
 
 The A-J -> candidate mapping goes to the gitignored local key file
 ``sessions/key_options.json``; it MUST NOT be committed or shown to judges.
+``scripts/score_p06_judgements.py`` verifies the key against the recorded
+sha256 before aggregating any ratings.
 
 The protocol §7 pre-flight gate (``scripts/validate_p06_dataset.py``) must
 pass before any sheet is generated; ``--min-participants`` / ``--min-finals``
@@ -40,6 +47,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -207,7 +215,28 @@ def main(argv: list[str] | None = None) -> int:
                 writer.writerow([label, row_query_id, option, "", "", ""])
     manifest["judge_seeds"] = judge_seeds
 
+    # drawer self-rating sheets (protocol §5): one CSV per participant covering
+    # only their own sheeted queries, shuffled with a participant-specific seed
+    # from a seed space disjoint from the judge seeds
+    self_seeds: dict[str, int] = {}
+    for participant in sorted({query_id[:3] for query_id, _ in pairs}):
+        label = f"self_{participant}"
+        self_seeds[label] = args.seed * 100_000 + 1000 + int(participant[1:3])
+        rows = [pair for pair in pairs if pair[0].startswith(f"{participant}-")]
+        np.random.default_rng(self_seeds[label]).shuffle(rows)
+        with (args.out_dir / f"sheet_{label}.csv").open(
+            "w", newline="", encoding="utf-8"
+        ) as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["judge_id", "query_id", "option", "verdict",
+                             "most_similar", "notes"])
+            for row_query_id, option in rows:
+                writer.writerow([label, row_query_id, option, "", "", ""])
+    manifest["self_seeds"] = self_seeds
+
     key_path.write_text(json.dumps(option_key, indent=1, ensure_ascii=False), "utf-8")
+    manifest["key_options_sha256"] = hashlib.sha256(
+        key_path.read_bytes()).hexdigest()
     with (args.out_dir / "refusals.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(["query_id", "refusal"])
@@ -216,7 +245,8 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(manifest, indent=1, ensure_ascii=False), "utf-8"
     )
     print(f"wrote {len(manifest['queries'])} sheets / refusals, "
-          f"{args.judges} shuffled judge sheet(s) x {len(pairs)} rows to {args.out_dir}")
+          f"{args.judges} shuffled judge sheet(s) + {len(self_seeds)} "
+          f"self-rating sheet(s) x {len(pairs)} rows to {args.out_dir}")
     return 0
 
 

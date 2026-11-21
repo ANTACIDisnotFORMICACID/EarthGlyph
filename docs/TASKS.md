@@ -1,8 +1,8 @@
 # TASKS — 当前任务、状态、阻塞与下一步
 
-> 最后更新：2026-11-20（文档整合：P0-0…P0-4.6 历史检查点、仓库维护检查点台账与
-> 2026-11-18 现状快照已逐字移至 [`TASKS_HISTORY.md`](TASKS_HISTORY.md)；本文只保留
-> 当前状态、任务拆解、近期检查点记录与待办）。
+> 最后更新：2026-11-21（P0 收官自主工程轮启动：基线复核 + P0-6 评分闭环
+> `scripts/score_p06_judgements.py`；P0-0…P0-4.6 历史检查点与 2026-11-18 现状快照
+> 仍逐字存于 [`TASKS_HISTORY.md`](TASKS_HISTORY.md)）。
 
 ## 当前状态总览（2026-11-20，基线 `6572b68`）
 
@@ -12,7 +12,7 @@
 | 工程基线（本日实跑） | `pytest -q -o addopts=""` **1114 passed** · `ruff check .` 全过 · `mypy` 42 源文件无问题 · `mypy --strict scripts/serve_sketch_search.py` 无问题 |
 | 合成扰动（P0-5） | ✅ Top-1 **0.7887** [0.7698, 0.8078]（3,658 查询，源聚类 bootstrap）；精排相对纯粗排 **+5.6pp**；归因 A 294 / **B 粗筛 1 / C 精排 0** / D 296 |
 | 研究对照（P0-4.5 / P0-4.6） | ✅ 收官：E1/E2/E3 三臂 + 官方 ShapeComp 端口 + 旋转对照；结论**不换生产默认**（D54 / D65 / D86） |
-| P0-6 真人采集 | 🟡 管线就绪（协议冻结、门禁对空数据实跑正确拒绝）但 **0 份真人数据** |
+| P0-6 真人采集 | 🟡 管线就绪（协议冻结、门禁对空数据实跑正确拒绝、**评分汇总闭环已建**）但 **0 份真人数据** |
 | P0-7 Qoder Sites 验证 / P0-8 Go-No-Go | ⬜ 未启动 |
 | 调试工具 | ✅ 画板一键检索（`21acd9c`）+ M1 多笔画拼接（`12b4c01`）；均不跨 P0 门禁、不构成 P0-6 证据 |
 
@@ -329,7 +329,55 @@ P0-6 冻结协议）一律未动；v2 输入不进入 P0-6 真人数据集。
 scripts/serve_sketch_search.py` 无问题。索引数据未重建（`data/index` 沿用 Overture
 release 2026-10-21.0 构建产物，本轮零触碰）。
 
-## 阻塞与已知问题（当前，2026-11-20）
+### P0 收官自主工程轮：P0-6 评分汇总闭环（2026-11-21，采集前工程准备）
+
+长期自主工程（`experiments/p0_next_autonomy/` 有独立 PLAN/PROGRESS/RESULTS）第一轮。
+本轮前先复核基线：HEAD == origin/main == `0044482`（无漂移），四项 Python 门禁 +
+Web 四项门禁（npm ci / vitest 6 passed / tsc / vite build 142.79 kB）全部实跑通过。
+
+**交付：P0-6 评价闭环的最后一块拼图**——盲评评分回收、校验与 Go/No-Go 汇总
+（此前采集/预检/盲评单生成齐备，唯独没有评分工具）：
+
+- `scripts/score_p06_judgements.py`（新增）：读 session manifests + judgement
+  manifest + gitignored 选项密钥 + 填好的 `sheet_*.csv`（自评 `self_PXX` /
+  独立评委 `judge_NN`），**不 import 检索代码**（循 D91"聚合工具只读证据"先例）。
+  校验：CSV 结构 / 枚举 / 重复评分 / 不存在 query_id / 身份错位（抽屉只能评
+  自己的查询）/ 选项-候选唯一映射（密钥 sha256 防篡改 + 同查询选项去重）/
+  生成后数据集漂移。统计：主判据三口径（`registered_finals` 判定口径 /
+  `sheeted` / `complete_data`，单调不减，**取最严格定判**，杜绝静默选有利
+  分母）、拒绝率、每参与者分布、每评委 similar 率与自评一致率、漏评覆盖、
+  内部双路交叉核验（行驱动重算 + 按参与者求和）、可选 `--targets` 归因
+  （缺目标登记时明示 not_computed）。退出码 0 ⇔ GO。`--synthetic` 横幅与
+  报告标记（合成数据永不冒充真人证据）。报告只含 PXX/聚合数（测试保证无
+  candidate_id 泄漏）。
+- `scripts/make_p06_judgement_sheets.py`（扩展）：协议 §5 的抽屉自评此前没有
+  材料——新增每参与者 `sheet_self_<PXX>.csv`（独立种子打乱、只含本人查询）、
+  manifest 记录 `self_seeds` 与 `key_options_sha256`（防篡改凭据）。评委表
+  行为零改动（既有断言全过）。
+- `experiments/p0_6_human_queries/SCORING_GUIDE.md`（新增）：采集→预检→盲评→
+  评分全流程操作手册，含需用户组织的真人环节清单、三口径解释、隐私红线、
+  已知缺口（§2.3 题目登记未实现 → 归因判据 not_computed；拒绝后重画须重走
+  ①→③，评分器以"数据集已变"硬错误兜底）。
+- `tests/test_p06_scoring.py`（新增 16 条）：10 人 × 6 幅 = 60 查询模块级真实
+  管线夹具（走完整 sheet 生成），逐测试分叉填充/破坏 CSV。覆盖简报全部边界：
+  完整合法数据 GO / 恰 50% 必 NO-GO / 略高于 50% GO / 评委漏评不破主判据 /
+  重复评分 / 错误候选映射 / 不存在 query_id / 非法 verdict 与 most_similar /
+  身份错位 / 数据集漂移 / 提取拒绝（严格口径 1/2=50%→NO-GO vs 出单口径 1/1，
+  分歧如实并列）/ 参与者不足 / 每人幅数不足 NOT READY / 独立重算交叉核验 /
+  targets 归因 / 报告无候选身份泄漏。全部 SYNTHETIC TEST。
+
+**已知缺口（如实记录）**：协议 §2.3"题目记入 session manifest"在 collector
+未实现——归因（§6 次要判据）依赖目标登记，评分器已预留 `--targets` 入口并
+默认明示 not_computed；是否在采集前给 collector 加题目字段属协议工具设计决策，
+留给用户（见 SCORING_GUIDE §6）。
+
+**验证（全部实跑，采集前完成）**：`pytest tests/test_p06_scoring.py` → 16 passed；
+全量 `pytest -q -o addopts=""` → 1130 passed（+16）；`ruff check .` 全过；`mypy`
+42 源文件无问题；`mypy --strict scripts/score_p06_judgements.py
+scripts/make_p06_judgement_sheets.py` 无问题。协议、冻结判据、P0-5 产物、
+索引产物零改动。
+
+## 阻塞与已知问题（当前，2026-11-21）
 
 - **P0-6 真人数据 = 唯一门禁阻塞**：管线就绪但 0 份真人数据（门禁要求 ≥10 名可区分
   参与者 × ≥6 幅最终版）；QuickDraw 的 5 个机器查询不算真人。真人盲评 0 份
@@ -356,8 +404,10 @@ release 2026-10-21.0 构建产物，本轮零触碰）。
 
 1. **P0-6 真人采集**（门禁唯一入口，协议已冻结）：≥10 名参与者 × ≥6 幅最终版 →
    `collect_p06_queries.py` 登记 → `validate_p06_dataset.py` 预检 →
-   `make_p06_judgement_sheets.py` 盲评单 → 抽屉自评 + ≥2 名独立盲评 →
-   主判据判定。注意：多笔画 v2 输入不进入 P0-6 数据集（D93）。
+   `make_p06_judgement_sheets.py` 盲评单（含每参与者自评表）→ 抽屉自评 + ≥2 名
+   独立盲评 → `score_p06_judgements.py` 出 Go/No-Go（全流程操作手册见
+   `experiments/p0_6_human_queries/SCORING_GUIDE.md`）。注意：多笔画 v2 输入
+   不进入 P0-6 数据集（D93）。
 2. **P0-7 Qoder Sites 静态发布路径验证**：跑通一次最小静态部署，记录实际步骤。
 3. **P0-8 Go/No-Go 决策**：依据 `EXPERIMENTS.md` §6 记录结论与证据。
 4. **M2 候选（调试工具，不跨门禁）**：多笔画容差 / 折角的真实验证实验；
