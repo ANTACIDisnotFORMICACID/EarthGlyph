@@ -35,3 +35,17 @@
 - 2026-11-21 / D / Phase D 收口：粗筛级跨语言 VERIFIED；align 精排移植判超界
   留 P1；本地静态服务冒烟与 Qoder Sites 发布 NOT RUN。全 web 门禁 17 passed
   + tsc + build 全绿后提交
+- 2026-11-22 / B1 / 首版 b1 脚本两处自身缺陷修正：`_linspace_pts` y 坐标笔误
+  （a[1] 重复相加）；基几何误用"中点分段"（端点相距 ~200 px，全部 open_gap
+  拒绝）→ 重设计为 4 条整边 + 角部统一 pullback 留缝
+- 2026-11-22 / B1 / 成对实验（修复前）：5 密度模式原始点尺度 168.5–192.3 px、
+  容差 5.054–5.768 px（±12.8%）；固定角缝 5.411 px 同一幅画 3 ok / 2
+  rejected(open_gap) —— 判决随指针密度翻转，假设 CONFIRMED；机制=scale→容差
+  （tol±0.05 二分边界）；可装配模式 Fourier 向量差 ≤3.1e-4
+- 2026-11-22 / B1 / 最小修复（简报 B 预授权）：`_arc_weighted_scale` 逐段闭式
+  积分替换原始点 RMS；先写 3 条失败回归测试再修复；修复后 5 模式 scale 全部
+  184.581（差 2.8e-14）、同一幅画全部 ok；解析值独立验证 rel<1e-12；D93 其余
+  结构零改动；45 条 M1 测试零改动全过
+- 2026-11-22 / B1 / 门禁：全量 1134 passed、ruff 全过、mypy 42 文件无问题、
+  --strict 5 脚本无问题；D96 + experiment_log + RESULTS §4 已写；提交推送
+  （见 RESULTS §4 与 git 记录）

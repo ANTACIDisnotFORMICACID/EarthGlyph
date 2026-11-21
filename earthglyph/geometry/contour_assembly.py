@@ -9,10 +9,12 @@ the production retrieval math — a successful assembly is handed to the existin
 Method (frozen in D93; thresholds are initial experimental values, not claims
 of optimality):
 
-* scale = RMS radius of *all* input points; endpoint tolerance =
-  ``ENDPOINT_TOL_REL * scale``; junction turn limit ``MAX_JUNCTION_TURN_DEG``
-  (a rectangle corner drawn as separate strokes turns 90 deg and is legal; a
-  180 deg hairpin is not);
+* scale = arc-length-weighted RMS radius of the drawn strokes (the raw-point
+  RMS was replaced after the B1 density experiment: one slowly drawn stroke
+  moved it by ~13% and flipped verdicts on the same geometry —
+  docs/DECISIONS.md D96); endpoint tolerance = ``ENDPOINT_TOL_REL * scale``;
+  junction turn limit ``MAX_JUNCTION_TURN_DEG`` (a rectangle corner drawn as
+  separate strokes turns 90 deg and is legal; a 180 deg hairpin is not);
 * strokes are nodes, legal endpoint joins are edges; a bounded backtracking
   search finds cycles that use every stroke exactly once (no nearest-neighbour
   greed). Fixing stroke 0 forward at its start removes the rotation/reversal
@@ -41,7 +43,6 @@ from earthglyph.geometry.sketch import (
     _self_intersection_info,
     contour_from_points,
     dedupe_points,
-    trace_scale,
 )
 
 MAX_STROKES = 8
@@ -131,6 +132,52 @@ def parse_strokes_payload(payload: Any) -> tuple[list[np.ndarray], str]:
     return arrays, unit
 
 
+def _arc_weighted_scale(strokes: list[np.ndarray]) -> float:
+    """Exact arc-length-weighted RMS radius of the drawn polylines.
+
+    The pointer fires at erratic, per-stroke-varying rates, so an RMS over raw
+    points is a count-weighted mean: one slowly drawn stroke shifts the scale
+    — and every tolerance derived from it — while the geometry stands still
+    (B1: tolerance 5.05..5.77 px on one 400x240 drawing, verdict flips).
+    Integrating along the drawn arc removes the sampling density from the
+    yardstick. Per segment [a, b] of length l the closed forms are
+    ``int p ds = l (a + b) / 2`` and
+    ``int |p - c|^2 ds = l (|a - c|^2 + (a - c) . (b - a) + l^2 / 3)``.
+    Zero-length segments carry no arc and are skipped. Returns 0.0 when the
+    strokes carry no arc at all (the caller treats that as coincident input).
+    """
+    centroid_num = np.zeros(2, dtype=float)
+    total_length = 0.0
+    for arr in strokes:
+        delta = np.diff(arr, axis=0)
+        length = np.linalg.norm(delta, axis=1)
+        keep = length > 0.0
+        delta, length = delta[keep], length[keep]
+        if length.size == 0:
+            continue
+        starts, ends = arr[:-1][keep], arr[1:][keep]
+        centroid_num += ((starts + ends) / 2.0 * length[:, None]).sum(axis=0)
+        total_length += float(length.sum())
+    if total_length <= 0.0:
+        return 0.0
+    centroid = centroid_num / total_length
+    var_num = 0.0
+    for arr in strokes:
+        delta = np.diff(arr, axis=0)
+        length = np.linalg.norm(delta, axis=1)
+        keep = length > 0.0
+        delta, length = delta[keep], length[keep]
+        if length.size == 0:
+            continue
+        d = arr[:-1][keep] - centroid
+        e = arr[1:][keep] - centroid
+        var_num += float((length * (
+            np.sum(d * d, axis=1) + np.sum(d * (e - d), axis=1)
+            + length * length / 3.0
+        )).sum())
+    return float(np.sqrt(var_num / total_length))
+
+
 def _validate_strokes(strokes: Any) -> tuple[list[np.ndarray], list[np.ndarray], float]:
     """Structural checks + per-stroke dedupe. Returns (raw, deduped, scale)."""
     if not isinstance(strokes, (list, tuple)) or not strokes:
@@ -154,7 +201,7 @@ def _validate_strokes(strokes: Any) -> tuple[list[np.ndarray], list[np.ndarray],
         raw.append(arr)
     if total > MAX_TOTAL_POINTS:
         raise AssemblyError(f"too_many_points: {total} points total (max {MAX_TOTAL_POINTS})")
-    scale = trace_scale(np.vstack(raw))
+    scale = _arc_weighted_scale(raw)
     if scale <= 0.0:
         raise AssemblyError("invalid_input: all points coincide")
     deduped = [dedupe_points(arr, scale=scale) for arr in raw]

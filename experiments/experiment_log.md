@@ -1459,3 +1459,36 @@ Vite 两次干净构建产物哈希一致。
 --out experiments/p0_7_static_export/static_index.json`；
 `python scripts/make_golden_retrieval_vectors.py`；
 `cd web && npm run test`（17 passed）。
+
+## 2026-11-22 — M1 装配尺度密度敏感性：成对实验证明判决翻转 + 弧长加权修复（Phase B / B1）
+
+**目标**：检验 M1 装配以 `trace_scale(np.vstack(raw))`（原始点 RMS）为尺度
+是否使端点容差随指针采样密度漂移，并量化到判决层（任务简报 §四 B 问题 1）。
+
+**Baseline**：D93 冻结实现（`earthglyph/geometry/contour_assembly.py`），
+既有 42 条 M1 测试全绿；未做过密度敏感性实验。
+
+**方案（单一变量，成对）**：同一幅 400×240 四笔矩形（每笔端点沿边统一
+pullback，四角留缝 `pullback·√2`），唯一变量=每笔点数：5 种密度模式
+（弧长按比例 50/30/50/30、等数 25×4、单横笔×8 稠密、单竖笔×8、全×8）。
+测原始点尺度/容差、固定角缝下的装配判决、容差天花板、可装配模式的粗筛
+Fourier 向量差。
+
+**结果（核心，合成几何，非真人数据）**：原始点尺度 168.5–192.3 px → 容差
+5.054–5.768 px（**±12.8%**）；固定角缝 5.411 px 时**同一幅画 3 模式 ok、
+2 模式 rejected(open_gap)——判决随指针密度翻转，假设 CONFIRMED**；机制
+经验证实为 scale→容差路径（tol±0.05 二分边界）；可装配模式粗筛 Fourier
+向量差 ≤3.1e-4（输出敏感性远小于门敏感性）。
+
+**修复与独立核验**：`_arc_weighted_scale` 逐段闭式积分（`∫p ds = l(a+b)/2`、
+`∫|p−c|²ds = l(|a−c|²+(a−c)·(b−a)+l²/3)`）替换原始点 RMS；修复后 5 模式
+scale 全部 184.581（离散差 2.8e-14 px），同一幅画全部 ok。独立验证：
+直线边矩形解析值 `sqrt(a²(3b+a)/(3(a+b))+b²(3a+b)/(3(a+b)))` rel<1e-12；
+先写 3 条失败回归测试再修复（密度无关 scale / 固定角缝判决稳定 / 解析值）。
+
+**结论与边界**：**VERIFIED（缺陷真实存在并已修复）**；影响面仅装配模块内部
+尺度定义，单笔画生产路径与 Fourier 数学零改动；既有 45 条 M1 测试零改动
+全过；全量 1134 passed、ruff、mypy（含 --strict 5 脚本）全绿。决策记录
+D96。复现：`python experiments/p0_next_autonomy/b1_density_sensitivity.py`；
+`pytest tests/test_multistroke_assembly.py -q -o addopts=""`。
+

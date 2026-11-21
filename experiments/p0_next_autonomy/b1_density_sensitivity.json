@@ -1,0 +1,28 @@
+{
+ "raw_tolerance_spread_px": 0.7133871395066178,
+ "raw_tolerance_rel_spread": 0.12795391714371793,
+ "raw_tol_per_pattern": {
+  "arc_prop": 5.575344275746875,
+  "equal_25": 5.767848927459872,
+  "slow_bottom": 5.120351371960416,
+  "slow_right": 5.0544617879532545,
+  "all_x8": 5.716342867712712
+ },
+ "assembly_scale_per_pattern": {
+  "arc_prop": 184.58074651861975,
+  "equal_25": 184.58074651861972,
+  "slow_bottom": 184.58074651861972,
+  "slow_right": 184.58074651861975,
+  "all_x8": 184.58074651861975
+ },
+ "assembly_scale_spread_px": 2.842170943040401e-14,
+ "paired_corner_gap_px": 5.411155357706564,
+ "statuses_at_paired_gap": {
+  "arc_prop": "ok",
+  "equal_25": "ok",
+  "slow_bottom": "ok",
+  "slow_right": "ok",
+  "all_x8": "ok"
+ },
+ "verdict_flip": false
+}

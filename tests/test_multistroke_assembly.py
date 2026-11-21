@@ -336,6 +336,95 @@ def test_too_many_points_raise() -> None:
         assemble_contour([dense, dense])
 
 
+def rectangle_strokes(width: float, height: float, pullback: float,
+                      counts: tuple[int, int, int, int]) -> list[list[list[float]]]:
+    """4 full sides of a rectangle, each end pulled back from its corner.
+
+    Consecutive strokes miss every corner by ``pullback * sqrt(2)`` px. The
+    per-stroke point counts are the only free variable: every counts pattern
+    is the SAME drawing, sampled at a different pointer density (the B1
+    experiment in experiments/p0_next_autonomy/b1_density_sensitivity.py).
+    """
+    x0, x1 = pullback, width - pullback
+    y0, y1 = pullback, height - pullback
+
+    def line(a: tuple[float, float], b: tuple[float, float],
+             n: int) -> list[list[float]]:
+        return [[a[0] + (b[0] - a[0]) * i / (n - 1),
+                 a[1] + (b[1] - a[1]) * i / (n - 1)] for i in range(n)]
+
+    return [
+        line((x0, 0.0), (x1, 0.0), counts[0]),   # bottom
+        line((width, y0), (width, y1), counts[1]),  # right
+        line((x1, height), (x0, height), counts[2]),  # top
+        line((0.0, y1), (0.0, y0), counts[3]),   # left
+    ]
+
+
+DENSITY_PATTERNS = [
+    (50, 30, 50, 30),      # counts proportional to side length
+    (25, 25, 25, 25),      # equal counts per stroke
+    (193, 49, 25, 49),     # one slowly drawn (dense) horizontal stroke
+    (49, 193, 49, 25),     # one slowly drawn (dense) vertical stroke
+]
+
+
+def test_scale_is_independent_of_per_stroke_sampling_density() -> None:
+    """B1 regression: the raw-point RMS scale moved with pointer density.
+
+    The same 400x240 rectangle sampled at four density patterns produced
+    raw-point scales 168..192 px (endpoint tolerances 5.05..5.77 px) although
+    the drawing never changed. The assembly scale must be a property of the
+    drawn arc, not of how often the pointer fired.
+    """
+    scales = [assemble_contour(rectangle_strokes(400.0, 240.0, 0.5, counts)).scale
+              for counts in DENSITY_PATTERNS]
+    assert max(scales) == pytest.approx(min(scales), rel=1e-9), scales
+
+
+def test_verdict_is_stable_across_sampling_density_at_one_corner_gap() -> None:
+    """B1 regression: one fixed drawing, one verdict.
+
+    A corner gap of 5.41 px sat between the slow-stroke tolerance (5.05) and
+    the equal-count tolerance (5.77) of the raw-point scale, so the identical
+    drawing assembled or was refused (open_gap) purely on pointer density.
+    A 5.4 px miss on a 400 px drawing is exactly the user input the tolerance
+    exists to absorb, so every density pattern must assemble it.
+    """
+    pullback = 5.41 / np.sqrt(2.0)
+    results = [assemble_contour(rectangle_strokes(400.0, 240.0, pullback, counts))
+               for counts in DENSITY_PATTERNS]
+    statuses = {result.status for result in results}
+    assert statuses == {"ok"}, [result.status for result in results]
+
+
+def test_arc_weighted_scale_is_exact_for_straight_sided_rectangles() -> None:
+    """Independent verification of the arc-length-weighted scale integral.
+
+    For a rectangle with half-sides (a, b) the exact arc-length-weighted RMS
+    radius over the outline is
+    ``sqrt(a^2 (3b + a) / (3 (a + b)) + b^2 (3a + b) / (3 (a + b)))``
+    (straight sides, so the polyline integral is the continuum value). The
+    unequal per-side counts prove the value does not depend on density.
+    """
+    from earthglyph.geometry.contour_assembly import _arc_weighted_scale
+
+    for width, height, counts in (
+        (100.0, 100.0, (7, 3, 11, 5)),
+        (400.0, 240.0, (50, 30, 50, 30)),
+        (400.0, 240.0, (193, 49, 25, 49)),
+    ):
+        a, b = width / 2.0, height / 2.0
+        expected = np.sqrt(
+            a**2 * (3.0 * b + a) / (3.0 * (a + b))
+            + b**2 * (3.0 * a + b) / (3.0 * (a + b))
+        )
+        strokes = [np.asarray(s, dtype=float)
+                   for s in rectangle_strokes(width, height, 0.0, counts)]
+        assert _arc_weighted_scale(strokes) == pytest.approx(expected, rel=1e-12), (
+            width, height, counts)
+
+
 @pytest.mark.parametrize(
     "payload",
     [
