@@ -49,3 +49,14 @@
 - 2026-11-22 / B1 / 门禁：全量 1134 passed、ruff 全过、mypy 42 文件无问题、
   --strict 5 脚本无问题；D96 + experiment_log + RESULTS §4 已写；提交推送
   （见 RESULTS §4 与 git 记录）
+- 2026-11-22 / B2 / 探针先行：原路折返前缀笔画 → 2% 弧探针弦=0 → NaN 切向
+  （0/0 warning）；NaN 转角静默绕过 150° 守卫；json.dumps 输出裸 NaN（桥
+  serve_sketch_search.py:87 默认 allow_nan → 浏览器 JSON.parse 拒绝）
+- 2026-11-22 / B2 / 先写 3 条失败回归测试再修复：_endpoint_tangent 探针占比
+  倍增（2%→4%→…→全弦）直到弦非零；自闭合笔画全弦为零 → 零向量回退（该类
+  在切向被使用前已被 closed_loop 守卫拒绝，不可达）；非退化输入逐位不变
+- 2026-11-22 / B2 / 五类设计边界实测：2 点笔画方形 → 生产链 ≥8 点规则拒绝
+  （正确委托）；针尖三角形 h=57.74 精确翻转（150° 上限）；笔内 99% 点前 1%
+  弧与端点 0.5px 抖动 → 同判决同转角；自闭合 → closed_loop_with_extras
+- 2026-11-22 / B2 / 门禁：全量 1137 passed（+3）、ruff、mypy 42 文件、
+  --strict 5 脚本全绿；D97 + experiment_log + RESULTS §4.5 已写；提交推送

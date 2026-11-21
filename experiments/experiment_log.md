@@ -1492,3 +1492,33 @@ scale 全部 184.581（离散差 2.8e-14 px），同一幅画全部 ok。独立�
 D96。复现：`python experiments/p0_next_autonomy/b1_density_sensitivity.py`；
 `pytest tests/test_multistroke_assembly.py -q -o addopts=""`。
 
+
+## 2026-11-22 — M1 端点切向退化：NaN 穿透缺陷修复 + 五类设计边界实测（Phase B / B2）
+
+**目标**：枚举任务简报 §四 B 问题 2 的端点切向退化类（来回折返/极短笔画/
+近 180° 尖端/笔内极端非均匀采样/端点近重复/自闭合），实测 M1 行为并分类
+（实现缺陷 vs 设计阈值 vs 生产链自身规则）。
+
+**Baseline**：D93 实现 `_endpoint_tangent` 固定 2% 弧探针，弦为零时 0/0。
+
+**方案**：逐类单变量合成输入（`experiments/p0_next_autonomy/
+b2_tangent_degeneracies.py`），报告 status/reason/转角/有限性/JSON 严格性。
+
+**结果（核心，合成几何）**：(1) **缺陷 CONFIRMED 并修复**：以"原路精确折返"
+开头的笔画使 2% 弧探针弦恰为零 → NaN 切向 → NaN 转角**静默绕过 150° 守卫**
+被接受，且 `json.dumps` 输出裸 `NaN`（浏览器 `JSON.parse` 拒绝 → 调试桥响应
+体不可解析）。修复：探针占比倍增（2%→4%→…→全弦）直到弦非零；非退化输入
+逐位不变。(2) **设计行为实测分类**：四条 2 点笔画方形 → 生产链自身"≥8 点"
+规则拒绝（正确委托）；针尖三角形在 h=57.74 处精确翻转（57.24 拒 /
+58.24 ok 149.8°）——150° 上限设计边界成立；笔内 99% 点在前 1% 弧、端点
+0.5 px 抖动 → 与均匀参考同判决同转角（弧长比例探针天然稳健）；自闭合笔画
+→ closed_loop_with_extras 如设计拒绝。
+
+**独立核验**：先写 3 条失败回归测试（切向有限且方向 +x / 自闭合无警告 /
+装配转角全有限 + JSON 无 NaN/Infinity）再修复；修复后全过。
+
+**结论与边界**：**VERIFIED（1 缺陷修复 + 5 类设计边界刻画）**；单笔画生产
+路径、D93 阈值、Fourier 数学零改动；M1 套件 48 passed（+3），全量
+**1137 passed**、ruff、mypy（42 文件 + --strict 5 脚本）全绿。决策 D97。
+复现：`python experiments/p0_next_autonomy/b2_tangent_degeneracies.py`；
+`pytest tests/test_multistroke_assembly.py -q -o addopts=""`。

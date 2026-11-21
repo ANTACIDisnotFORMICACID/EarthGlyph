@@ -11,7 +11,9 @@ data; nothing is registered into the P0-6 dataset.
 
 from __future__ import annotations
 
+import json
 import random
+import warnings
 from typing import Any
 
 import numpy as np
@@ -423,6 +425,71 @@ def test_arc_weighted_scale_is_exact_for_straight_sided_rectangles() -> None:
                    for s in rectangle_strokes(width, height, 0.0, counts)]
         assert _arc_weighted_scale(strokes) == pytest.approx(expected, rel=1e-12), (
             width, height, counts)
+
+
+def wiggle_bottom_stroke() -> list[list[float]]:
+    """Bottom side that starts with 10 exact out-and-back wiggles (0,0)<->(5,0).
+
+    The 2%-arc tangent probe lands on a vertex that has returned to the
+    stroke's own start, so the probe chord is exactly zero.
+    """
+    points = [(0.0, 0.0)]
+    for _ in range(10):
+        points += [(5.0, 0.0), (0.0, 0.0)]
+    tail = rectangle_strokes(400.0, 240.0, 0.0, (25, 25, 25, 25))[0]
+    return points + tail[1:]
+
+
+def test_endpoint_tangent_widens_past_a_degenerate_probe_chord() -> None:
+    """B2 regression: the zero probe chord divided out to NaN (0/0 warning).
+
+    The probe must widen its arc share until the chord is non-degenerate; the
+    tangent of this stroke at its start is the tail direction (+x).
+    """
+    from earthglyph.geometry.contour_assembly import _endpoint_tangent
+
+    stroke = np.asarray(wiggle_bottom_stroke(), dtype=float)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="invalid value encountered")
+        tangent = _endpoint_tangent(stroke, 0)
+    assert np.isfinite(tangent).all()
+    assert np.allclose(tangent, [1.0, 0.0])
+
+
+def test_endpoint_tangent_of_a_self_closing_stroke_stays_finite() -> None:
+    """A closed stroke's full chord is zero; the helper must not emit NaN.
+
+    Such strokes are refused by the closed-loop guard before tangents are
+    used, but the tangents are computed eagerly, so the helper itself has to
+    stay finite and warning-free.
+    """
+    from earthglyph.geometry.contour_assembly import _endpoint_tangent
+
+    ring = np.asarray(circle_ring(96), dtype=float)
+    for end in (0, 1):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("error", message="invalid value encountered")
+            tangent = _endpoint_tangent(ring, end)
+        assert np.isfinite(tangent).all(), end
+
+
+def test_out_and_back_prefix_keeps_turn_degrees_finite() -> None:
+    """B2 regression: NaN turns bypassed the 150 deg guard and leaked to JSON.
+
+    json.dumps emits bare NaN (rejected by every strict JSON parser, including
+    the browser's JSON.parse), so an accepted assembly with a NaN turn_deg
+    broke the debug bridge response while silently skipping the hairpin check.
+    """
+    sides = rectangle_strokes(400.0, 240.0, 0.0, (25, 25, 25, 25))
+    strokes = [wiggle_bottom_stroke()] + sides[1:]
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="invalid value encountered")
+        result = assemble_contour(strokes)
+    assert result.status == "ok", result.reason
+    turns = [junction["turn_deg"] for junction in result.junctions]
+    assert turns and all(np.isfinite(turn) for turn in turns), turns
+    payload = json.dumps(result.to_dict())
+    assert "NaN" not in payload and "Infinity" not in payload
 
 
 @pytest.mark.parametrize(

@@ -214,16 +214,31 @@ def _validate_strokes(strokes: Any) -> tuple[list[np.ndarray], list[np.ndarray],
 
 
 def _endpoint_tangent(points: np.ndarray, end: int) -> np.ndarray:
-    """Unit vector from the endpoint into the stroke, over >=2% of its arc."""
+    """Unit vector from the endpoint into the stroke, over >=2% of its arc.
+
+    A stroke that starts by doubling back exactly over itself returns to its
+    own start point inside the 2% probe window, and the zero chord divided
+    out to NaN — which silently passed the turn guard (B2). The probe share
+    therefore doubles until the chord is non-degenerate; a stroke whose full
+    chord is also zero is self-closing and refused by the closed-loop guard
+    before tangents are used, so the zero vector fallback is never consumed.
+    """
     seq = points if end == 0 else points[::-1]
     step = np.linalg.norm(np.diff(seq, axis=0), axis=1)
     cumulative = np.cumsum(step)
-    target = TANGENT_ARC_SHARE * float(cumulative[-1])
-    # cumulative[k] is the arc to vertex k+1; never pick the endpoint itself
-    index = min(int(np.searchsorted(cumulative, target)) + 1, seq.shape[0] - 1)
-    direction = seq[index] - seq[0]
-    norm = float(np.linalg.norm(direction))
-    return np.asarray(direction / norm, dtype=float)
+    total = float(cumulative[-1])
+    share = TANGENT_ARC_SHARE
+    while True:
+        target = min(share, 1.0) * total
+        # cumulative[k] is the arc to vertex k+1; never pick the endpoint itself
+        index = min(int(np.searchsorted(cumulative, target)) + 1, seq.shape[0] - 1)
+        direction = seq[index] - seq[0]
+        norm = float(np.linalg.norm(direction))
+        if norm > 0.0:
+            return np.asarray(direction / norm, dtype=float)
+        if share >= 1.0:
+            return np.zeros(2, dtype=float)
+        share *= 2.0
 
 
 def _turn_deg(incoming: np.ndarray, outgoing: np.ndarray) -> float:

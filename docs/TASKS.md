@@ -433,6 +433,25 @@ VERIFIED —— 缺陷真实存在并已最小修复**（D96；证据
 （serve_sketch_search / score / sheets / export / golden 共 5 个生产脚本）
 无问题。详见 `experiments/p0_next_autonomy/RESULTS.md` §4。
 
+### M1 端点切向退化：NaN 穿透修复 + 设计边界刻画（2026-11-22，Phase B / B2）
+
+Phase B 第二项。**结论：VERIFIED —— 1 个实现缺陷修复 + 5 类设计边界实测**
+（D97；证据 `experiments/p0_next_autonomy/b2_tangent_degeneracies.py`）：
+
+- **缺陷（已修）**：以"原路精确折返"开头的笔画使 2% 弧切向探针弦恰为零 →
+  0/0 产生 NaN 切向 → NaN 转角**静默绕过 150° 折角守卫**被接受，且
+  `json.dumps` 输出裸 `NaN`（浏览器 `JSON.parse` 拒绝 → 调试桥 200 响应体
+  不可解析）。修复：探针占比倍增（2%→…→全弦）直到弦非零；非退化输入
+  逐位不变；3 条失败先行回归测试。
+- **设计行为（实测分类，不改）**：四条 2 点笔画方形 → 生产链自身"≥8 点"
+  规则拒绝（正确委托）；针尖三角形在 h=57.74 精确翻转（150° 上限）；
+  笔内 99% 点在前 1% 弧 / 端点 0.5 px 抖动 → 与均匀参考同判决同转角
+  （弧长比例探针天然稳健）；自闭合笔画 → `closed_loop_with_extras`。
+
+**验证（全部实跑）**：M1 套件 48 passed（+3，既有 45 条零改动）；全量
+`pytest -q -o addopts=""` → **1137 passed**；ruff、mypy（42 文件 +
+--strict 5 脚本）全绿。详见 `experiments/p0_next_autonomy/RESULTS.md` §4.5。
+
 ## 阻塞与已知问题（当前，2026-11-21）
 
 - **P0-6 真人数据 = 唯一门禁阻塞**：管线就绪但 0 份真人数据（门禁要求 ≥10 名可区分
