@@ -1522,3 +1522,44 @@ b2_tangent_degeneracies.py`），报告 status/reason/转角/有限性/JSON 严�
 **1137 passed**、ruff、mypy（42 文件 + --strict 5 脚本）全绿。决策 D97。
 复现：`python experiments/p0_next_autonomy/b2_tangent_degeneracies.py`；
 `pytest tests/test_multistroke_assembly.py -q -o addopts=""`。
+
+## 2026-11-22 — M1 全局拼接与预算边界：search_complexity 路径补测（Phase B / B3）
+
+**目标**：枚举任务简报 §四 B 问题 3 的全局装配/歧义边界（容差边界/多环/
+近重合重画边/搜索预算），实测 M1 行为；`search_complexity` 拒绝路径自
+M1 交付起零测试覆盖，需验证其在触发时行为正确、并判定 ≤8 笔画下是否
+可能触发。
+
+**Baseline**：D93 `SEARCH_NODE_BUDGET=100_000`、`MAX_MATCHINGS=10_000`；
+E1–E3 无既有测量。
+
+**方案**：单变量合成输入 + 计时（`experiments/p0_next_autonomy/
+b3_assembly_ambiguity.py`）；对抗输入的精确搜索规模用**二分法**测得
+（进程内临时调低预算触发/不触发，生产常量零改动）；预算拒绝路径用
+临时调低预算做功能验证。
+
+**结果（核心，合成几何）**：(1) **E1 容差边界精确成立**：二分求得的
+合法间隙边界 4.498424 px 与 0.03×scale=4.498424 px 机器精度一致，
+−0.01 px ok / +0.01 px rejected。(2) **E2/E3 设计拒绝**：两个独立两
+笔画环、底边画两遍（0.5 px）均 `no_legal_assembly`，不合并、不选边。
+(3) **E4 预算不可达**：对抗稠密端点图——两簇直线双向扇 **1 节点**
+（紧簇处任何环必 180° 掉头，150° 折角规则直接杀死，第一步即无可行
+后继）；8 条弯折笔画两簇 **936 节点（预算 0.94%）**（弯折软化掉头后
+的最密结构 ≈4!² 环量级）；四角各 4 个重合端点的双向重画方形 47 节点
+（self_intersection）；四车道歧义件 7 节点（ambiguous）——全部
+≤2.9 ms，无一触发预算。(4) **拒绝路径功能正确**：节点预算触发 →
+rejected/search_complexity；匹配上限触发 → 已枚举候选保守丢弃。
+(5) **语义发现（不改）**：`MAX_MATCHINGS` 是中止守卫而非严格界限
+（四车道件 cap=1 下枚举先自然结束，正确返回 ambiguous）；守卫仅在
+节点进入时检查 → 节点数为精确值、匹配数为守卫可见下界。
+
+**独立核验**：新增 2 条回归测试直接覆盖 `search_complexity` 拒绝路径
+（monkeypatch 临时调低预算，生产常量零改动），先确认在真实预算下
+不可达（二分测得全部输入 ≤936 节点）再以测试固定路径行为。
+
+**结论与边界**：**VERIFIED（全局边界按设计 + 预算路径功能正确 +
+≤8 笔画实测不可达）**；D93 冻结阈值零改动；M1 套件 50 passed（+2），
+全量 **1139 passed**、ruff、mypy（42 文件 + --strict 5 脚本）全绿。
+决策 D98。复现：`python experiments/p0_next_autonomy/
+b3_assembly_ambiguity.py`；`pytest tests/test_multistroke_assembly.py
+-q -o addopts=""`。

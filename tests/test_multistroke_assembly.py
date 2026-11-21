@@ -19,6 +19,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+import earthglyph.geometry.contour_assembly as contour_assembly
 from earthglyph.geometry.contour_assembly import (
     ENDPOINT_TOL_REL,
     MAX_STROKES,
@@ -286,6 +287,40 @@ def test_eight_stroke_star_polygon_is_refused_quickly() -> None:
     result = assemble_contour(strokes)
     assert result.status == "rejected"
     assert result.reason_code in {"self_intersection", "no_legal_assembly"}
+
+
+def doubled_square_mixed() -> list[list[list[float]]]:
+    """Every side of a square drawn twice, once per direction: four corner
+    clusters of four coincident endpoints (B3's densest legal-edge graph)."""
+    corners = [(100.0, 100.0), (400.0, 100.0), (400.0, 400.0), (100.0, 400.0)]
+    strokes: list[list[list[float]]] = []
+    for p, q in zip(corners, corners[1:] + corners[:1], strict=True):
+        forward = [[p[0] + (q[0] - p[0]) * i / 20, p[1] + (q[1] - p[1]) * i / 20]
+                   for i in range(21)]
+        strokes.append(forward)
+        strokes.append(forward[::-1])
+    return strokes
+
+
+def test_node_budget_refusal(monkeypatch: pytest.MonkeyPatch) -> None:
+    # B3 measured every <=8-stroke search at <=936 of the 100k nodes, so the
+    # budget is unreachable in practice; the designed refusal is exercised
+    # directly with a temporarily lowered budget (production value untouched)
+    monkeypatch.setattr(contour_assembly, "SEARCH_NODE_BUDGET", 4)
+    result = assemble_contour(ambiguous_lanes())  # exact search size: 7 nodes
+    assert result.status == "rejected"
+    assert result.reason_code == "search_complexity"
+    assert result.contour_points is None
+
+
+def test_matching_cap_refusal(monkeypatch: pytest.MonkeyPatch) -> None:
+    # the cap guards the enumeration loop, not the verdict: when it fires the
+    # already-enumerated candidates are discarded and the input is refused
+    monkeypatch.setattr(contour_assembly, "MAX_MATCHINGS", 1)
+    result = assemble_contour(doubled_square_mixed())  # >=7 matchings enumerated
+    assert result.status == "rejected"
+    assert result.reason_code == "search_complexity"
+    assert result.contour_points is None
 
 
 def test_same_input_gives_identical_results() -> None:
