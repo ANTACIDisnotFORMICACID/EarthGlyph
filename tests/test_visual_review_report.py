@@ -25,6 +25,7 @@ pytest.importorskip("matplotlib")  # every test here renders figures
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "visual_review_report.py"
 CHECKPOINT_D = ROOT / "experiments" / "p0_perceptual_probe" / "checkpoint_d"
+GALLERY_JSONL = ROOT / "experiments" / "p0_perceptual_probe" / "gallery.jsonl"
 
 
 def _load() -> Any:
@@ -371,6 +372,11 @@ def test_committed_summary_agrees_with_the_committed_csv(report: Any) -> None:
     assert summary["low_confidence_audit"]["flagged_only_by_the_list"] == []
 
 
+@pytest.mark.skipif(
+    not GALLERY_JSONL.exists(),
+    reason="draw_examples needs the frozen perceptual gallery, a build artifact "
+           "not in this checkout",
+)
 def test_draw_examples_writes_a_png_without_covering_shapes(
     report: Any, blind: Any, tmp_path: Path
 ) -> None:

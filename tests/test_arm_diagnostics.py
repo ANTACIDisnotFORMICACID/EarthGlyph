@@ -44,6 +44,8 @@ def diag() -> Any:
 
 @pytest.fixture(scope="module")
 def frozen(diag: Any) -> Any:
+    if not (GALLERY_DIR / "gallery.jsonl").exists():
+        pytest.skip("frozen perceptual gallery is a build artifact, not in this checkout")
     return diag.Frozen(GALLERY_DIR, INDEX_DIR, GALLERY_DIR / "results.csv")
 
 
