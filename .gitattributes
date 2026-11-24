@@ -1,0 +1,7 @@
+# The frozen ShapeComp audit records (d5b/d6/cp8 provenance blocks in
+# experiments/shape_perception_benchmark) pin the exact bytes they verified,
+# and those bytes are the CRLF presentation produced on the authoring machine.
+# Without this rule an LF checkout (Linux/macOS default) hashes differently and
+# the audit-verification tests fail even though the blobs are unchanged. Pin the
+# presentation on every platform; blobs stay LF-normalized in git.
+experiments/shape_perception_benchmark/** text=auto eol=crlf
