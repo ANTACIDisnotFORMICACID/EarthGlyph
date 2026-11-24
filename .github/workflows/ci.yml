@@ -39,8 +39,9 @@ jobs:
           pip install -e ".[dev,data,cv,shapecomp]" \
             "ruff==0.17.3" "mypy==2.4.1" "pytest==9.2.0"
       # Job logs are admin-gated on this account, so failures must be readable
-      # without them: the first 10 failing test IDs are re-emitted as ::error
-      # annotations (visible via the public check-runs API) and the full digest
+      # without them: the failing test IDs and their first assertion lines
+      # (pytest's `E  assert ...` details) are re-emitted as ::error
+      # annotations, visible via the public check-runs API; the full digest
       # goes to the step summary on the run page. pipefail is load-bearing:
       # without it `pytest | tee` reports tee's exit code and a failing suite
       # shows up as a green step (this actually masked a real failure once).
@@ -52,6 +53,8 @@ jobs:
               echo "## pytest failure digest"
               echo '```'
               grep -E "^(FAILED|ERROR)" pytest_output.log | head -50 || true
+              echo "--- E lines ---"
+              grep -E "^E " pytest_output.log | head -50 || true
               echo "--- tail ---"
               tail -30 pytest_output.log
               echo '```'
@@ -59,6 +62,11 @@ jobs:
             grep -E "^(FAILED|ERROR)" pytest_output.log | head -10 | awk '{print $2}' \
               | while read -r test_id; do
                   echo "::error title=pytest failure::$test_id"
+                done
+            grep -E "^E " pytest_output.log | head -10 | cut -c1-240 \
+              | while read -r detail; do
+                  printf '::error title=pytest assertion::%s\n' \
+                    "$(printf '%s' "$detail" | sed 's/%/%25/g; s/:/%3A/g; s/,/%2C/g')"
                 done
             exit 1
           }
