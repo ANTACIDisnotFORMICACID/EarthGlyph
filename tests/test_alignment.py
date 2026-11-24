@@ -343,7 +343,14 @@ def test_batch_mirror_decisions_match_the_pairwise_switch() -> None:
     distances, shifts, thetas, mirrored = align_library(query, library, allow_mirror=True)
     for index in range(library.shape[0]):
         result = align(query, library[index], allow_mirror=True)
-        assert distances[index] == pytest.approx(result.distance, abs=1e-9)
+        # Batch and pairwise evaluate the same closed form with different
+        # roundings (Parseval vs time-domain energies, batched vs per-pair
+        # FFT). The perfect matches in this library score at the sqrt(eps)
+        # floor ~2e-8 (test_closed_form_has_a_machine_precision_floor), where
+        # two roundings of the residue can differ by the floor itself; O(1)
+        # distances agree to ~1e-15.
+        tolerance = 1e-7 if result.distance < 1e-6 else 1e-9
+        assert distances[index] == pytest.approx(result.distance, abs=tolerance)
         assert mirrored[index] == result.mirrored
         aligned = apply_alignment(
             library[index], shift=int(shifts[index]), theta_rad=float(thetas[index]),
