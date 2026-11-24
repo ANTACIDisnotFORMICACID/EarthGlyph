@@ -224,3 +224,136 @@ B3 +2）；既有 M1 测试零改动全过 ✓（45→50 只增不改）；单�
 不受影响 ✓；生产 Fourier 检索数学零改动 ✓；结论区分 VERIFIED（B1 缺陷
 已证并修、B2 缺陷已证并修、B3 全部 VERIFIED）/ 无 BLOCKED 项。
 
+
+## 5. Phase E — 轻量 GitHub CI + 干净环境复现（2026-11-24）
+
+**结论：VERIFIED —— 干净环境（git archive 纯跟踪树，无 data/ 无本地产物）
+下 Python 与 Web 门禁全绿；远端 CI 先后暴露三个真实缺陷并逐一修复
+（eol 呈现失配 `d13f40a`、假绿门禁 `b269fbc`、亚底容差测试 `b5c85a5`），
+`aed8cda` 实跑后 CI 首次真正全绿（见 §5.3 表末行）。**
+
+### 5.1 干净树实测（本地，git archive HEAD）
+
+| 门禁 | 结果 |
+|---|---|
+| `pytest -q -o addopts=""` | **1027 passed + 112 skipped，0 failed / 0 errors**（96 s）；此前 24 处产物依赖测试缺守卫（23 ERROR + 1 FAIL，根因=`p0_perceptual_probe/gallery.jsonl` 等未入库冻结产物），按仓库既有"build artifact not in this checkout"惯例补 skip（`c7feb93`），产物齐全时行为零变化（本地仍 1139 passed） |
+| web `npm ci` / `npm run test` / `npm run typecheck` / `npm run build` | 全绿：vitest **17 passed**（含全库契约测试按设计降级为 golden 短名单断言）、tsc 无错、构建产物 `index-D5IlZnSq.js` 142.79 kB **哈希与本地一致**（确定性第三次独立确认） |
+
+### 5.2 真实数据 / 产物测试归类（CI 零数据下载）
+
+- **自动 skip（既有设计）**：`data/index` 检索集成与 golden 再生测试（
+  `data_manifest.json` 不存在即 skip）；Overture 数据检查 / 预览 / 索引
+  复现测试（raw/processed 缺失即 skip）；ShapeComp 权重与 MPEG7 源缓存
+  测试；cv2 / h5py 可选依赖测试；CP8 冻结表测试。
+- **本轮补守卫（`c7feb93`）**：`tests/test_arm_diagnostics.py` 的 `frozen`
+  fixture（23 条）与 `tests/test_visual_review_report.py` 的
+  `draw_examples` 测试（1 条）——依赖未入库的感知图库冻结产物。
+- **CI 不下载任何数据**（简报边界：无授权不大规模下载）；CI 绿 ⇔
+  "干净 clone + 声明依赖即可复现门禁"。
+
+### 5.3 CI 配置与远端实跑（含一次假绿事故的完整复盘）
+
+配置 `8f04772`（`.github/workflows/ci.yml`），两 job 逐字镜像本地检查点
+门禁：
+- **python**（ubuntu-latest, Python 3.12）：`pip install -e
+  ".[dev,data,cv,shapecomp]"` + 工具钉本地实测版（ruff 0.17.3 / mypy
+  2.4.1 / pytest 9.2.0）；`pytest -q -o addopts=""` → `ruff check .` →
+  `mypy` → `mypy --strict`（5 个生产脚本）。
+- **web**（ubuntu-latest, Node 26）：`npm ci` → `npm run test` →
+  `npm run typecheck` → `npm run build`。
+- 仓库 public → GitHub-hosted runner 免费（无付费资源）；触发 =
+  push / PR to main。
+
+远端实测（API 实查；job 日志需 admin 权限 403，以步骤级 conclusion、
+注记与取证为准）：
+
+| run | commit | 真实判读 |
+|---|---|---|
+| 45379510833 | `8f04772` | web **success**；python pytest 步骤 **failure**——真实失败：LF checkout 下 4 个审计哈希测试（见 §5.4） |
+| 45383867580 | `dadcfd8` | **假绿**：诊断步骤 `pytest \| tee` 未设 pipefail，步骤出口码取 tee 的 0，同 4 个失败仍在但步骤显示 success（ruff/mypy/strict 为普通命令，真实通过） |
+| 45386706411 | `d13f40a` | 显示 success（4 个哈希测试此时已真过；但 pytest 步骤仍带吞错风险，其出口码不可信） |
+| 45386888432 | `f592feb` | 显示 success + 取证注记：**git 2.56.1 / core.autocrlf=unset / d6 产物 sha256 == CRLF 审计记录值**——证明 runner 默认 LF checkout（首跑失败机制）、且 `.gitattributes` 已实际生效；pytest 出口码同样不可信 |
+| 45387765398 | `b269fbc` | **failure**——pipefail 后**首个可信 pytest 门禁**，暴露此前不可见的真实失败：`tests/test_alignment.py::test_batch_mirror_decisions_match_the_pairwise_switch`（Linux 数值，根因与修复见 §5.4/§5.5） |
+| 45390183895 | `aed8cda` | **success**——CI 首次真正全绿（python 四门禁 + web 四门禁） |
+
+### 5.4 两个失败根因（定位过程如实记录）
+
+**根因 1（run 1 的 4 个审计哈希失败，`d13f40a` 修复）**：
+- **根因（确证）**：runner 的 git `core.autocrlf=unset`（取证注记）→
+  无 `.gitattributes` 时 checkout = blob 字节 = **LF**；而 d5b/d6/cp8
+  审计记录（`read_only_sources`/`original_file`/`inputs`/`design` 块）
+  钉的 sha256/size 是作者机的 **CRLF 呈现**（索引 i/lf、Windows 工作区
+  w/crlf）。本地把 benchmark 产物重写为 LF 精确复现 **4 failed**：
+  `test_the_correction_records_the_exact_bytes_it_read`、
+  `test_history_files_are_declared_untouched_and_the_agreement_side_is_
+  not_rewritten`、`test_d5b_artefacts_agree_with_the_committed_d5_values`、
+  `test_published_run_binds_the_design_it_promised`。
+- **中途误判（已更正）**：`dadcfd8` 重跑全绿曾被解读为"首跑失败是一次性
+  瞬态"——实际是上述 pipefail 假绿掩盖了同样的 4 个失败。取证注记
+  （autocrlf=unset + 产物哈希 == CRLF 记录）与本地 LF 复现共同定案。
+- **排除项（排查如实）**：fresh-venv + CI 同款安装命令干净树复现
+  （1027 passed + 112 skipped）排除依赖版本漂移；路径/导入大小写扫描、
+  matplotlib 后端、winreg 类平台专用 API 引用全部零命中。
+
+**根因 2（run 5 的对齐测试失败，`b5c85a5` 修复）**：
+`test_batch_mirror_decisions_match_the_pairwise_switch` 以 `abs=1e-9`
+比较批处理与成对距离，但该库含完美匹配——距离即闭式解的 sqrt(eps)
+地板 ~2e-8（`D² = E_a + E_b - 2|C|` 相消两个 O(1) 项；本套件
+`test_closed_form_has_a_machine_precision_floor` 明文钉住该地板），两条
+代码路径对 O(1) 项的舍入不同（Parseval vs 时域能量、批 vs 单对 FFT），
+地板级距离可在地板量级内漂移。**进程内即证**：给批路径传入数学等价
+的时域能量（仅求和次序不同，`library_energy` 注入）→ 残差钳到 0.0，
+与成对路径的 2.107e-8 差 **21× 容差**；能量 ±1 ulp 扰动同幅（2.1e-8）。
+Windows 默认路径逐位巧合一致才本地通过；Linux 的舍入不同即失败——
+容差低于被测量自身的噪声地板，属测试缺陷而非生产缺陷（生产对齐数学
+零改动；镜像判定余量实测 ~5e-2，不受影响）。
+
+### 5.5 三个修复
+
+- **eol 呈现钉死（`d13f40a`，修 CI 实际失败）**：`.gitattributes` 对
+  `experiments/shape_perception_benchmark/**` 钉 `text=auto eol=crlf`——
+  blob 零改动，仅把该子树 checkout 呈现钉到审计记录所钉的同一呈现
+  （npz/png 经 text=auto 二进制探测不受影响）。独立验证：本地 LF 重写
+  → 4 failed；`git -c core.autocrlf=false clone`（模拟 Linux 默认 git
+  设置）→ 产物字节与 Windows 工作区逐位一致，4 个 eol 敏感测试文件
+  **109 passed**；全量 1139 passed / ruff / mypy 复跑全绿；远端
+  run 45386706411 实跑 success + f592feb 取证哈希匹配。冻结实验产物
+  与统计口径零改动。
+- **pipefail（`b269fbc`，修诊断步骤自身）**：`set -o pipefail` 使
+  `pytest | tee` 透传 pytest 出口码（本地双路径验证：失败→摘要分支
+  exit 1，成功→0）；摘要/注记逻辑不变。假绿期间无人据"run 2 全绿"
+  做出发布决策（Phase E 尚未收口），事故影响 = 归因多绕一轮。
+- **测试地板感知容差（`b5c85a5`，修 run 5 暴露的测试缺陷）**：该断言
+  改为 floor-aware——距离 <1e-6 时 `abs=1e-7`（同一测试 9 行后的
+  offset 断言既有先例），否则 `abs=1e-9`；O(1) 距离实测差 ~1e-15，
+  判别力不降。生产对齐数学、`align_library` 实现零改动（受保护项
+  未触碰）；本地全量门禁复跑 1139 passed / ruff / mypy 全绿。
+
+### 5.6 诊断与取证通道（防复发）
+
+- **失败摘要（`dadcfd8`）**：pytest 失败时 FAILED/ERROR 行写入
+  `$GITHUB_STEP_SUMMARY`，前 10 个失败测试 ID 以 `::error` 注记发布——
+  check-runs 注记 API 无需登录可读（本地已模拟验证该 bash 块）。
+- **checkout 取证（`f592feb`）**：每次运行把 git 版本、`core.autocrlf`
+  与一个钉死审计产物的 sha256 以 `::notice` 注记发布——本次定位根因
+  即直接依赖该通道。
+- **断言细节注记（`aed8cda`）**：失败摘要分支把 pytest 的前 10 条
+  `E  assert ...` 行也发布为 `::error` 注记（本地假日志模拟验证）——
+  断言实际比较值经 check-runs API 可读。本网络 github.com:443 被阻
+  （run 页面不可达），注记通道是唯一可读通道，本轮补齐它正是为了
+  下次失败不再靠推断定位。
+
+### 5.7 范围与未做（如实）
+
+- CI 对齐测试的失败为**平台舍入差异**触发（Linux runner vs Windows
+  作者机）；修复针对测试容差的噪声地板，非平台差异本身。numpy 在 CI
+  **未钉版**（pyproject 约束内取最新，本地为 2.5.4）——若未来 numpy
+  小版本改变批/单对 FFT 舍入，同类地板级漂移仍可能出现（届时按根因 2
+  同法处置）；刻意不钉 numpy 以保持 CI 检验"干净环境可复现"的本义。
+- 基于 6 次运行（1 真失败 + 2 吞错期 + 1 取证 + 1 pipefail 暴露 + 1
+  全绿）的样本，不做超出实测的稳定性声明；此后每个检查点推送自动
+  触发回归。
+- 远端**定期回归未建立**（只依赖 push/PR 触发；无 schedule
+  cron——刻意保持轻量）。
+- Actions 缓存（pip/npm）首跑冷启动，后续命中；无缓存失效问题已知。
+- 未加 `timeout-minutes` / concurrency 取消（轻量权衡，后续可加）。

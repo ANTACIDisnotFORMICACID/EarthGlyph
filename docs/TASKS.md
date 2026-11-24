@@ -1,10 +1,13 @@
 # TASKS — 当前任务、状态、阻塞与下一步
 
-> 最后更新：2026-11-22（P0 收官自主工程轮：B1 装配尺度密度敏感性实验 +
-  弧长加权修复 D96、B2 切向 NaN 穿透修复 D97、B3 全局拼接与预算边界
-  D98；此前 P0-6 评分闭环 `67878bc`、P0-7 静态导出与跨语言
-  契约 `2609450`；P0-0…P0-4.6 历史检查点与 2026-11-18 现状快照
-  仍逐字存于 [`TASKS_HISTORY.md`](TASKS_HISTORY.md)）。
+> 最后更新：2026-11-24（P0 收官自主工程轮：Phase E 轻量 GitHub CI
+> **收口——CI 首次真正全绿**（run 45390183895，三个真实缺陷先后修复：
+> eol 呈现 `d13f40a` / 假绿门禁 `b269fbc` / 亚底容差测试 `b5c85a5`）；
+> 此前 B1 装配尺度密度敏感性实验 + 弧长加权修复 D96、B2 切向 NaN
+> 穿透修复 D97、B3 全局拼接与预算边界 D98；P0-6 评分闭环 `67878bc`、
+> P0-7 静态导出与跨语言契约 `2609450`；P0-0…P0-4.6 历史检查点与
+> 2026-11-18 现状快照仍逐字存于
+> [`TASKS_HISTORY.md`](TASKS_HISTORY.md)）。
 
 ## 当前状态总览（2026-11-20，基线 `6572b68`）
 
@@ -480,6 +483,78 @@ b3_assembly_ambiguity.py`）：
 `pytest -q -o addopts=""` → **1139 passed**；ruff、mypy（42 文件 +
 --strict 5 脚本）全绿。详见 `experiments/p0_next_autonomy/RESULTS.md`
 §4.6–§4.7。Phase B（B1+B2+B3）至此收官。
+
+### 轻量 GitHub CI + 干净环境复现（2026-11-24，Phase E）
+
+**结论：VERIFIED —— 干净环境门禁全绿；远端 CI 三个真实缺陷先后暴露并
+逐一修复（eol 呈现失配 `d13f40a`、假绿门禁 `b269fbc`、亚底容差测试
+`b5c85a5`），run 45390183895（`aed8cda`）两 job 全步骤 success——
+CI 首次真正全绿，此后每个检查点推送自动回归。**
+证据：`experiments/p0_next_autonomy/RESULTS.md` §5（含 6 次运行完整复盘）。
+
+- **干净树实测（git archive HEAD，无 data/ 无本地产物）**：Python
+  `pytest -q -o addopts=""` → **1027 passed + 112 skipped（0 failed /
+  0 errors，96 s）**；web 四门禁全绿（npm ci / vitest 17 passed / tsc /
+  build 142.79 kB，产物哈希 `index-D5IlZnSq.js` 与本地一致）。
+- **顺手修复（`c7feb93`）**：干净树暴露 24 处产物依赖测试缺 skip 守卫
+  （`test_arm_diagnostics.py` 23 个 setup ERROR + `test_visual_review_
+  report.py` 1 个 FAIL，根因 = 感知图库冻结产物未入库），按仓库既有
+  "build artifact not in this checkout"惯例补显式 skip；产物齐全的本地
+  行为零变化（1139 passed 不变）。
+- **CI 配置（`8f04772`，`.github/workflows/ci.yml`）**：两 job 逐字镜像
+  本地检查点门禁——Python 3.12（pytest / ruff / mypy / --strict 5 个
+  生产脚本，工具钉本地实测版 ruff 0.17.3 / mypy 2.4.1 / pytest 9.2.0）
+  + Node 26（npm ci / test / typecheck / build）。仓库 public → 免费
+  runner（无付费资源）；**CI 不下载任何数据**（真实数据/冻结产物测试
+  全部显式 skip，归类见 RESULTS §5.2）；触发 = push / PR to main。
+- **首跑失败根因（确证）**：run 45379510833（`8f04772`）web success、
+  python pytest **failure**——runner git `core.autocrlf=unset`（f592feb
+  取证注记实测）→ 无 attributes 时 checkout 为 LF，而 d5b/d6/cp8 审计
+  sha256/size 记录钉的是作者机 CRLF 呈现 → **4 个审计哈希测试确定性
+  失败**（本地把 benchmark 产物重写为 LF 逐条复现：d6 两条 +
+  `test_d5b_artefacts_agree_with_the_committed_d5_values` +
+  `test_published_run_binds_the_design_it_promised`）。归因过程排除项
+  如实记录：fresh-venv + CI 同款安装命令干净树复现（1027 passed +
+  112 skipped）排除版本漂移；大小写/平台专用 API/后端扫描零命中。
+- **修复 1 —— eol 呈现钉死（`d13f40a`）**：`.gitattributes` 对
+  `experiments/shape_perception_benchmark/**` 钉 `text=auto eol=crlf`
+  （blob 零改动、冻结实验产物零触碰，仅 checkout 呈现）；证明链：本地
+  LF 重写 4 failed → `git -c core.autocrlf=false clone` 模拟 Linux
+  checkout 产物字节与 Windows 逐位一致、4 个 eol 敏感文件 109 passed →
+  全量门禁复跑 1139 passed / ruff / mypy 全绿 → 远端 run 45386706411
+  success，f592feb 取证注记 d6 sha256 == 审计记录值（attributes 实际
+  生效）。
+- **假绿事故与修复 2 —— pipefail（`b269fbc`）**：`dadcfd8` 引入的失败
+  摘要步骤 `pytest | tee` 未设 pipefail → 步骤出口码取 tee 的 0 →
+  run 45383867580 的"全绿"实为**同 4 个失败被吞掉的假绿**（当时一度误
+  判"瞬态"，取证数据到位后已全部更正；无人据假绿做发布决策，Phase E
+  未收口）。修复 = `set -o pipefail`（本地双路径验证），摘要/注记逻辑
+  不变。
+- **修复 3 —— 对齐测试亚底容差（`b5c85a5`，pipefail 后首个可信门禁
+  run 45387765398 暴露）**：唯一失败
+  `test_batch_mirror_decisions_match_the_pairwise_switch` 以 `abs=1e-9`
+  比较批/成对距离，但库含完美匹配——距离即闭式解 sqrt(eps) 地板
+  ~2.1e-8（套件内 `test_closed_form_has_a_machine_precision_floor`
+  明文钉住），两条路径对 O(1) 项舍入不同（Parseval vs 时域能量、批 vs
+  单对 FFT）。**进程内即证**：注入数学等价的时域能量（仅求和次序
+  不同）→ 残差钳 0.0 vs 成对 2.107e-8（差 21× 容差）；±1 ulp 同幅 →
+  容差低于被测量噪声地板，测试缺陷非生产缺陷。修复 = floor-aware
+  容差（距离 <1e-6 → `abs=1e-7`，同测试 offset 断言既有先例；否则
+  1e-9）；O(1) 距离实测差 ~1e-15，判别力不降；**生产对齐数学零改动**
+  （受保护项未触碰）；本地全量 1139 passed / ruff / mypy 复跑全绿。
+- **诊断与取证通道（`dadcfd8` + `f592feb` + `aed8cda`）**：pytest 失败
+  → 摘要写 `$GITHUB_STEP_SUMMARY` + 前 10 个失败测试 ID 与前 10 条
+  `E  assert ...` 断言细节行以 `::error` 注记发布（check-runs 注记
+  API 免登录可读，本地假日志模拟验证；本网络 run 页面不可达时唯一
+  可读通道）；每次运行 checkout 后记录 git 版本 / core.autocrlf /
+  钉死产物 sha256（`::notice`）——根因 1 定位即直接依赖该通道。
+
+**边界（如实）**：远端日志细节未逐行人工审读（API 结论 + 步骤级
+conclusion + 注记为准）；对齐测试失败为平台舍入差异触发（Linux runner
+vs Windows 作者机），修复针对测试噪声地板而非平台差异；CI 的 numpy
+未钉版（刻意，保持"干净环境可复现"本义，已知剩余敏感面见 RESULTS
+§5.7）；CI 无定时回归（只 push/PR 触发，刻意轻量）；无
+`timeout-minutes` 与 concurrency 取消（后续可加）。
 
 ## 阻塞与已知问题（当前，2026-11-21）
 
