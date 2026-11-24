@@ -41,9 +41,12 @@ jobs:
       # Job logs are admin-gated on this account, so failures must be readable
       # without them: the first 10 failing test IDs are re-emitted as ::error
       # annotations (visible via the public check-runs API) and the full digest
-      # goes to the step summary on the run page. Gate semantics unchanged.
+      # goes to the step summary on the run page. pipefail is load-bearing:
+      # without it `pytest | tee` reports tee's exit code and a failing suite
+      # shows up as a green step (this actually masked a real failure once).
       - name: pytest
         run: |
+          set -o pipefail
           pytest -q -o addopts="" 2>&1 | tee pytest_output.log || {
             {
               echo "## pytest failure digest"
