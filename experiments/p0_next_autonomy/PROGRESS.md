@@ -146,3 +146,18 @@
 - 2026-11-24 / E / 推送 b5c85a5 + aed8cda（b269fbc..aed8cda）；run
   45390183895：web job 全绿，python job pytest/ruff/mypy/--strict
   全过 → **CI 首次真正全绿**（结果以 API 实查为准）
+- 2026-11-24 / E / docs 收口提交 f411ca9（Phase E 完整叙事进 TASKS/
+  RESULTS/PROGRESS）；其 CI run 45390818662 亦全绿——连续第二个可信
+  绿；远程核验 `git ls-remote` == HEAD == f411ca9
+- 2026-11-24 / F / 开始 Phase F 裁决：复核证据源（P0-5 归因四类定义、
+  B4 notes、P0-4 角状/星形发现、D32 pending 分析、D13 通道）；
+  发现本地扩容储备 pending 1,034 已被 D32 否决 → F1 来源定为新区域
+- 2026-11-24 / F / 裁决 D99：F1 选定（计划冻结待授权）/ F2 本轮否决
+  （阴性结果：C=0、B=1、+5.6pp——精排非最弱环节；row 294 家族属
+  align 枝状区分度，B4 结论 4 要求另行授权不抢 P0-6 人眼预算）/
+  F3 顺延 / F4 出界；写入 docs/DECISIONS.md（含一处引数自纠：D32
+  冗余率误记 83.6%，改 93.2% 按原文）
+- 2026-11-24 / F / F1 计划冻结 docs/DATA_PIPELINE.md §11：量化验收
+  （覆盖探针阈值 WEAK_ALIGN_DISTANCE=0.12 已从 search.py:65 核实）、
+  探针先行序、冻结协议、成本标定（12.8% 转化率）、授权边界与回退、
+  明确不做；RESULTS §6 + 本文件记录
