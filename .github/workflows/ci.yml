@@ -31,8 +31,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,data,cv,shapecomp]" \
             "ruff==0.17.3" "mypy==2.4.1" "pytest==9.2.0"
+      # Job logs are admin-gated on this account, so failures must be readable
+      # without them: the first 10 failing test IDs are re-emitted as ::error
+      # annotations (visible via the public check-runs API) and the full digest
+      # goes to the step summary on the run page. Gate semantics unchanged.
       - name: pytest
-        run: pytest -q -o addopts=""
+        run: |
+          pytest -q -o addopts="" 2>&1 | tee pytest_output.log || {
+            {
+              echo "## pytest failure digest"
+              echo '```'
+              grep -E "^(FAILED|ERROR)" pytest_output.log | head -50 || true
+              echo "--- tail ---"
+              tail -30 pytest_output.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            grep -E "^(FAILED|ERROR)" pytest_output.log | head -10 | awk '{print $2}' \
+              | while read -r test_id; do
+                  echo "::error title=pytest failure::$test_id"
+                done
+            exit 1
+          }
       - name: ruff
         run: ruff check .
       - name: mypy
