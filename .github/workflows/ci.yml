@@ -26,6 +26,13 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pyproject.toml
+      # Records the environment the audit-hash tests ran in (git's checkout
+      # line-ending behavior and one pinned artifact's actual bytes) as notice
+      # annotations, readable from the check-runs API without log access.
+      - name: Checkout forensics
+        run: |
+          echo "::notice title=git::$(git --version); core.autocrlf=$(git config --get core.autocrlf || echo unset)"
+          echo "::notice title=d6_sha256::$(sha256sum experiments/shape_perception_benchmark/results/d6_rotation_metrics.json | cut -d' ' -f1)"
       - name: Install (all extras; tools pinned to local versions)
         run: |
           python -m pip install --upgrade pip
